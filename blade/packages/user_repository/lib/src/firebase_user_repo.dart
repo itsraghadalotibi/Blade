@@ -93,5 +93,28 @@ Future<void> setUserData(MyUser myUser) async {
     }
 }
 
+@override
+  Future<void> resetPassword(String email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+
+@override
+  Future<MyUser> getMyUser(String myUserId) async{
+    try{
+      return usersCollection.doc(myUserId).get().then((value) => 
+        MyUser.fromEntity(MyUserEntity.fromDocument(value.data()!))
+      );
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
 
 }

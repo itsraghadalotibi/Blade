@@ -14,6 +14,10 @@ abstract class UserRepository {
   
   Future<void> logOut();
 
+  Future<void> resetPassword(String email);
+
+  Future<MyUser> getMyUser(String myUserId);
+
 }
 // *** feel free to edit the parameters ***
 // we will implement these methods within the firebase_user_repo.dart
