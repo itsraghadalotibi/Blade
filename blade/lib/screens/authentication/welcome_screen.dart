@@ -56,12 +56,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                   controller: tabController,
                   children: [
                     Container(
-                      child: Center(
+                      child: const Center(
                         child: Icon(Icons.abc),
                       ),
                     ),
                     Container(
-                      child: Center(
+                      child: const Center(
                         child: Icon(Icons.ac_unit_outlined),
                       ),
                     ),
