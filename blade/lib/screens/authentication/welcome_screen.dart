@@ -1,9 +1,3 @@
-import 'package:blade_app/app_view.dart';
-import 'package:blade_app/utils/constants/colors.dart';
-import 'package:blade_app/utils/helpers/helper_functions.dart';
-import 'package:blade_app/utils/theme/theme.dart';
-import 'package:flutter/material.dart';
-
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -26,7 +20,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         centerTitle: true,
         title: const Text('Welcome'),
       ),
-      body: SafeArea( // Ensure content stays within safe area
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -52,27 +46,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ],
                 ),
               ),
-              // Login Button (ElevatedButton)
+              // Continue as Student Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/login');
+                    Navigator.pushNamed(context, '/login', arguments: 'student');
                   },
-                  child: const Text('Log In'),
+                  child: const Text('Continue as Student'),
                   // Elevated button styling will be applied from TElevatedButtonTheme
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Register Button (OutlinedButton)
+              // Continue as Supporter Button
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/register');
+                    Navigator.pushNamed(context, '/login', arguments: 'supporter');
                   },
-                  child: const Text('Register'),
+                  child: const Text('Continue as Supporter'),
                   // Outlined button styling will be applied from TOutlinedButtonTheme
                 ),
               ),
