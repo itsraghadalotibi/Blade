@@ -4,70 +4,72 @@ class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
   @override
-  State<StatefulWidget> createState() => _WelcomeScreenState();
+  _WelcomeScreenState createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateMixin{
-  late TabController tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    tabController = TabController(initialIndex: 0,length: 2, vsync: this);
-  }
-
+class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
+    // Detect theme mode (light or dark)
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(),
-      body: SingleChildScrollView(
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0, // Remove shadow under the AppBar
+        centerTitle: true,
+        title: const Text('Welcome'),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TabBar(
-                controller: tabController,
-                unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                labelColor: Theme.of(context).colorScheme.onSurface,
-                tabs: const [
-                  Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Text(
-                      'Sign In',
-                      style: TextStyle(
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: Text(
-                      'Register',
-                      style: TextStyle(
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                ]
-              ),
+              // Logo at the top half of the screen
               Expanded(
-                child: TabBarView(
-                  controller: tabController,
+                flex: 2,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      child: const Center(
-                        child: Icon(Icons.abc),
-                      ),
+                    // Display different logos based on theme mode
+                    Image.asset(
+                      isDarkMode ? 'assets/logos/blade-splash-logo-white.png' : 'assets/logos/blade-splash-logo-black.png',
+                      height: 150, // Adjust the height based on your image
                     ),
-                    Container(
-                      child: const Center(
-                        child: Icon(Icons.ac_unit_outlined),
-                      ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Welcome to Our App! Experience seamless management and more.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                  ]
+                  ],
                 ),
-              )
+              ),
+              // Continue as Student Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/login', arguments: 'student');
+                  },
+                  child: const Text('Continue as Student'),
+                  // Elevated button styling will be applied from TElevatedButtonTheme
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Continue as Supporter Button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/login', arguments: 'supporter');
+                  },
+                  child: const Text('Continue as Supporter'),
+                  // Outlined button styling will be applied from TOutlinedButtonTheme
+                ),
+              ),
             ],
           ),
         ),
