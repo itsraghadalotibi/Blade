@@ -8,13 +8,10 @@ import 'package:user_repository/user_repository.dart';
 
 // where the app runs itself
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); //to make sure that everything initilized right
+  WidgetsFlutterBinding
+      .ensureInitialized(); //to make sure that everything initilized right
   await Firebase.initializeApp();
   Bloc.observer = SimpleBlocObserver();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(MyApp(FirebaseUserRepo())); //it is implement the abstract class
 }
-
-
-
-
