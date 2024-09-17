@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter  # Declares dependency on the Flutter SDK
   cupertino_icons: ^1.0.6
+  
   font_awesome_flutter: ^10.6.0
   firebase_core: ^2.16.0  # Firebase core dependency for initialization
   bloc: ^8.1.2
@@ -24,11 +25,19 @@ dependencies:
   get: ^4.6.6
   flutter_native_splash: ^2.4.1
   intl: ^0.19.0
+  connectivity_plus: ^6.0.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter  # Testing framework provided with the Flutter SDK
   flutter_lints: ^2.0.0  # Linting tool to enforce coding standards
+  flutter_launcher_icons: "^0.13.1"
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo-transparent.png"
+  flutter_native_splash: ^2.4.1
 
 flutter_native_splash:
   color: "#FFFFFF"
@@ -48,3 +57,4 @@ flutter:
   assets:
   - assets/logos/blade-splash-logo-black.png
   - assets/logos/blade-splash-logo-white.png
+  - assets/images/content/user.png
