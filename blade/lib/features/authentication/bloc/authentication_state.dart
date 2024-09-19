@@ -1,6 +1,4 @@
 import 'package:equatable/equatable.dart';
-import '../src/collaborator_model.dart';
-import '../src/supporter_model.dart';
 
 abstract class AuthenticationState extends Equatable {
   @override
