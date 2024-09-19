@@ -1,5 +1,6 @@
 // gonna contain the material app ( colors, bloc builder, authentication bloc builder to redirect the user either to the auth screen or to the app itself)
 // lib/app_view.dart
+// lib/app_view.dart
 import 'package:flutter/material.dart';
 import 'features/authentication/screens/collaborator_sign_up_screen.dart';
 import 'features/authentication/screens/login_screen.dart';
@@ -28,4 +29,5 @@ class AppView extends StatelessWidget {
     );
   }
 }
+
 

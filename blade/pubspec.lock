@@ -72,6 +72,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
+<<<<<<< Updated upstream
   checked_yaml:
     dependency: transitive
     description:
@@ -88,6 +89,16 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.1"
+=======
+  chips_choice_null_safety:
+    dependency: "direct main"
+    description:
+      name: chips_choice_null_safety
+      sha256: "3133fb94869b788ba3cabab0c76c6ffc86de0bd47df6543b06ca9b144338b9c4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.6"
+>>>>>>> Stashed changes
   clock:
     dependency: transitive
     description:
@@ -168,6 +179,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
+<<<<<<< Updated upstream
   dbus:
     dependency: transitive
     description:
@@ -176,6 +188,16 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
+=======
+  easy_stepper:
+    dependency: "direct main"
+    description:
+      name: easy_stepper
+      sha256: "63f66314a509ec690c8152a41288961fd96ba9e92ef184299f068a5e78bd16ad"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.5+1"
+>>>>>>> Stashed changes
   equatable:
     dependency: "direct main"
     description:
@@ -309,6 +331,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.1"
+  flutter_screenutil:
+    dependency: "direct main"
+    description:
+      name: flutter_screenutil
+      sha256: "8239210dd68bee6b0577aa4a090890342d04a136ce1c81f98ee513fc0ce891de"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.9.3"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -344,7 +374,7 @@ packages:
     source: hosted
     version: "0.15.4"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       sha256: b9c29a161230ee03d3ccf545097fccd9b87a5264228c5d348202e0f0c28f9010
@@ -415,6 +445,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  lottie:
+    dependency: "direct main"
+    description:
+      name: lottie
+      sha256: "6a24ade5d3d918c306bb1c21a6b9a04aab0489d51a2582522eea820b4093b62b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.2"
   matcher:
     dependency: transitive
     description:
@@ -635,6 +673,14 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  uuid:
+    dependency: "direct main"
+    description:
+      name: uuid
+      sha256: "648e103079f7c64a36dc7d39369cabb358d377078a051d6ae2ad3aa539519313"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.7"
   vector_math:
     dependency: transitive
     description:
