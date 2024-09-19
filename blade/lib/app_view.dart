@@ -7,6 +7,7 @@ import 'features/authentication/screens/login_screen.dart';
 import 'features/authentication/screens/supporter_sign_up_screen.dart';
 import 'features/authentication/screens/welcome_screen.dart';
 import 'home_screen.dart';
+import 'utils/theme/theme.dart';
 
 class AppView extends StatelessWidget {
   const AppView({Key? key}) : super(key: key);
@@ -14,10 +15,11 @@ class AppView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Blade App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+       themeMode: ThemeMode.system,
+      theme: TAppTheme.lightTheme,
+      darkTheme: TAppTheme.darkTheme,
       initialRoute: '/',
       routes: {
         '/': (context) => const WelcomeScreen(),

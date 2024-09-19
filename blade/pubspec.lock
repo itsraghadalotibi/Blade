@@ -41,13 +41,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
-  blade_repository:
-    dependency: "direct main"
-    description:
-      path: "packages/blade_repository"
-      relative: true
-    source: path
-    version: "0.0.1"
   bloc:
     dependency: "direct main"
     description:
@@ -72,7 +65,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
-<<<<<<< Updated upstream
   checked_yaml:
     dependency: transitive
     description:
@@ -81,15 +73,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.3"
-  cli_util:
-    dependency: transitive
-    description:
-      name: cli_util
-      sha256: c05b7406fdabc7a49a3929d4af76bcaccbbffcbcdcf185b082e1ae07da323d19
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.1"
-=======
   chips_choice_null_safety:
     dependency: "direct main"
     description:
@@ -98,7 +81,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.6"
->>>>>>> Stashed changes
+  cli_util:
+    dependency: transitive
+    description:
+      name: cli_util
+      sha256: c05b7406fdabc7a49a3929d4af76bcaccbbffcbcdcf185b082e1ae07da323d19
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.1"
   clock:
     dependency: transitive
     description:
@@ -108,7 +98,7 @@ packages:
     source: hosted
     version: "1.1.1"
   cloud_firestore:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: cloud_firestore
       sha256: a0f161b92610e078b4962d7e6ebeb66dc9cce0ada3514aeee442f68165d78185
@@ -179,7 +169,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
-<<<<<<< Updated upstream
   dbus:
     dependency: transitive
     description:
@@ -188,7 +177,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
-=======
   easy_stepper:
     dependency: "direct main"
     description:
@@ -197,7 +185,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.8.5+1"
->>>>>>> Stashed changes
   equatable:
     dependency: "direct main"
     description:
@@ -223,7 +210,7 @@ packages:
     source: hosted
     version: "2.1.3"
   firebase_auth:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: firebase_auth
       sha256: cfc2d970829202eca09e2896f0a5aa7c87302817ecc0bdfa954f026046bf10ba
@@ -271,7 +258,7 @@ packages:
     source: hosted
     version: "2.17.5"
   firebase_storage:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: firebase_storage
       sha256: "2ae478ceec9f458c1bcbf0ee3e0100e4e909708979e83f16d5d9fba35a5b42c1"
@@ -525,14 +512,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.2"
-  rxdart:
-    dependency: transitive
-    description:
-      name: rxdart
-      sha256: "0c7c0cedd93788d996e33041ffecda924cc54389199cde4e6a34b440f50044cb"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.27.7"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -666,13 +645,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
-  user_repository:
-    dependency: "direct main"
-    description:
-      path: "packages/user_repository"
-      relative: true
-    source: path
-    version: "0.0.1"
   uuid:
     dependency: "direct main"
     description:
