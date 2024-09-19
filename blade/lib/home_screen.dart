@@ -1,19 +1,48 @@
 // lib/home_screen.dart
+
+import 'package:blade_app/features/profile/bloc/bloc/profile_view_bloc.dart';
+import 'package:blade_app/features/profile/bloc/bloc/profile_view_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:provider/provider.dart';
 import 'features/authentication/bloc/authentication_bloc.dart';
 import 'features/authentication/bloc/authentication_event.dart';
 import 'features/authentication/bloc/authentication_state.dart';
 import 'features/authentication/src/collaborator_model.dart';
 import 'features/authentication/src/supporter_model.dart';
-
+import 'features/profile/bloc/screens/profile_screen.dart';
+import 'features/profile/bloc/repository/profile_repository.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   void _onLogoutButtonPressed(BuildContext context) {
     context.read<AuthenticationBloc>().add(LoggedOut());
+  }
+
+  // Add the _onProfileButtonPressed function here
+  void _onProfileButtonPressed(BuildContext context, String userId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MultiProvider(
+          providers: [
+            RepositoryProvider.value(
+              value:
+                  context.read<ProfileRepository>(), // Inject ProfileRepository
+            ),
+            BlocProvider(
+              create: (context) => ProfileViewBloc(
+                profileRepository:
+                    context.read<ProfileRepository>(), // Create ProfileViewBloc
+              )..add(LoadProfile(
+                  userId)), // Trigger profile loading event with userId
+            ),
+          ],
+          child: ProfileScreen(userId: userId), // Pass userId to ProfileScreen
+        ),
+      ),
+    );
   }
 
   @override
@@ -43,9 +72,20 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
                 body: Center(
-                  child: Text(
-                    'Welcome Collaborator ${user.firstName} ${user.lastName}!',
-                    style: Theme.of(context).textTheme.headlineMedium,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Welcome Collaborator ${user.firstName} ${user.lastName}!',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => _onProfileButtonPressed(context,
+                            user.uid), // Call the profile button handler
+                        child: const Text('Go to Profile'),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -62,9 +102,20 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
                 body: Center(
-                  child: Text(
-                    'Welcome Supporter ${user.firstName} ${user.lastName}!',
-                    style: Theme.of(context).textTheme.headlineMedium,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Welcome Supporter ${user.firstName} ${user.lastName}!',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => _onProfileButtonPressed(context,
+                            user.uid), // Call the profile button handler
+                        child: const Text('Go to Profile'),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -86,7 +137,7 @@ class HomeScreen extends StatelessWidget {
               );
             }
           } else {
-            // If not authenticated, redirect to WelcomeScreen
+            // If not authenticated, show loading indicator
             return const Scaffold(
               body: Center(
                 child: CircularProgressIndicator(),
