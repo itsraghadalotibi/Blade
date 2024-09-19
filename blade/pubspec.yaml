@@ -9,13 +9,24 @@ environment:
 dependencies:
   flutter:
     sdk: flutter  # Declares dependency on the Flutter SDK
+  http: ^1.2.2  # Updated http version
   cupertino_icons: ^1.0.6
+<<<<<<< Updated upstream
   
+=======
+  uuid: ^3.0.4
+>>>>>>> Stashed changes
   font_awesome_flutter: ^10.6.0
   firebase_core: ^2.16.0  # Firebase core dependency for initialization
   bloc: ^8.1.2
   flutter_bloc: ^8.1.3  # Bloc library for state management
   equatable: ^2.0.5  # Uncomment if you need to use Equatable for value comparison
+  flutter_screenutil: ^5.0.0+2 # Use the latest version available
+  # get: ^4.6.1
+  chips_choice_null_safety: ^2.0.6
+  easy_stepper: ^0.8.5+1  # Use the suggested version
+
+
 
   user_repository:  # Local package dependency
     path: packages/user_repository
@@ -24,13 +35,18 @@ dependencies:
   url_launcher: ^6.3.0
   get: ^4.6.6
   flutter_native_splash: ^2.4.1
+<<<<<<< Updated upstream
   intl: ^0.19.0
   connectivity_plus: ^6.0.5
+=======
+  lottie: ^3.1.2
+>>>>>>> Stashed changes
 
 dev_dependencies:
   flutter_test:
     sdk: flutter  # Testing framework provided with the Flutter SDK
   flutter_lints: ^2.0.0  # Linting tool to enforce coding standards
+<<<<<<< Updated upstream
   flutter_launcher_icons: "^0.13.1"
 
 flutter_launcher_icons:
@@ -38,6 +54,8 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/logo-transparent.png"
   flutter_native_splash: ^2.4.1
+=======
+>>>>>>> Stashed changes
 
 flutter_native_splash:
   color: "#FFFFFF"
@@ -55,6 +73,10 @@ flutter:
   uses-material-design: true  # Enables material design widgets
 
   assets:
+<<<<<<< Updated upstream
   - assets/logos/blade-splash-logo-black.png
   - assets/logos/blade-splash-logo-white.png
   - assets/images/content/user.png
+=======
+    - assets/lottie/sent.json
+>>>>>>> Stashed changes

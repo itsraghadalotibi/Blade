@@ -9,6 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'; // Assuming you're using Bloc for authentication
 import 'blocs/authentication_bloc/authentication_bloc.dart';
 
+<<<<<<< Updated upstream
+=======
+import 'screens/home/home_screen.dart';
+import 'screens/newPost/backgroundPost.dart';
+import 'screens/newPost/post.dart';
+>>>>>>> Stashed changes
 
 class MyAppView extends StatelessWidget {
   const MyAppView({super.key});
@@ -18,9 +24,10 @@ class MyAppView extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Blade',
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.dark,
       theme: TAppTheme.lightTheme,
       darkTheme: TAppTheme.darkTheme,
+<<<<<<< Updated upstream
       initialRoute: '/',
       routes: {
         // Root route that checks authentication state
@@ -40,6 +47,17 @@ class MyAppView extends StatelessWidget {
         // Supporter sign-up screen
         '/signup-supporter': (context) => const SupporterSignUpScreen(),
       },
+=======
+      home: BlocBuilder<AuthenticationBloc, AuthenticationState>(builder: (context, state){
+        if(state.status == AuthenticationStatus.authenticated){
+          return const HomeScreen();
+        } else{
+          //retutn const WlcomeScreen
+          return backgroundScreen();
+        }
+      }
+      ),
+>>>>>>> Stashed changes
     );
   }
 }
