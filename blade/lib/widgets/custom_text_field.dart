@@ -1,35 +1,36 @@
+// lib/shared/widgets/custom_text_field.dart
 import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
   final TextEditingController controller;
-  final bool obscureText;
   final FocusNode? focusNode;
+  final bool obscureText;
   final String? Function(String?)? validator;
-  final String? errorText; // Add errorText as a parameter
+  final String? errorText;
 
   const CustomTextField({
-    super.key,
+    Key? key,
     required this.label,
     required this.controller,
-    this.obscureText = false,
     this.focusNode,
+    this.obscureText = false,
     this.validator,
-    this.errorText, // Add errorText parameter to constructor
-  });
+    this.errorText,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      obscureText: obscureText,
       focusNode: focusNode,
+      obscureText: obscureText,
+      validator: validator,
       decoration: InputDecoration(
         labelText: label,
-        border: const OutlineInputBorder(),
-        errorText: errorText, // Use errorText for the field's error message
+        errorText: errorText,
       ),
-      validator: validator,
     );
   }
 }
+
