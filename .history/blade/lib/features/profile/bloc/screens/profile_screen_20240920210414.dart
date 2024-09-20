@@ -124,25 +124,64 @@ class ProfileScreen extends StatelessWidget {
 
                       const SizedBox(height: 16),
 
-                      // Tab Bar for Projects
+// Tab Bar for Projects
                       DefaultTabController(
-                        length: 3,
+                        length: 3, // Number of tabs
                         child: Column(
                           children: [
-                            TabBar(
-                              indicatorColor: Colors.blue,
-                              labelColor: Colors.blue,
-                              unselectedLabelColor: Colors.white,
-                              tabs: const [
-                                Tab(text: 'Project Ideas'),
-                                Tab(text: 'Ongoing '),
-                                Tab(text: 'Completed '),
-                              ],
+                            SizedBox(
+                              height:
+                                  60, // Adjust height for the TabBar to fit text better
+                              child: TabBar(
+                                indicatorColor: Colors.blue,
+                                labelColor: Colors.blue,
+                                unselectedLabelColor: Colors.white,
+                                tabs: [
+                                  Tab(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: const [
+                                        Text('Project',
+                                            style: TextStyle(fontSize: 12)),
+                                        Text('Ideas',
+                                            style: TextStyle(fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                  Tab(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: const [
+                                        Text('Ongoing',
+                                            style: TextStyle(fontSize: 12)),
+                                        Text('Projects',
+                                            style: TextStyle(fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                  Tab(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: const [
+                                        Text('Completed',
+                                            style: TextStyle(fontSize: 12)),
+                                        Text('Projects',
+                                            style: TextStyle(fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                             SizedBox(
-                              height: 300, // Content height for tabs
+                              height:
+                                  300, // Adjust height for TabBarView content
                               child: TabBarView(
                                 children: [
+                                  // Add your content for each tab
                                   Text('Project Ideas content here...'),
                                   Text('Ongoing Projects content here...'),
                                   Text('Completed Projects content here...'),
