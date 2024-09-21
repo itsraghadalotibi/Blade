@@ -28,12 +28,13 @@ class TTextFormFieldTheme {
     ),
     errorBorder: const OutlineInputBorder().copyWith(
       borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-      borderSide: const BorderSide(width: 1, color: TColors.warning),
+      borderSide: const BorderSide(width: 1, color: TColors.error),
     ),
     focusedErrorBorder: const OutlineInputBorder().copyWith(
       borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-      borderSide: const BorderSide(width: 2, color: TColors.warning),
+      borderSide: const BorderSide(width: 2, color: TColors.error),
     ),
+    
   );
 
   static InputDecorationTheme darkInputDecorationTheme = InputDecorationTheme(
@@ -58,11 +59,11 @@ class TTextFormFieldTheme {
     ),
     errorBorder: const OutlineInputBorder().copyWith(
       borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-      borderSide: const BorderSide(width: 1, color: TColors.warning),
+      borderSide: const BorderSide(width: 1, color: TColors.error),
     ),
     focusedErrorBorder: const OutlineInputBorder().copyWith(
       borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-      borderSide: const BorderSide(width: 2, color: TColors.warning),
+      borderSide: const BorderSide(width: 2, color: TColors.error),
     ),
   );
 }

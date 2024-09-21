@@ -1,18 +1,22 @@
-import '../src/user_entity.dart';
+class SupporterModel {
+  final String uid;
+  final String email;
+  final String firstName;
+  final String lastName;
+  final String bio;
+  final String profilePhotoUrl; // Add this field
 
-class SupporterModel extends UserEntity {
-  final String? bio;
-  final String? profilePhotoUrl;
-
+  // Constructor
   SupporterModel({
-    required String uid,
-    required String email,
-    required String firstName,
-    required String lastName,
-    this.bio,
-    this.profilePhotoUrl,
-  }) : super(uid: uid, email: email, firstName: firstName, lastName: lastName);
+    required this.uid,
+    required this.email,
+    required this.firstName,
+    required this.lastName,
+    required this.bio,
+    required this.profilePhotoUrl,
+  });
 
+  // Implement copyWith method
   SupporterModel copyWith({
     String? uid,
     String? email,
@@ -31,6 +35,7 @@ class SupporterModel extends UserEntity {
     );
   }
 
+  // toMap and fromMap methods
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -42,14 +47,14 @@ class SupporterModel extends UserEntity {
     };
   }
 
-  factory SupporterModel.fromMap(Map<String, dynamic> map) {
+  static SupporterModel fromMap(Map<String, dynamic> map) {
     return SupporterModel(
       uid: map['uid'],
       email: map['email'],
       firstName: map['firstName'],
       lastName: map['lastName'],
       bio: map['bio'],
-      profilePhotoUrl: map['profilePhotoUrl'],
+      profilePhotoUrl: map['profilePhotoUrl'] ?? '',
     );
   }
 }

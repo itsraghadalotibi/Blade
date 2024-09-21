@@ -7,6 +7,13 @@ class WelcomeScreen extends StatefulWidget {
   _WelcomeScreenState createState() => _WelcomeScreenState();
 }
 
+void _navigateToLogin(BuildContext context, String userType) {
+    Navigator.pushNamed(
+      context,
+      '/login',
+      arguments: userType, // Pass 'collaborator' or 'supporter' as the userType
+    );
+  }
 class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
@@ -15,6 +22,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0, // Remove shadow under the AppBar
         centerTitle: true,
@@ -52,30 +60,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/login',
-                      arguments: 'collaborator',
-                    );
-                  },
-                  child: const Text('Login as Collaborator'),
-                ),
+              onPressed: () => _navigateToLogin(context, 'collaborator'),
+              child: const Text('Login as Collaborator'),
+            ),
               ),
               const SizedBox(height: 20),
               // Login as Supporter Button
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/login',
-                      arguments: 'supporter',
-                    );
-                  },
-                  child: const Text('Login as Supporter'),
-                ),
+              onPressed: () => _navigateToLogin(context, 'supporter'),
+              child: const Text('Login as Supporter'),
+            ),
               ),
             ],
           ),

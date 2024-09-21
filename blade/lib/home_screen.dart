@@ -51,8 +51,12 @@ class HomeScreen extends StatelessWidget {
     return BlocListener<AuthenticationBloc, AuthenticationState>(
       listener: (context, state) {
         if (state is AuthenticationUnauthenticated) {
-          // Navigate to WelcomeScreen when unauthenticated
-          Navigator.of(context).pushReplacementNamed('/');
+          // Navigate to the welcome screen and remove all previous routes
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/', // Replace with your WelcomeScreen route
+            (Route<dynamic> route) => false,
+          );
         }
       },
       child: BlocBuilder<AuthenticationBloc, AuthenticationState>(
@@ -64,6 +68,7 @@ class HomeScreen extends StatelessWidget {
               // Render the home screen for collaborators
               return Scaffold(
                 appBar: AppBar(
+                  automaticallyImplyLeading: false,
                   title: const Text('Collaborator Home'),
                   actions: [
                     IconButton(
@@ -97,6 +102,7 @@ class HomeScreen extends StatelessWidget {
               // Render the home screen for supporters
               return Scaffold(
                 appBar: AppBar(
+                  automaticallyImplyLeading: false,
                   title: const Text('Supporter Home'),
                   actions: [
                     IconButton(

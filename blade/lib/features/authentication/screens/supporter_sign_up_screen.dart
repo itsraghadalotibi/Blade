@@ -1,15 +1,25 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../utils/constants/colors.dart';
+import '../../../widgets/password_requirement.dart';
 import '../bloc/authentication_bloc.dart';
 import '../bloc/authentication_event.dart';
 import '../bloc/authentication_state.dart';
 import 'package:blade_app/widgets/custom_text_field.dart';
 import 'package:blade_app/widgets/custom_button.dart';
 import '../src/supporter_model.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+
+// Define a constant for the default profile image URL
+const String defaultProfileImageUrl =
+    'gs://blade-87cf7.appspot.com/profile_images/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg';
 
 class SupporterSignUpScreen extends StatefulWidget {
-  const SupporterSignUpScreen({super.key});
+  const SupporterSignUpScreen({Key? key}) : super(key: key);
 
   @override
   _SupporterSignUpScreenState createState() => _SupporterSignUpScreenState();
@@ -23,7 +33,6 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController bioController = TextEditingController();
-  final TextEditingController socialMediaController = TextEditingController();
 
   // FocusNodes for each field
   final FocusNode emailFocusNode = FocusNode();
@@ -36,9 +45,24 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
   String? firstNameError;
   String? lastNameError;
   String? passwordError;
+  bool isEmailUsed = false; // Track if the email is already used
 
   // Variable to show loading indicator
   bool isLoading = false;
+
+  // New variables for profile image
+  File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
+
+  // Password validation variables
+  bool hasUppercase = false;
+  bool hasLowercase = false;
+  bool hasDigit = false;
+  bool hasSpecialChar = false;
+  bool isMinLength = false;
+
+  // Variable to control visibility of password requirements
+  bool showPasswordRequirements = false;
 
   @override
   void initState() {
@@ -76,6 +100,25 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
         });
       }
     });
+
+    // Add listener to password controller
+    passwordController.addListener(_updatePasswordValidation);
+  }
+
+  void _updatePasswordValidation() {
+    final value = passwordController.text;
+
+    setState(() {
+      // Update validation flags
+      hasUppercase = value.contains(RegExp(r'[A-Z]'));
+      hasLowercase = value.contains(RegExp(r'[a-z]'));
+      hasDigit = value.contains(RegExp(r'\d'));
+      hasSpecialChar = value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+      isMinLength = value.length >= 8;
+
+      // Show password requirements when user starts typing
+      showPasswordRequirements = value.isNotEmpty;
+    });
   }
 
   @override
@@ -84,6 +127,11 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
     firstNameFocusNode.dispose();
     lastNameFocusNode.dispose();
     passwordFocusNode.dispose();
+    emailController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
+    passwordController.dispose();
+    bioController.dispose();
     super.dispose();
   }
 
@@ -114,24 +162,84 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter a password';
-    } else if (value.length < 8) {
-      return 'Password must be at least 8 characters long';
     }
+
+    final hasUppercase = value.contains(RegExp(r'[A-Z]'));
+    final hasLowercase = value.contains(RegExp(r'[a-z]'));
+    final hasDigit = value.contains(RegExp(r'\d'));
+    final hasSpecialChar = value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+    final isMinLength = value.length >= 8;
+
+    if (!hasUppercase ||
+        !hasLowercase ||
+        !hasDigit ||
+        !hasSpecialChar ||
+        !isMinLength) {
+      return 'Password does not meet the requirements';
+    }
+
     return null;
   }
 
-  void _onSignUpButtonPressed() {
+  // Method to pick image
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery, // or ImageSource.camera
+      imageQuality: 80, // Adjust quality as needed
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    }
+  }
+
+   // Check if email already exists
+  Future<bool> _checkEmailExists(String email) async {
+    try {
+      final list = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+      return list.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<void> _onSignUpButtonPressed() async {
     setState(() {
       emailError = _validateEmail(emailController.text);
       firstNameError = _validateFirstName(firstNameController.text);
       lastNameError = _validateLastName(lastNameController.text);
       passwordError = _validatePassword(passwordController.text);
+      isEmailUsed = false; // Reset in case it was set before
     });
 
     if (emailError == null &&
         firstNameError == null &&
         lastNameError == null &&
         passwordError == null) {
+      bool emailExists = await _checkEmailExists(emailController.text.trim());
+      if (emailExists) {
+        setState(() {
+          isEmailUsed = true;
+          emailError = 'This email is already registered.';
+        });
+        return;
+      }
+
+       String profileImageUrl;
+
+      if (_profileImage != null) {
+        // Upload custom profile image to Firebase Storage
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('profile_images/${emailController.text}_profile.png');
+        await storageRef.putFile(_profileImage!);
+        profileImageUrl = await storageRef.getDownloadURL();
+      } else {
+        // Use default image URL
+        profileImageUrl = defaultProfileImageUrl;
+      }
       // Create a SupporterModel
       final supporter = SupporterModel(
         uid: '',
@@ -139,14 +247,15 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
         firstName: firstNameController.text.trim(),
         lastName: lastNameController.text.trim(),
         bio: bioController.text.trim(),
-        profilePhotoUrl: '', // Handle profile photo logic
+        profilePhotoUrl: profileImageUrl,
       );
 
-      // Dispatch SignUpSupporterRequested event
+      // Dispatch SignUpSupporterRequested event, include the image file if selected
       context.read<AuthenticationBloc>().add(
             SignUpSupporterRequested(
               supporter: supporter,
               password: passwordController.text.trim(),
+              profileImage: _profileImage,
             ),
           );
     }
@@ -155,7 +264,9 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Supporter Sign Up')),
+      appBar: AppBar(
+        title: const Text('Supporter Sign Up'),
+      ),
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
           setState(() {
@@ -190,7 +301,33 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       controller: emailController,
                       focusNode: emailFocusNode,
                       errorText: emailError,
+                      keyboardType: TextInputType.emailAddress,
                     ),
+                    const SizedBox(height: 16),
+
+                    // Show error and login button if email is already used
+                    if (isEmailUsed) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Row(
+                          children: [
+                            const Text(
+                              "Already registered?",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pushReplacementNamed(context, '/login', arguments: 'collaborator');
+                              },
+                              child: const Text(
+                                "Log In",
+                                style: TextStyle(color: Colors.blue),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
 
                     // First Name field with error handling
@@ -219,19 +356,63 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       focusNode: passwordFocusNode,
                       errorText: passwordError,
                     ),
+                    const SizedBox(height: 8),
+
+                    // Display password requirements only when user starts typing
+                    if (showPasswordRequirements) ...[
+                      PasswordRequirement(
+                        requirement: 'At least 8 characters',
+                        isMet: isMinLength,
+                      ),
+                      PasswordRequirement(
+                        requirement: 'Contains uppercase letter',
+                        isMet: hasUppercase,
+                      ),
+                      PasswordRequirement(
+                        requirement: 'Contains lowercase letter',
+                        isMet: hasLowercase,
+                      ),
+                      PasswordRequirement(
+                        requirement: 'Contains digit',
+                        isMet: hasDigit,
+                      ),
+                      PasswordRequirement(
+                        requirement: 'Contains special character',
+                        isMet: hasSpecialChar,
+                      ),
+                    ],
+
                     const SizedBox(height: 16),
 
-                    // Other optional fields
-                    CustomTextField(label: 'Bio (Optional)', controller: bioController),
-                    const SizedBox(height: 16),
+                    // Bio field
                     CustomTextField(
-                        label: 'Social Media Links (Optional)', controller: socialMediaController),
+                      label: 'Bio (Optional)',
+                      controller: bioController,
+                      maxLines: 3,
+                    ),
                     const SizedBox(height: 24),
 
                     // Sign Up Button
-                    CustomButton(
-                      text: 'Sign Up',
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
                       onPressed: isLoading ? null : _onSignUpButtonPressed,
+                      child: const Text('Sign Up'),
+                    ),
+                    ),
+
+                     const SizedBox(height: 16),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/login', arguments: 'supporter');
+                      },
+                      child: const Text(
+                        'Already have an account? Log In',
+                      ),
+                    ),
                     ),
                   ],
                 ),
@@ -253,18 +434,22 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
       child: Stack(
         alignment: Alignment.bottomRight,
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 75,
-            backgroundImage: AssetImage('assets/images/content/user.png'), // Default profile image
+            backgroundColor: TColors.secondary,
+            child: CircleAvatar(
+              radius: 73,
+              backgroundImage: _profileImage != null
+                ? FileImage(_profileImage!)
+                : const AssetImage('assets/images/content/user.png') as ImageProvider,
+            ),
           ),
           Positioned(
             bottom: 0,
             right: 0,
             child: IconButton(
-              icon: Icon(CupertinoIcons.camera, color: Theme.of(context).colorScheme.primary),
-              onPressed: () {
-                // Logic to change profile image
-              },
+              icon: Icon(CupertinoIcons.camera, color: TColors.primary),
+              onPressed: _pickImage,
             ),
           ),
         ],
