@@ -1,31 +1,35 @@
-import '../src/user_entity.dart';
+class CollaboratorModel {
+  final String uid;
+  final String email;
+  final String firstName;
+  final String lastName;
+  final List<String> skills; // Changed to List<String>
+  final String bio;
+  final Map<String, String> socialMediaLinks; // Changed to Map<String, String>
+  final String profilePhotoUrl;
 
-class CollaboratorModel extends UserEntity {
-  final String? skills;
-  final String? bio;
-  final String? profilePhotoUrl;
-  final String? socialMediaLinks;
-
+  // Constructor
   CollaboratorModel({
-    required String uid,
-    required String email,
-    required String firstName,
-    required String lastName,
-    this.skills,
-    this.bio,
-    this.profilePhotoUrl,
-    this.socialMediaLinks,
-  }) : super(uid: uid, email: email, firstName: firstName, lastName: lastName);
+    required this.uid,
+    required this.email,
+    required this.firstName,
+    required this.lastName,
+    required this.skills,
+    required this.bio,
+    required this.socialMediaLinks,
+    required this.profilePhotoUrl,
+  });
 
+  // Implement copyWith method
   CollaboratorModel copyWith({
     String? uid,
     String? email,
     String? firstName,
     String? lastName,
-    String? skills,
+    List<String>? skills,
     String? bio,
+    Map<String, String>? socialMediaLinks,
     String? profilePhotoUrl,
-    String? socialMediaLinks,
   }) {
     return CollaboratorModel(
       uid: uid ?? this.uid,
@@ -34,11 +38,12 @@ class CollaboratorModel extends UserEntity {
       lastName: lastName ?? this.lastName,
       skills: skills ?? this.skills,
       bio: bio ?? this.bio,
-      profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
       socialMediaLinks: socialMediaLinks ?? this.socialMediaLinks,
+      profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
     );
   }
 
+  // toMap method
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -47,21 +52,23 @@ class CollaboratorModel extends UserEntity {
       'lastName': lastName,
       'skills': skills,
       'bio': bio,
-      'profilePhotoUrl': profilePhotoUrl,
       'socialMediaLinks': socialMediaLinks,
+      'profilePhotoUrl': profilePhotoUrl,
     };
   }
 
-  factory CollaboratorModel.fromMap(Map<String, dynamic> map) {
+  // fromMap method
+  static CollaboratorModel fromMap(Map<String, dynamic> map) {
     return CollaboratorModel(
       uid: map['uid'],
       email: map['email'],
       firstName: map['firstName'],
       lastName: map['lastName'],
-      skills: map['skills'],
+      skills: List<String>.from(map['skills'] ?? []),
       bio: map['bio'],
-      profilePhotoUrl: map['profilePhotoUrl'],
-      socialMediaLinks: map['socialMediaLinks'],
+      socialMediaLinks: Map<String, String>.from(map['socialMediaLinks'] ?? {}),
+      profilePhotoUrl: map['profilePhotoUrl'] ?? '',
     );
   }
 }
+

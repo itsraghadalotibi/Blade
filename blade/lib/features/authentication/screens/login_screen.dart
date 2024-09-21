@@ -105,18 +105,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: OutlinedButton(
                         onPressed: () {
                           // Navigate to the corresponding sign-up screen based on user type
-                          Navigator.pushNamed(
+                          Navigator.pushReplacementNamed(
                             context,
                             widget.userType == 'collaborator'
                                 ? '/collaboratorSignUp'
                                 : '/supporterSignUp',
                           );
                         },
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Theme.of(context).primaryColor),
-                          minimumSize:
-                              const Size(double.infinity, 50), // Full-width button
-                        ),
+                        
                         child: const Text('Create Account'),
                       ),
                     ),
