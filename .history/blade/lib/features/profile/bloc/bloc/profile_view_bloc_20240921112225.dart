@@ -1,5 +1,4 @@
-// lib/features/profile/bloc/profile_view_state.dart
-
+// lib/features/profile/bloc/profile_view_bloc.dart
 import 'package:equatable/equatable.dart';
 import '../src/collaborator_profile_model.dart';
 import '../src/supporter_profile_model.dart';

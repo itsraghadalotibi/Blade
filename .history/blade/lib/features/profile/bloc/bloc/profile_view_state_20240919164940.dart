@@ -1,8 +1,7 @@
 // lib/features/profile/bloc/profile_view_state.dart
 
 import 'package:equatable/equatable.dart';
-import '../src/collaborator_profile_model.dart';
-import '../src/supporter_profile_model.dart';
+import '../src/profile_model.dart';
 
 abstract class ProfileViewState extends Equatable {
   @override
@@ -12,8 +11,7 @@ abstract class ProfileViewState extends Equatable {
 class ProfileLoading extends ProfileViewState {}
 
 class ProfileLoaded extends ProfileViewState {
-  final dynamic
-      profile; // Can be CollaboratorProfileModel or SupporterProfileModel
+  final ProfileModel profile;
 
   ProfileLoaded(this.profile);
 

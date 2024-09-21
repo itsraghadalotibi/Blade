@@ -1,4 +1,5 @@
 // lib/home_screen.dart
+
 import 'package:blade_app/features/profile/bloc/bloc/profile_view_bloc.dart';
 import 'package:blade_app/features/profile/bloc/bloc/profile_view_event.dart';
 import 'package:flutter/material.dart';
@@ -9,9 +10,8 @@ import 'features/authentication/bloc/authentication_event.dart';
 import 'features/authentication/bloc/authentication_state.dart';
 import 'features/authentication/src/collaborator_model.dart';
 import 'features/authentication/src/supporter_model.dart';
+import 'features/profile/bloc/screens/profile_screen.dart';
 import 'features/profile/bloc/repository/profile_repository.dart';
-import 'features/profile/bloc/screens/collaborator_profile_screen.dart'; // Import the correct profile screens
-import 'features/profile/bloc/screens/supporter_profile_screen.dart'; // Import the correct profile screens
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -20,27 +20,26 @@ class HomeScreen extends StatelessWidget {
     context.read<AuthenticationBloc>().add(LoggedOut());
   }
 
-  // Adjusted _onProfileButtonPressed to route to the correct profile screen based on user type
-  void _onProfileButtonPressed(
-      BuildContext context, String userId, bool isCollaborator) {
+  // Add the _onProfileButtonPressed function here
+  void _onProfileButtonPressed(BuildContext context, String userId) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => MultiProvider(
           providers: [
             RepositoryProvider.value(
-              value: context.read<ProfileRepository>(),
+              value:
+                  context.read<ProfileRepository>(), // Inject ProfileRepository
             ),
             BlocProvider(
               create: (context) => ProfileViewBloc(
-                profileRepository: context.read<ProfileRepository>(),
-              )..add(LoadProfile(userId)),
+                profileRepository:
+                    context.read<ProfileRepository>(), // Create ProfileViewBloc
+              )..add(LoadProfile(
+                  userId)), // Trigger profile loading event with userId
             ),
           ],
-          // Decide which profile screen to load based on the user type
-          child: isCollaborator
-              ? CollaboratorProfileScreen(userId: userId)
-              : SupporterProfileScreen(userId: userId),
+          child: ProfileScreen(userId: userId), // Pass userId to ProfileScreen
         ),
       ),
     );
@@ -82,11 +81,8 @@ class HomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: () => _onProfileButtonPressed(
-                          context,
-                          user.uid,
-                          true, // Pass 'true' to indicate the user is a collaborator
-                        ),
+                        onPressed: () => _onProfileButtonPressed(context,
+                            user.uid), // Call the profile button handler
                         child: const Text('Go to Profile'),
                       ),
                     ],
@@ -115,11 +111,8 @@ class HomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: () => _onProfileButtonPressed(
-                          context,
-                          user.uid,
-                          false, // Pass 'false' to indicate the user is a supporter
-                        ),
+                        onPressed: () => _onProfileButtonPressed(context,
+                            user.uid), // Call the profile button handler
                         child: const Text('Go to Profile'),
                       ),
                     ],

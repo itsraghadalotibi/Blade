@@ -1,7 +1,7 @@
 // lib/features/profile/bloc/profile_view_event.dart
+
 import 'package:equatable/equatable.dart';
-import '../src/collaborator_profile_model.dart';
-import '../src/supporter_profile_model.dart';
+import '../src/profile_model.dart';
 
 abstract class ProfileViewEvent extends Equatable {
   @override

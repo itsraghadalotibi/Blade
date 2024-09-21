@@ -10,8 +10,8 @@ import 'features/authentication/bloc/authentication_state.dart';
 import 'features/authentication/src/collaborator_model.dart';
 import 'features/authentication/src/supporter_model.dart';
 import 'features/profile/bloc/repository/profile_repository.dart';
-import 'features/profile/bloc/screens/collaborator_profile_screen.dart'; // Import the correct profile screens
-import 'features/profile/bloc/screens/supporter_profile_screen.dart'; // Import the correct profile screens
+import 'features/profile/screens/collaborator_profile_screen.dart'; // Import the correct profile screens
+import 'features/profile/screens/supporter_profile_screen.dart'; // Import the correct profile screens
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
