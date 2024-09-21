@@ -16,7 +16,7 @@ import 'package:image_picker/image_picker.dart';
 
 // Define a constant for the default profile image URL
 const String defaultProfileImageUrl =
-    'gs://blade-87cf7.appspot.com/profile_images/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg';
+    'https://firebasestorage.googleapis.com/v0/b/blade-87cf7.appspot.com/o/profile_images%2F360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg?alt=media&token=0db52e6c-f589-451d-9d22-c81190c123a1';
 
 class SupporterSignUpScreen extends StatefulWidget {
   const SupporterSignUpScreen({Key? key}) : super(key: key);
@@ -303,7 +303,7 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       errorText: emailError,
                       keyboardType: TextInputType.emailAddress,
                     ),
-                    const SizedBox(height: 16),
+                    
 
                     // Show error and login button if email is already used
                     if (isEmailUsed) ...[
@@ -356,7 +356,7 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       focusNode: passwordFocusNode,
                       errorText: passwordError,
                     ),
-                    const SizedBox(height: 8),
+                    
 
                     // Display password requirements only when user starts typing
                     if (showPasswordRequirements) ...[
@@ -441,7 +441,7 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
               radius: 73,
               backgroundImage: _profileImage != null
                 ? FileImage(_profileImage!)
-                : const AssetImage('assets/images/content/user.png') as ImageProvider,
+                : const AssetImage('assets/images/content/user.jpg') as ImageProvider,
             ),
           ),
           Positioned(
