@@ -536,7 +536,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
               radius: 73,
               backgroundImage: _profileImage != null
                 ? FileImage(_profileImage!)
-                : const AssetImage('assets/images/content/user.jpg') as ImageProvider,
+                : const AssetImage('assets/images/content/user.png') as ImageProvider,
             ),
           ),
           Positioned(
