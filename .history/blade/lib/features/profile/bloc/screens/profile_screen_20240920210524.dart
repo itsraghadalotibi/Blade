@@ -135,8 +135,8 @@ class ProfileScreen extends StatelessWidget {
                               unselectedLabelColor: Colors.white,
                               tabs: const [
                                 Tab(text: 'Project Ideas'),
-                                Tab(text: 'Ongoing '),
-                                Tab(text: 'Completed '),
+                                Tab(text: 'Ongoing Projects'),
+                                Tab(text: 'Completed Projects'),
                               ],
                             ),
                             SizedBox(
