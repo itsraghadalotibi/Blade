@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Text asking if user doesn't have an account
                     const Text(
                       "Don't have an account?",
-                      style: TextStyle(fontSize: 14, color: Colors.black),
+                      style: TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 8),
                     // Create Account Outlined Button (OutlinedButton)
