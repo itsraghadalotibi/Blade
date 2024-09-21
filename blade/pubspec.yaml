@@ -62,6 +62,7 @@ flutter:
   uses-material-design: true # Enables material design widgets
 
   assets:
-    - assets/logos/blade-splash-logo-black.png
-    - assets/logos/blade-splash-logo-white.png
-    - assets/images/content/user.jpg
+  - assets/logos/blade-splash-logo-black.png
+  - assets/logos/blade-splash-logo-white.png
+  - assets/images/content/user.png
+  
