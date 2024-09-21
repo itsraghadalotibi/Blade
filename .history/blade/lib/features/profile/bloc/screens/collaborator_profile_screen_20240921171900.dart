@@ -81,10 +81,9 @@ class CollaboratorProfileScreen extends StatelessWidget {
                 fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           const SizedBox(height: 16),
-          // Display the skills as chips from the list
           Wrap(
             spacing: 8.0,
-            children: profile.skills?.map((skill) {
+            children: profile.skills?.split(',').map((skill) {
                   return Chip(label: Text(skill), backgroundColor: Colors.red);
                 }).toList() ??
                 [],

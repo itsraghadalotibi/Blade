@@ -1,13 +1,11 @@
-// Path: lib/features/profile/src/collaborator_profile_model.dart
-
+// lib/features/profile/src/collaborator_profile_model.dart
 class CollaboratorProfileModel {
   final String uid;
   final String firstName;
   final String lastName;
   final String? bio;
   final String? profilePhotoUrl;
-  final List<String>?
-      skills; // Updated to List<String> to match Firestore array
+  final String? skills;
 
   CollaboratorProfileModel({
     required this.uid,
@@ -25,7 +23,7 @@ class CollaboratorProfileModel {
       'lastName': lastName,
       'bio': bio,
       'profilePhotoUrl': profilePhotoUrl,
-      'skills': skills, // Keep skills as a List
+      'skills': skills,
     };
   }
 
@@ -36,8 +34,7 @@ class CollaboratorProfileModel {
       lastName: map['lastName'] as String,
       bio: map['bio'] as String?,
       profilePhotoUrl: map['profilePhotoUrl'] as String?,
-      skills: List<String>.from(
-          map['skills'] ?? []), // Convert List<dynamic> to List<String>
+      skills: map['skills'] as String?,
     );
   }
 }

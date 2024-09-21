@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/edit_collaborator_profile_bloc.dart';
 import '../bloc/edit_collaborator_profile_event.dart';
-import '../bloc/edit_collaborator_profile_state.dart';
 import '../src/collaborator_profile_model.dart';
 
 class EditCollaboratorProfileScreen extends StatelessWidget {

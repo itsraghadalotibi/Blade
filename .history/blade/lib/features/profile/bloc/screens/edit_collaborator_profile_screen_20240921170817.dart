@@ -37,7 +37,7 @@ class EditCollaboratorProfileForm extends StatefulWidget {
 
   @override
   _EditCollaboratorProfileFormState createState() =>
-      _EditCollaboratorProfileFormState();
+      _EditCollaboratorProfileFormState(); // Add this line
 }
 
 class _EditCollaboratorProfileFormState
@@ -54,11 +54,7 @@ class _EditCollaboratorProfileFormState
         TextEditingController(text: widget.profile.firstName);
     _lastNameController = TextEditingController(text: widget.profile.lastName);
     _bioController = TextEditingController(text: widget.profile.bio);
-
-    // Combine skills list into a comma-separated string
-    _skillsController = TextEditingController(
-      text: widget.profile.skills?.join(', ') ?? '',
-    );
+    _skillsController = TextEditingController(text: widget.profile.skills);
   }
 
   @override
@@ -90,25 +86,17 @@ class _EditCollaboratorProfileFormState
           ),
           TextField(
             controller: _skillsController,
-            decoration: const InputDecoration(
-              labelText: 'Skills (comma separated)',
-            ),
+            decoration: const InputDecoration(labelText: 'Skills'),
           ),
           ElevatedButton(
             onPressed: () {
-              // Split the comma-separated string into a list of skills
-              final skillsList = _skillsController.text
-                  .split(',')
-                  .map((skill) => skill.trim())
-                  .toList();
-
               final updatedProfile = CollaboratorProfileModel(
                 uid: widget.profile.uid,
                 firstName: _firstNameController.text,
                 lastName: _lastNameController.text,
                 bio: _bioController.text,
                 profilePhotoUrl: widget.profile.profilePhotoUrl,
-                skills: skillsList, // Save as List<String>
+                skills: _skillsController.text,
               );
               context
                   .read<EditCollaboratorProfileBloc>()
