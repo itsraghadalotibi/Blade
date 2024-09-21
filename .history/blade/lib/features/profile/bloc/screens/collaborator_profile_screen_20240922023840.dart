@@ -1,17 +1,17 @@
-// Path: lib/features/profile/screens/supporter_profile_screen.dart
+// Path: lib/features/profile/screens/collaborator_profile_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
-import '../src/supporter_profile_model.dart';
-import 'edit_supporter_profile_screen.dart';
+import '../src/collaborator_profile_model.dart';
+import 'edit_collaborator_profile_screen.dart';
 
-class SupporterProfileScreen extends StatelessWidget {
+class CollaboratorProfileScreen extends StatelessWidget {
   final String userId;
 
-  const SupporterProfileScreen({Key? key, required this.userId})
+  const CollaboratorProfileScreen({Key? key, required this.userId})
       : super(key: key);
 
   @override
@@ -22,26 +22,27 @@ class SupporterProfileScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: const Text('Supporter Profile'),
+          title: const Text('Collaborator Profile'),
           backgroundColor: Colors.black,
           actions: [
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {
-                // Check if the current state is ProfileLoaded and if the profile is a SupporterProfileModel
-                final state = BlocProvider.of<ProfileViewBloc>(context).state;
-                if (state is ProfileLoaded &&
-                    state.profile is SupporterProfileModel) {
-                  final profile = state.profile as SupporterProfileModel;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditSupporterProfileScreen(
-                        profile: profile,
-                      ),
-                    ),
-                  );
-                }
+                BlocProvider.of<ProfileViewBloc>(context).state.maybeMap(
+                      orElse: () {},
+                      profileLoaded: (state) {
+                        final profile =
+                            state.profile as CollaboratorProfileModel;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditCollaboratorProfileScreen(
+                              profile: profile,
+                            ),
+                          ),
+                        );
+                      },
+                    );
               },
             ),
           ],
@@ -53,9 +54,9 @@ class SupporterProfileScreen extends StatelessWidget {
               if (state is ProfileLoading) {
                 return const Center(child: CircularProgressIndicator());
               } else if (state is ProfileLoaded &&
-                  state.profile is SupporterProfileModel) {
-                final profile = state.profile as SupporterProfileModel;
-                return buildSupporterProfile(profile);
+                  state.profile is CollaboratorProfileModel) {
+                final profile = state.profile as CollaboratorProfileModel;
+                return buildCollaboratorProfile(profile);
               } else if (state is ProfileError) {
                 return Center(
                     child: Text('Error: ${state.message}',
@@ -69,7 +70,7 @@ class SupporterProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget buildSupporterProfile(SupporterProfileModel profile) {
+  Widget buildCollaboratorProfile(CollaboratorProfileModel profile) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -86,6 +87,14 @@ class SupporterProfileScreen extends StatelessWidget {
                 fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           const SizedBox(height: 16),
+          Wrap(
+            spacing: 8.0,
+            children: profile.skills?.map((skill) {
+                  return Chip(label: Text(skill), backgroundColor: Colors.red);
+                }).toList() ??
+                [],
+          ),
+          const SizedBox(height: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -100,6 +109,34 @@ class SupporterProfileScreen extends StatelessWidget {
               Text(profile.bio ?? 'No bio available',
                   style: const TextStyle(fontSize: 14, color: Colors.white)),
             ],
+          ),
+          const SizedBox(height: 16),
+          DefaultTabController(
+            length: 3,
+            child: Column(
+              children: [
+                const TabBar(
+                  indicatorColor: Colors.blue,
+                  labelColor: Colors.blue,
+                  unselectedLabelColor: Colors.white,
+                  tabs: [
+                    Tab(text: 'Project Ideas'),
+                    Tab(text: 'Ongoing'),
+                    Tab(text: 'Completed'),
+                  ],
+                ),
+                SizedBox(
+                  height: 300,
+                  child: TabBarView(
+                    children: [
+                      Text('Project Ideas content here...'),
+                      Text('Ongoing Projects content here...'),
+                      Text('Completed Projects content here...'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

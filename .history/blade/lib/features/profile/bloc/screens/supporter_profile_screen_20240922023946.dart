@@ -28,20 +28,20 @@ class SupporterProfileScreen extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {
-                // Check if the current state is ProfileLoaded and if the profile is a SupporterProfileModel
-                final state = BlocProvider.of<ProfileViewBloc>(context).state;
-                if (state is ProfileLoaded &&
-                    state.profile is SupporterProfileModel) {
-                  final profile = state.profile as SupporterProfileModel;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditSupporterProfileScreen(
-                        profile: profile,
-                      ),
-                    ),
-                  );
-                }
+                BlocProvider.of<ProfileViewBloc>(context).state.maybeMap(
+                      orElse: () {},
+                      profileLoaded: (state) {
+                        final profile = state.profile as SupporterProfileModel;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditSupporterProfileScreen(
+                              profile: profile,
+                            ),
+                          ),
+                        );
+                      },
+                    );
               },
             ),
           ],
