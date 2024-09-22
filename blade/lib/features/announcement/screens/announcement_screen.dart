@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/announcement_bloc.dart'; // Ensure correct path to your bloc
 import '../src/announcement_repository.dart'; // Ensure correct path to your repository
-import 'announcement_card_widget.dart'; // Ensure correct path to the card widget
+import '../widgets/announcement_card_widget.dart'; 
 
 class AnnouncementScreen extends StatelessWidget {
   final AnnouncementRepository repository;
