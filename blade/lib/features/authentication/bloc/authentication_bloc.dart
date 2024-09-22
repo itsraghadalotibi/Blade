@@ -16,6 +16,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     on<SignUpCollaboratorRequested>(_onSignUpCollaboratorRequested);
     on<SignUpSupporterRequested>(_onSignUpSupporterRequested);
     on<LoggedOut>(_onLoggedOut);
+    on<FetchSkills>(_onFetchSkills); 
   }
 
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthenticationState> emit) async {
@@ -137,6 +138,18 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       emit(AuthenticationUnauthenticated());
     } catch (error) {
       emit(AuthenticationFailure(error: error.toString()));
+    }
+  }
+
+  Future<void> _onFetchSkills(
+      FetchSkills event, Emitter<AuthenticationState> emit) async {
+    emit(SkillsLoading());
+
+    try {
+      final List<String> skills = await authenticationRepository.fetchSkills();
+      emit(SkillsLoaded(availableSkills: skills));
+    } catch (e) {
+      emit(SkillsError(error: e.toString()));
     }
   }
 }

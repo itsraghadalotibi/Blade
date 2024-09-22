@@ -72,7 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Password input field
                     CustomTextField(
                       label: 'Password',
-                      inputType: "password",
                       controller: passwordController,
                       obscureText: true,
                       validator: (value) {

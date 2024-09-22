@@ -32,12 +32,12 @@ class AuthenticationRepository {
     if (profileImage != null) {
       profilePhotoUrl = await uploadProfileImage(userCredential.user!.uid, profileImage);
     } else {
-      profilePhotoUrl = 'gs://blade-87cf7.appspot.com/profile_images/default_profile.png';
+      profilePhotoUrl = 'https://firebasestorage.googleapis.com/v0/b/blade-87cf7.appspot.com/o/profile_images%2F360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg?alt=media&token=0db52e6c-f589-451d-9d22-c81190c123a1';
     }
 
     collaborator = collaborator.copyWith(
       uid: userCredential.user!.uid,
-      profilePhotoUrl: profilePhotoUrl ?? '',
+      profilePhotoUrl: profilePhotoUrl,
     );
 
     await _firestore.collection('collaborators').doc(collaborator.uid).set(collaborator.toMap());
@@ -56,12 +56,12 @@ class AuthenticationRepository {
     if (profileImage != null) {
       profilePhotoUrl = await uploadProfileImage(userCredential.user!.uid, profileImage);
     } else {
-      profilePhotoUrl = 'gs://blade-87cf7.appspot.com/profile_images/default_profile.png';
+      profilePhotoUrl = 'https://firebasestorage.googleapis.com/v0/b/blade-87cf7.appspot.com/o/profile_images%2F360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg?alt=media&token=0db52e6c-f589-451d-9d22-c81190c123a1';
     }
 
     supporter = supporter.copyWith(
       uid: userCredential.user!.uid,
-      profilePhotoUrl: profilePhotoUrl ?? '',
+      profilePhotoUrl: profilePhotoUrl,
     );
 
     await _firestore.collection('supporters').doc(supporter.uid).set(supporter.toMap());
