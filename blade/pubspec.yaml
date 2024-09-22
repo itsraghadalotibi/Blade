@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter  # Declares dependency on the Flutter SDK
   http: ^1.2.2  # Updated http version
+  fluttertoast: ^8.0.9
   cupertino_icons: ^1.0.6
   uuid: ^3.0.4
   font_awesome_flutter: ^10.6.0

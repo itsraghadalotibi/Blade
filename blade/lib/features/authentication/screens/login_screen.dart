@@ -1,3 +1,4 @@
+import 'package:blade_app/utils/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/authentication_bloc.dart';
@@ -60,12 +61,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     CustomTextField(
                       label: 'Email',
                       controller: emailController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
+
+                      onTap: () {
+                        if (emailController.value == null || emailController.text.isEmpty) {
+                           'Please enter your email';
                         } else if (!RegExp(r"^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                            .hasMatch(value)) {
-                          return 'Please enter a valid email';
+                            .hasMatch(emailController.value.toString())) {
+                           'Please enter a valid email';
                         }
                         return null;
                       },
@@ -74,10 +76,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Password input field
                     CustomTextField(
                       label: 'Password',
+                      inputType: "password",
                       controller: passwordController,
                       obscureText: true,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value == null  && value!.length < 8 ) {
                           return 'Please enter your password';
                         }
                         return null;
@@ -88,11 +91,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: isLoading ? null : _onLoginButtonPressed,
+                        onPressed: isLoading?null: _onLoginButtonPressed,
                         child: const Text('Login'),
                       ),
                     ),
                     const SizedBox(height: 16),
+                    GestureDetector(
+                      child: Text("ForgetPassword?",
+                        style: TextStyle(color: TColors.textSecondary,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline
+                        ),),
+                      onTap: (){
+                        Navigator.of(context).pushNamed('/forgetPassword');
+                      },
+                    ),
+                    SizedBox(height: 10,),
                     // Text asking if user doesn't have an account
                     const Text(
                       "Don't have an account?",
