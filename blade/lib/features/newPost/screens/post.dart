@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:uuid/uuid.dart';
-// import '../../utils/constants/colors.dart';
-// import '../../utils/constants/sizes.dart';
 import '../../../utils/constants/colors.dart';
 import '../../../utils/constants/sizes.dart';
-import 'blocs/bloc/post_event.dart';
-import 'blocs/bloc/post_state.dart';
-import 'blocs/bloc/post_bloc.dart';
+import '../blocs/bloc/post_bloc.dart';
+import '../blocs/bloc/post_event.dart';
+import '../blocs/bloc/post_state.dart';
+import '../src/repositories/firebase_post_repo.dart';
 import 'chipTags.dart';
-import 'src/repositories/firebase_post_repo.dart';
 
 final uuid = Uuid();
 final postId = uuid.v4(); // Generates a unique ID
