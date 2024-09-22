@@ -1,6 +1,8 @@
-import 'dart:io'; // For File handling
+// Path: lib/features/profile/screens/edit_collaborator_profile_screen.dart
+
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart'; // Image picker
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/edit_collaborator_profile_bloc.dart';
 import '../bloc/edit_collaborator_profile_event.dart';
@@ -25,8 +27,8 @@ class _EditCollaboratorProfileScreenState
   late TextEditingController _bioController;
   late TextEditingController _skillsController;
 
-  File? _newProfileImage; // Store the new profile image
-  final ImagePicker _picker = ImagePicker(); // Image picker instance
+  File? _newProfileImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -35,17 +37,15 @@ class _EditCollaboratorProfileScreenState
         TextEditingController(text: widget.profile.firstName);
     _lastNameController = TextEditingController(text: widget.profile.lastName);
     _bioController = TextEditingController(text: widget.profile.bio);
-    _skillsController = TextEditingController(
-      text: widget.profile.skills?.join(', ') ?? '',
-    );
+    _skillsController =
+        TextEditingController(text: widget.profile.skills?.join(', ') ?? '');
   }
 
-  // Function to pick image from gallery
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
-        _newProfileImage = File(pickedFile.path); // Set the new image
+        _newProfileImage = File(pickedFile.path);
       });
     }
   }
@@ -58,6 +58,7 @@ class _EditCollaboratorProfileScreenState
           EditCollaboratorProfileState>(
         listener: (context, state) {
           if (state is CollaboratorProfileUpdateSuccess) {
+            // Navigate back to the profile screen, passing the updated profile
             Navigator.pop(context, state.updatedProfile);
           } else if (state is CollaboratorProfileUpdateFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -70,18 +71,14 @@ class _EditCollaboratorProfileScreenState
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                // Display profile photo or default image
                 GestureDetector(
-                  onTap: _pickImage, // Open gallery on tap
+                  onTap: _pickImage,
                   child: CircleAvatar(
                     radius: 50,
                     backgroundImage: _newProfileImage != null
-                        ? FileImage(
-                            _newProfileImage!) // Show the selected image
-                        : AssetImage('assets/images/user.png')
-                            as ImageProvider, // Default image from assets
-                    child:
-                        const Icon(Icons.camera_alt, size: 30), // Camera icon
+                        ? FileImage(_newProfileImage!)
+                        : AssetImage('assets/images/user.png') as ImageProvider,
+                    child: const Icon(Icons.camera_alt, size: 30),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -100,13 +97,11 @@ class _EditCollaboratorProfileScreenState
                 TextField(
                   controller: _skillsController,
                   decoration: const InputDecoration(
-                    labelText: 'Skills (comma separated)',
-                  ),
+                      labelText: 'Skills (comma separated)'),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    // Split the comma-separated string into a list of skills
                     final skillsList = _skillsController.text
                         .split(',')
                         .map((skill) => skill.trim())
@@ -119,12 +114,10 @@ class _EditCollaboratorProfileScreenState
                       bio: _bioController.text,
                       profilePhotoUrl: _newProfileImage != null
                           ? _newProfileImage!.path
-                          : widget.profile
-                              .profilePhotoUrl, // Keep the old image if unchanged
+                          : widget.profile.profilePhotoUrl,
                       skills: skillsList,
                     );
 
-                    // Trigger the SaveCollaboratorProfile event
                     context
                         .read<EditCollaboratorProfileBloc>()
                         .add(SaveCollaboratorProfile(updatedProfile));

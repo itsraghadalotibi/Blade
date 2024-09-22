@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/edit_collaborator_profile_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
@@ -11,8 +10,6 @@ import '../screens/edit_collaborator_profile_screen.dart';
 import '../screens/project_idea_card_widget.dart';
 import '../repository/project_idea_repository.dart';
 import '../src/project_idea_model.dart';
-import '../widgets/avatar_stack.dart';
-import '../widgets/skill_tag.dart';
 
 class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
@@ -51,36 +48,37 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () async {
-                final state = BlocProvider.of<ProfileViewBloc>(context).state;
-                if (state is ProfileLoaded &&
-                    state.profile is CollaboratorProfileModel) {
-                  final profile = _updatedProfile ??
-                      state.profile as CollaboratorProfileModel;
-
-                  // Navigate to EditCollaboratorProfileScreen with BlocProvider
-                  final updatedProfile = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BlocProvider(
-                        create: (context) => EditCollaboratorProfileBloc(
-                          profileRepository: context.read(),
-                        ),
-                        child: EditCollaboratorProfileScreen(profile: profile),
-                      ),
+                // Navigate to the edit screen and wait for the result
+                final updatedProfile = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BlocProvider(
+                      create: (context) => EditCollaboratorProfileBloc(
+                          profileRepository: context.read()),
+                      child: EditCollaboratorProfileScreen(
+                          profile: _updatedProfile ??
+                              CollaboratorProfileModel(
+                                uid: widget.userId,
+                                firstName: '',
+                                lastName: '',
+                                bio: '',
+                                profilePhotoUrl: '',
+                                skills: [],
+                              )),
                     ),
-                  );
+                  ),
+                );
 
-                  if (updatedProfile != null &&
-                      updatedProfile is CollaboratorProfileModel) {
-                    setState(() {
-                      _updatedProfile = updatedProfile;
-                    });
-
-                    // Reload the profile data immediately after editing
-                    context
-                        .read<ProfileViewBloc>()
-                        .add(LoadProfile(widget.userId));
-                  }
+                // Update the UI with the new profile
+                if (updatedProfile != null &&
+                    updatedProfile is CollaboratorProfileModel) {
+                  setState(() {
+                    _updatedProfile = updatedProfile;
+                  });
+                  // Emit an event to reload the profile data
+                  context
+                      .read<ProfileViewBloc>()
+                      .add(LoadProfile(widget.userId));
                 }
               },
             ),
@@ -90,16 +88,13 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
           padding: const EdgeInsets.all(16.0),
           child: BlocBuilder<ProfileViewBloc, ProfileViewState>(
             builder: (context, state) {
-              final profile = _updatedProfile ??
-                  (state is ProfileLoaded &&
-                          state.profile is CollaboratorProfileModel
-                      ? state.profile as CollaboratorProfileModel
-                      : null);
-
-              if (profile != null) {
-                return buildCollaboratorProfile(profile);
-              } else if (state is ProfileLoading) {
+              if (state is ProfileLoading) {
                 return const Center(child: CircularProgressIndicator());
+              } else if (state is ProfileLoaded &&
+                  state.profile is CollaboratorProfileModel) {
+                final profile = state.profile as CollaboratorProfileModel;
+                _updatedProfile = profile; // Store the loaded profile
+                return buildCollaboratorProfile(profile);
               } else if (state is ProfileError) {
                 return Center(
                     child: Text('Error: ${state.message}',
@@ -120,9 +115,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundImage: profile.profilePhotoUrl != null
-                ? NetworkImage(profile.profilePhotoUrl!)
-                : AssetImage('assets/images/user.png') as ImageProvider,
+            backgroundImage: NetworkImage(
+                profile.profilePhotoUrl ?? 'assets/images/user.png'),
           ),
           const SizedBox(height: 16),
           Text(
@@ -133,10 +127,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
           const SizedBox(height: 16),
           Wrap(
             spacing: 8.0,
-            children: profile.skills?.map((skill) {
-                  return Chip(label: Text(skill), backgroundColor: Colors.red);
-                }).toList() ??
-                [],
+            children: (profile.skills ?? []).map((skill) {
+              return Chip(label: Text(skill), backgroundColor: Colors.red);
+            }).toList(),
           ),
           const SizedBox(height: 16),
           Column(
@@ -155,36 +148,30 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-
-          // Add the project ideas section
-          buildTabBarSection(),
-        ],
-      ),
-    );
-  }
-
-  Widget buildTabBarSection() {
-    return DefaultTabController(
-      length: 3, // Three tabs: Project Ideas, Ongoing, and Completed
-      child: Column(
-        children: [
-          const TabBar(
-            indicatorColor: Colors.blue,
-            labelColor: Colors.blue,
-            unselectedLabelColor: Colors.white,
-            tabs: [
-              Tab(text: 'Project Ideas'),
-              Tab(text: 'Ongoing'),
-              Tab(text: 'Completed'),
-            ],
-          ),
-          SizedBox(
-            height: 300, // Adjust the height of the tab content
-            child: TabBarView(
+          DefaultTabController(
+            length: 3,
+            child: Column(
               children: [
-                buildProjectIdeasTab(), // Project Ideas content
-                Center(child: Text('Ongoing Projects content here...')),
-                Center(child: Text('Completed Projects content here...')),
+                const TabBar(
+                  indicatorColor: Colors.blue,
+                  labelColor: Colors.blue,
+                  unselectedLabelColor: Colors.white,
+                  tabs: [
+                    Tab(text: 'Project Ideas'),
+                    Tab(text: 'Ongoing'),
+                    Tab(text: 'Completed'),
+                  ],
+                ),
+                SizedBox(
+                  height: 300,
+                  child: TabBarView(
+                    children: [
+                      buildProjectIdeasTab(), // Project Ideas tab
+                      Text('Ongoing Projects content here...'),
+                      Text('Completed Projects content here...'),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -193,7 +180,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
     );
   }
 
-  // Fetch and display project ideas under the "Project Ideas" tab
   Widget buildProjectIdeasTab() {
     return FutureBuilder<List<Idea>>(
       future: _futureIdeas,
@@ -202,10 +188,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(
-            child: Text(
-              'Error loading ideas: ${snapshot.error}',
-              style: const TextStyle(color: Colors.red),
-            ),
+            child: Text('Error loading ideas: ${snapshot.error}',
+                style: const TextStyle(color: Colors.red)),
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No project ideas found.'));

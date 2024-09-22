@@ -6,7 +6,7 @@ class CollaboratorProfileModel {
   final String lastName;
   final String? bio;
   final String? profilePhotoUrl;
-  final List<String>? skills; // Should be a List<String>
+  final List<String>? skills; // Ensure this is a list
 
   CollaboratorProfileModel({
     required this.uid,
@@ -17,17 +17,7 @@ class CollaboratorProfileModel {
     this.skills,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'uid': uid,
-      'firstName': firstName,
-      'lastName': lastName,
-      'bio': bio,
-      'profilePhotoUrl': profilePhotoUrl,
-      'skills': skills,
-    };
-  }
-
+  // Convert from Firestore document (Map) to CollaboratorProfileModel
   static CollaboratorProfileModel fromMap(Map<String, dynamic> map) {
     return CollaboratorProfileModel(
       uid: map['uid'] as String,
@@ -35,10 +25,23 @@ class CollaboratorProfileModel {
       lastName: map['lastName'] as String,
       bio: map['bio'] as String?,
       profilePhotoUrl: map['profilePhotoUrl'] as String?,
-      // Ensure 'skills' is parsed as a List<String>
-      skills: (map['skills'] != null)
-          ? List<String>.from(map['skills'] as List<dynamic>)
-          : [],
+      // Ensure skills is a list. If it's a string, we need to handle that case.
+      skills: (map['skills'] as List<dynamic>?)
+              ?.map((skill) => skill as String)
+              .toList() ??
+          [],
     );
+  }
+
+  // Convert CollaboratorProfileModel to a Map (for Firestore)
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'firstName': firstName,
+      'lastName': lastName,
+      'bio': bio,
+      'profilePhotoUrl': profilePhotoUrl,
+      'skills': skills ?? [],
+    };
   }
 }

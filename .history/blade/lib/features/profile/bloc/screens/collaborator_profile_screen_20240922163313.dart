@@ -8,11 +8,7 @@ import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
 import '../src/collaborator_profile_model.dart';
 import '../screens/edit_collaborator_profile_screen.dart';
-import '../screens/project_idea_card_widget.dart';
-import '../repository/project_idea_repository.dart';
-import '../src/project_idea_model.dart';
-import '../widgets/avatar_stack.dart';
-import '../widgets/skill_tag.dart';
+import 'dart:io';
 
 class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
@@ -27,15 +23,6 @@ class CollaboratorProfileScreen extends StatefulWidget {
 
 class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
   CollaboratorProfileModel? _updatedProfile;
-  late ProjectIdeaRepository _projectIdeaRepository;
-  Future<List<Idea>>? _futureIdeas;
-
-  @override
-  void initState() {
-    super.initState();
-    _projectIdeaRepository = ProjectIdeaRepository();
-    _futureIdeas = _projectIdeaRepository.fetchIdeasByOwner(widget.userId);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,17 +56,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
                       ),
                     ),
                   );
-
-                  if (updatedProfile != null &&
-                      updatedProfile is CollaboratorProfileModel) {
+                  if (updatedProfile != null) {
                     setState(() {
                       _updatedProfile = updatedProfile;
                     });
-
-                    // Reload the profile data immediately after editing
-                    context
-                        .read<ProfileViewBloc>()
-                        .add(LoadProfile(widget.userId));
                   }
                 }
               },
@@ -121,7 +101,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
           CircleAvatar(
             radius: 50,
             backgroundImage: profile.profilePhotoUrl != null
-                ? NetworkImage(profile.profilePhotoUrl!)
+                ? FileImage(File(profile.profilePhotoUrl!))
                 : AssetImage('assets/images/user.png') as ImageProvider,
           ),
           const SizedBox(height: 16),
@@ -155,8 +135,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-
-          // Add the project ideas section
           buildTabBarSection(),
         ],
       ),
@@ -182,7 +160,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
             height: 300, // Adjust the height of the tab content
             child: TabBarView(
               children: [
-                buildProjectIdeasTab(), // Project Ideas content
+                Center(child: Text('Project Ideas content here...')),
                 Center(child: Text('Ongoing Projects content here...')),
                 Center(child: Text('Completed Projects content here...')),
               ],
@@ -190,40 +168,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  // Fetch and display project ideas under the "Project Ideas" tab
-  Widget buildProjectIdeasTab() {
-    return FutureBuilder<List<Idea>>(
-      future: _futureIdeas,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error loading ideas: ${snapshot.error}',
-              style: const TextStyle(color: Colors.red),
-            ),
-          );
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No project ideas found.'));
-        }
-
-        final ideas = snapshot.data!;
-
-        return ListView.builder(
-          itemCount: ideas.length,
-          itemBuilder: (context, index) {
-            final idea = ideas[index];
-            return ProjectIdeaCardWidget(
-              idea: idea,
-              repository: _projectIdeaRepository,
-            );
-          },
-        );
-      },
     );
   }
 }
