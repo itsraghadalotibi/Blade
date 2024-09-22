@@ -32,13 +32,13 @@ class AuthenticationRepository {
     if (profileImage != null) {
       profilePhotoUrl = await uploadProfileImage(userCredential.user!.uid, profileImage);
     }else{
-      profilePhotoUrl = 'gs://blade-87cf7.appspot.com/profile_images/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg';
+      profilePhotoUrl = 'https://firebasestorage.googleapis.com/v0/b/blade-87cf7.appspot.com/o/profile_images%2F360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg?alt=media&token=0db52e6c-f589-451d-9d22-c81190c123a1';
     }
 
     // Update collaborator model with UID and profilePhotoUrl
     collaborator = collaborator.copyWith(
       uid: userCredential.user!.uid,
-      profilePhotoUrl: profilePhotoUrl ?? '',
+      profilePhotoUrl: profilePhotoUrl,
     );
 
     await _firestore.collection('collaborators').doc(collaborator.uid).set(collaborator.toMap());
@@ -65,7 +65,7 @@ class AuthenticationRepository {
     // Update supporter model with UID and profilePhotoUrl
     supporter = supporter.copyWith(
       uid: userCredential.user!.uid,
-      profilePhotoUrl: profilePhotoUrl ?? '',
+      profilePhotoUrl: profilePhotoUrl,
     );
 
     await _firestore.collection('supporters').doc(supporter.uid).set(supporter.toMap());
@@ -135,5 +135,20 @@ class AuthenticationRepository {
   Future<void> saveSupporterData(SupporterModel supporter) async {
     await _firestore.collection('supporters').doc(supporter.uid).set(supporter.toMap());
   }
+
+  /// Fetch skills from Firestore
+  Future<List<String>> fetchSkills() async {
+    try {
+      final QuerySnapshot snapshot = await _firestore.collection('skills').get();
+      final List<String> skills = snapshot.docs
+          .map((doc) => doc.get('name') as String)
+          .toList()
+          .cast<String>();
+      return skills;
+    } catch (e) {
+      throw Exception('Failed to fetch skills: $e');
+    }
+  }
+
 }
 

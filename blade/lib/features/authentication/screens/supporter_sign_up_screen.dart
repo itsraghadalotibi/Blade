@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +8,6 @@ import '../bloc/authentication_bloc.dart';
 import '../bloc/authentication_event.dart';
 import '../bloc/authentication_state.dart';
 import 'package:blade_app/widgets/custom_text_field.dart';
-import 'package:blade_app/widgets/custom_button.dart';
 import '../src/supporter_model.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -45,7 +43,6 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
   String? firstNameError;
   String? lastNameError;
   String? passwordError;
-  bool isEmailUsed = false; // Track if the email is already used
 
   // Variable to show loading indicator
   bool isLoading = false;
@@ -109,7 +106,6 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
     final value = passwordController.text;
 
     setState(() {
-      // Update validation flags
       hasUppercase = value.contains(RegExp(r'[A-Z]'));
       hasLowercase = value.contains(RegExp(r'[a-z]'));
       hasDigit = value.contains(RegExp(r'\d'));
@@ -184,8 +180,8 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
   // Method to pick image
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery, // or ImageSource.camera
-      imageQuality: 80, // Adjust quality as needed
+      source: ImageSource.gallery,
+      imageQuality: 80,
     );
 
     if (pickedFile != null) {
@@ -195,38 +191,19 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
     }
   }
 
-   // Check if email already exists
-  Future<bool> _checkEmailExists(String email) async {
-    try {
-      final list = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
-      return list.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
-  }
-
   Future<void> _onSignUpButtonPressed() async {
     setState(() {
       emailError = _validateEmail(emailController.text);
       firstNameError = _validateFirstName(firstNameController.text);
       lastNameError = _validateLastName(lastNameController.text);
       passwordError = _validatePassword(passwordController.text);
-      isEmailUsed = false; // Reset in case it was set before
     });
 
     if (emailError == null &&
         firstNameError == null &&
         lastNameError == null &&
         passwordError == null) {
-      bool emailExists = await _checkEmailExists(emailController.text.trim());
-      if (emailExists) {
-        setState(() {
-          isEmailUsed = true;
-          emailError = 'This email is already registered.';
-        });
-        return;
-      }
-
+     
        String profileImageUrl;
 
       if (_profileImage != null) {
@@ -277,11 +254,17 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Sign Up Successful. Please log in.')),
             );
-            Navigator.pushReplacementNamed(context, '/login', arguments: 'supporter');
+            Navigator.pushReplacementNamed(context, '/login', arguments: 'collaborator');
           } else if (state is AuthenticationFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Sign Up Failed: ${state.error}')),
-            );
+            if (state.error.contains("email-already-in-use")) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Email is already registered')),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Sign Up Failed: ${state.error}')),
+              );
+            }
           }
         },
         child: SingleChildScrollView(
@@ -303,31 +286,6 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       errorText: emailError,
                       keyboardType: TextInputType.emailAddress,
                     ),
-                    
-
-                    // Show error and login button if email is already used
-                    if (isEmailUsed) ...[
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Row(
-                          children: [
-                            const Text(
-                              "Already registered?",
-                              style: TextStyle(color: Colors.red),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pushReplacementNamed(context, '/login', arguments: 'collaborator');
-                              },
-                              child: const Text(
-                                "Log In",
-                                style: TextStyle(color: Colors.blue),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 16),
 
                     // First Name field with error handling
@@ -389,6 +347,7 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       label: 'Bio (Optional)',
                       controller: bioController,
                       maxLines: 3,
+                      maxLength: 300,
                     ),
                     const SizedBox(height: 24),
 

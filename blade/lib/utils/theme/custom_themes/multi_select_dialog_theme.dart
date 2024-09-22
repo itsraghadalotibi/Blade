@@ -19,25 +19,26 @@ class TMultiSelectDialogTheme {
     return MultiSelectDialogField<String>(
       items: items,
       backgroundColor: TColors.light,
-      title: Text(title, style: TextStyle(color: TColors.black)),
+      title: Text(title, style: const TextStyle().copyWith(fontSize: TSizes.fontSizeMd, color: TColors.black)),
       selectedColor: TColors.primary,
       decoration: BoxDecoration(
         color: TColors.light,
         borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
         border: Border.all(
-          color: TColors.borderPrimary,
+          color: TColors.grey,
           width: 1,
         ),
       ),
-      buttonIcon: Icon(
+      buttonIcon: const Icon(
         Icons.arrow_drop_down,
         color: TColors.textSecondary,
       ),
       buttonText: Text(
         buttonText,
-        style: TextStyle(
-          color: TColors.textPrimary,
+        style: const TextStyle(
+          color: TColors.black,
           fontSize: TSizes.fontSizeMd,
+          fontWeight: FontWeight.w500
         ),
       ),
       listType: MultiSelectListType.LIST,
@@ -46,22 +47,22 @@ class TMultiSelectDialogTheme {
       onConfirm: onConfirm,
       chipDisplay: MultiSelectChipDisplay(
         chipColor: TColors.accent,
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           color: TColors.textPrimary,
           fontSize: TSizes.fontSizeSm,
           fontWeight: FontWeight.bold,
         ),
       ),
-      itemsTextStyle: TextStyle(
+      itemsTextStyle: const TextStyle(
         color: TColors.textPrimary,
         fontSize: TSizes.fontSizeMd,
       ),
-      selectedItemsTextStyle: TextStyle(
+      selectedItemsTextStyle: const TextStyle(
         color: TColors.textPrimary,
         fontWeight: FontWeight.bold,
         fontSize: TSizes.fontSizeMd,
       ),
-      searchTextStyle: TextStyle(
+      searchTextStyle: const TextStyle(
         color: TColors.textPrimary,
         fontSize: TSizes.fontSizeMd,
       ),
@@ -79,25 +80,26 @@ class TMultiSelectDialogTheme {
     return MultiSelectDialogField<String>(
       items: items,
       backgroundColor: TColors.darkerGrey,
-      title: Text(title, style: TextStyle(color: TColors.textWhite)),
+      title: Text(title, style: const TextStyle().copyWith(fontSize: TSizes.fontSizeMd, color: TColors.white)),
       selectedColor: TColors.primary,
       decoration: BoxDecoration(
         color: TColors.dark,
         borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
         border: Border.all(
-          color: TColors.borderSecondary,
+          color: TColors.darkGrey,
           width: 1,
         ),
       ),
-      buttonIcon: Icon(
+      buttonIcon: const Icon(
         Icons.arrow_drop_down,
         color: TColors.textSecondary,
       ),
       buttonText: Text(
         buttonText,
-        style: TextStyle(
-          color: TColors.textWhite,
+        style: const TextStyle(
+          color: TColors.white,
           fontSize: TSizes.fontSizeMd,
+          fontWeight: FontWeight.w500
         ),
       ),
       listType: MultiSelectListType.LIST,
@@ -106,21 +108,21 @@ class TMultiSelectDialogTheme {
       onConfirm: onConfirm,
       chipDisplay: MultiSelectChipDisplay(
         chipColor: TColors.accent,
-        textStyle: TextStyle(
+        textStyle: const TextStyle(
           color: TColors.black,
           fontSize: TSizes.fontSizeSm,
         ),
       ),
-      itemsTextStyle: TextStyle(
+      itemsTextStyle: const TextStyle(
         color: TColors.textWhite,
         fontSize: TSizes.fontSizeMd,
       ),
-      selectedItemsTextStyle: TextStyle(
+      selectedItemsTextStyle: const TextStyle(
         color: TColors.white,
         fontWeight: FontWeight.bold,
         fontSize: TSizes.fontSizeMd,
       ),
-      searchTextStyle: TextStyle(
+      searchTextStyle: const TextStyle(
         color: TColors.textWhite,
         fontSize: TSizes.fontSizeMd,
       ),

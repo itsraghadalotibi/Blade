@@ -1,5 +1,3 @@
-// lib/shared/widgets/custom_text_field.dart
-import 'package:blade_app/utils/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/constants/sizes.dart';
@@ -13,6 +11,7 @@ class CustomTextField extends StatelessWidget {
   final String? errorText;
   final TextInputType? keyboardType;
   final int maxLines;
+  final int? maxLength;
 
   const CustomTextField({
     Key? key,
@@ -22,7 +21,8 @@ class CustomTextField extends StatelessWidget {
     this.obscureText = false,
     this.validator,
     this.errorText,
-    this.maxLines = 1, // Default to 1
+    this.maxLines = 1,
+    this.maxLength,
     this.keyboardType,
   }) : super(key: key);
 
@@ -33,6 +33,7 @@ class CustomTextField extends StatelessWidget {
       focusNode: focusNode,
       obscureText: obscureText,
       maxLines: maxLines,
+      maxLength: maxLength,
       keyboardType: keyboardType,
       decoration: InputDecoration(
       labelText: label,

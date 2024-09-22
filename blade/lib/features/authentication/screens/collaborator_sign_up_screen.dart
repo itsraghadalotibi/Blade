@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'package:blade_app/utils/theme/theme.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../utils/constants/colors.dart';
 import '../../../utils/theme/custom_themes/multi_select_dialog_theme.dart';
-import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_text_field.dart';
 import '../../../widgets/password_requirement.dart';
 import '../bloc/authentication_bloc.dart';
@@ -51,7 +48,6 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
   String? firstNameError;
   String? lastNameError;
   String? passwordError;
-  bool isEmailUsed = false; // Track if the email is already used
 
   // Loading indicator
   bool isLoading = false;
@@ -69,63 +65,15 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
   bool showPasswordRequirements = false; // Initially set to false
 
   // Skills multi-select
-  final List<MultiSelectItem<String>> _skillsItems = [
-    MultiSelectItem('Agile Methodologies', 'Agile Methodologies'),
-    MultiSelectItem('AI (Artificial Intelligence)', 'AI (Artificial Intelligence)'),
-    MultiSelectItem('AWS (Amazon Web Services)', 'AWS (Amazon Web Services)'),
-    MultiSelectItem('Blockchain', 'Blockchain'),
-    MultiSelectItem('C#', 'C#'),
-    MultiSelectItem('C++', 'C++'),
-    MultiSelectItem('Cloud Computing', 'Cloud Computing'),
-    MultiSelectItem('Cybersecurity', 'Cybersecurity'),
-    MultiSelectItem('Data Analysis', 'Data Analysis'),
-    MultiSelectItem('Data Science', 'Data Science'),
-    MultiSelectItem('Dart', 'Dart'),
-    MultiSelectItem('DevOps', 'DevOps'),
-    MultiSelectItem('Docker', 'Docker'),
-    MultiSelectItem('Embedded Systems', 'Embedded Systems'),
-    MultiSelectItem('Game Development', 'Game Development'),
-    MultiSelectItem('Git', 'Git'),
-    MultiSelectItem('Go', 'Go'),
-    MultiSelectItem('Graphic Design', 'Graphic Design'),
-    MultiSelectItem('HTML/CSS', 'HTML/CSS'),
-    MultiSelectItem('iOS Development', 'iOS Development'),
-    MultiSelectItem('Java', 'Java'),
-    MultiSelectItem('JavaScript', 'JavaScript'),
-    MultiSelectItem('Kotlin', 'Kotlin'),
-    MultiSelectItem('Laravel', 'Laravel'),
-    MultiSelectItem('Machine Learning', 'Machine Learning'),
-    MultiSelectItem('Mobile Development', 'Mobile Development'),
-    MultiSelectItem('MongoDB', 'MongoDB'),
-    MultiSelectItem('Node.js', 'Node.js'),
-    MultiSelectItem('PHP', 'PHP'),
-    MultiSelectItem('Project Management', 'Project Management'),
-    MultiSelectItem('Python', 'Python'),
-    MultiSelectItem('React', 'React'),
-    MultiSelectItem('Ruby on Rails', 'Ruby on Rails'),
-    MultiSelectItem('SQL', 'SQL'),
-    MultiSelectItem('Swift', 'Swift'),
-    MultiSelectItem('TypeScript', 'TypeScript'),
-    MultiSelectItem('UI Design', 'UI Design'),
-    MultiSelectItem('UX Design', 'UX Design'),
-    MultiSelectItem('Web Development', 'Web Development'),
-  ];
-
   List<String> _selectedSkills = [];
 
   @override
   void initState() {
     super.initState();
 
-    // Listener for email field to reset isEmailUsed when email changes
-    emailController.addListener(() {
-      if (isEmailUsed) {
-        setState(() {
-          isEmailUsed = false;
-          emailError = _validateEmail(emailController.text);
-        });
-      }
-    });
+    // Fetch skills from BLoC
+    context.read<AuthenticationBloc>().add(FetchSkills());
+
 
     emailFocusNode.addListener(() {
       if (!emailFocusNode.hasFocus) {
@@ -235,24 +183,14 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
   // Method to pick image
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery, // or ImageSource.camera
-      imageQuality: 80, // Adjust quality as needed
+      source: ImageSource.gallery,
+      imageQuality: 80,
     );
 
     if (pickedFile != null) {
       setState(() {
         _profileImage = File(pickedFile.path);
       });
-    }
-  }
-
-  // Check if email already exists
-  Future<bool> _checkEmailExists(String email) async {
-    try {
-      final list = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
-      return list.isNotEmpty;
-    } catch (e) {
-      return false;
     }
   }
 
@@ -263,22 +201,13 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
       firstNameError = _validateFirstName(firstNameController.text);
       lastNameError = _validateLastName(lastNameController.text);
       passwordError = _validatePassword(passwordController.text);
-      isEmailUsed = false; // Reset in case it was set before
+
     });
 
     if (emailError == null &&
         firstNameError == null &&
         lastNameError == null &&
         passwordError == null) {
-      // Check if email is already registered
-      bool emailExists = await _checkEmailExists(emailController.text.trim());
-      if (emailExists) {
-        setState(() {
-          isEmailUsed = true;
-          emailError = 'This email is already registered.';
-        });
-        return;
-      }
 
       String profileImageUrl;
 
@@ -332,15 +261,21 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
             isLoading = state is AuthenticationLoading;
           });
 
-          if (state is AuthenticationUnauthenticated) {
+           if (state is AuthenticationUnauthenticated) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Sign Up Successful. Please log in.')),
             );
             Navigator.pushReplacementNamed(context, '/login', arguments: 'collaborator');
           } else if (state is AuthenticationFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Sign Up Failed: ${state.error}')),
-            );
+            if (state.error.contains("email-already-in-use")) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Email is already registered')),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Sign Up Failed: ${state.error}')),
+              );
+            }
           }
         },
         child: SingleChildScrollView(
@@ -361,30 +296,6 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       focusNode: emailFocusNode,
                       errorText: emailError,
                     ),
-
-                    // Show error and login button if email is already used
-                    if (isEmailUsed) ...[
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Row(
-                          children: [
-                            const Text(
-                              "Already registered?",
-                              style: TextStyle(color: Colors.red),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pushReplacementNamed(context, '/login', arguments: 'collaborator');
-                              },
-                              child: const Text(
-                                "Log In",
-                                style: TextStyle(color: Colors.blue),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 16),
 
                     // First Name field with error handling
@@ -441,29 +352,78 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Skills Multi-Select with Custom Theme
-                    isDarkMode? TMultiSelectDialogTheme.darkMultiSelectDialogField(
-                            items: _skillsItems,
-                            selectedItems: _selectedSkills,
-                            onConfirm: (results) {
-                              setState(() {
-                                _selectedSkills = results;
-                              });
-                            },
-                            title: 'Skills',
-                            buttonText: 'Select Skills (Optional)',
-                          )
-                        : TMultiSelectDialogTheme.lightMultiSelectDialogField(
-                            items: _skillsItems,
-                            selectedItems: _selectedSkills,
-                            onConfirm: (results) {
-                              setState(() {
-                                _selectedSkills = results;
-                              });
-                            },
-                            title: 'Skills',
-                            buttonText: 'Select Skills (Optional)',
-                          ),
+                    BlocBuilder<AuthenticationBloc, AuthenticationState>(
+                                  builder: (context, state) {
+                                    if (state is SkillsLoading) {
+                                      return Center(child: CircularProgressIndicator());
+                                    } else if (state is SkillsError) {
+                                      return Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            state.error,
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                          SizedBox(height: 8),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              context
+                                                  .read<AuthenticationBloc>()
+                                                  .add(FetchSkills());
+                                            },
+                                            child: Text('Retry'),
+                                          ),
+                                        ],
+                                      );
+                                    } else if (state is SkillsLoaded) {
+                                      final List<MultiSelectItem<String>> _skillsItems =
+                                          state.availableSkills
+                                              .map((skill) => MultiSelectItem<String>(
+                                                  skill, skill))
+                                              .toList();
+
+                                      return isDarkMode
+                                          ? TMultiSelectDialogTheme.darkMultiSelectDialogField(
+                                              items: _skillsItems,
+                                              selectedItems: _selectedSkills,
+                                              onConfirm: (results) {
+                                                setState(() {
+                                                  _selectedSkills = results;
+                                                });
+                                              },
+                                              title: 'Skills',
+                                              buttonText: 'Select Skills (Optional)',
+                                            )
+                                          : TMultiSelectDialogTheme.lightMultiSelectDialogField(
+                                              items: _skillsItems,
+                                              selectedItems: _selectedSkills,
+                                              onConfirm: (results) {
+                                                setState(() {
+                                                  _selectedSkills = results;
+                                                });
+                                              },
+                                              title: 'Skills',
+                                              buttonText: 'Select Skills (Optional)',
+                                            );
+                                    } else {
+                                      return Container(); // Placeholder for other states
+                                    }
+                                  },
+                                ),
+                    const SizedBox(height: 16),
+
+                    // GitHub Link
+                    CustomTextField(
+                      label: 'GitHub Profile Link (Optional)',
+                      controller: githubController,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // LinkedIn Link
+                    CustomTextField(
+                      label: 'LinkedIn Profile Link (Optional)',
+                      controller: linkedInController,
+                    ),
                     const SizedBox(height: 16),
 
                     // Bio field
@@ -471,20 +431,8 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       label: 'Bio (Optional)',
                       controller: bioController,
                       maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // GitHub Link
-                    CustomTextField(
-                      label: 'GitHub Profile Link',
-                      controller: githubController,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // LinkedIn Link
-                    CustomTextField(
-                      label: 'LinkedIn Profile Link',
-                      controller: linkedInController,
+                      maxLength: 300,
+                      
                     ),
 
                     const SizedBox(height: 24),
