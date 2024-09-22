@@ -5,7 +5,7 @@ import '../src/supporter_model.dart';
 abstract class AuthenticationEvent {}
 
 class AppStarted extends AuthenticationEvent {}
-
+class FetchSkills extends AuthenticationEvent {}
 class LoginRequested extends AuthenticationEvent {
   final String email;
   final String password;

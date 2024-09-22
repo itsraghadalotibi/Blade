@@ -163,4 +163,18 @@ class AuthenticationRepository {
   Future<void> saveSupporterData(SupporterModel supporter) async {
     await _firestore.collection('supporters').doc(supporter.uid).set(supporter.toMap());
   }
+
+  // Fetch skills from Firestore
+  Future<List<String>> fetchSkills() async {
+    try {
+      final QuerySnapshot snapshot = await _firestore.collection('skills').get();
+      final List<String> skills = snapshot.docs
+          .map((doc) => doc.get('name') as String)
+          .toList()
+          .cast<String>();
+      return skills;
+    } catch (e) {
+      throw Exception('Failed to fetch skills: $e');
+    }
+  }
 }
