@@ -1,88 +1,44 @@
 // Path: lib/features/profile/screens/collaborator_profile_screen.dart
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
-import '../bloc/edit_collaborator_profile_bloc.dart'; // Import the edit profile bloc
-import '../repository/profile_repository.dart'; // Ensure the repository is available
 import '../src/collaborator_profile_model.dart';
-import '../screens/edit_collaborator_profile_screen.dart';
 
-class CollaboratorProfileScreen extends StatefulWidget {
+class CollaboratorProfileScreen extends StatelessWidget {
   final String userId;
 
   const CollaboratorProfileScreen({Key? key, required this.userId})
       : super(key: key);
 
   @override
-  _CollaboratorProfileScreenState createState() =>
-      _CollaboratorProfileScreenState();
-}
-
-class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
-  CollaboratorProfileModel? _updatedProfile;
-
-  @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ProfileViewBloc(profileRepository: context.read())
-        ..add(LoadProfile(widget.userId)),
+        ..add(LoadProfile(userId)),
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
           title: const Text('Collaborator Profile'),
           backgroundColor: Colors.black,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () async {
-                final state = BlocProvider.of<ProfileViewBloc>(context).state;
-                if (state is ProfileLoaded &&
-                    state.profile is CollaboratorProfileModel) {
-                  final profile = _updatedProfile ??
-                      state.profile as CollaboratorProfileModel;
-
-                  // Navigate to EditCollaboratorProfileScreen with BlocProvider
-                  final updatedProfile = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BlocProvider(
-                        create: (context) => EditCollaboratorProfileBloc(
-                          profileRepository: context.read<ProfileRepository>(),
-                        ),
-                        child: EditCollaboratorProfileScreen(profile: profile),
-                      ),
-                    ),
-                  );
-                  if (updatedProfile != null) {
-                    setState(() {
-                      _updatedProfile = updatedProfile;
-                    });
-                  }
-                }
-              },
-            ),
-          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: BlocBuilder<ProfileViewBloc, ProfileViewState>(
             builder: (context, state) {
-              final profile = _updatedProfile ??
-                  (state is ProfileLoaded &&
-                          state.profile is CollaboratorProfileModel
-                      ? state.profile as CollaboratorProfileModel
-                      : null);
-
-              if (profile != null) {
-                return buildCollaboratorProfile(profile);
-              } else if (state is ProfileLoading) {
+              if (state is ProfileLoading) {
                 return const Center(child: CircularProgressIndicator());
+              } else if (state is ProfileLoaded &&
+                  state.profile is CollaboratorProfileModel) {
+                final profile = state.profile as CollaboratorProfileModel;
+                print(
+                    'Collaborator profile loaded: ${profile.firstName} ${profile.lastName}'); // Log success
+                return buildCollaboratorProfile(profile);
               } else if (state is ProfileError) {
+                print(
+                    'Error loading collaborator profile: ${state.message}'); // Log the error
                 return Center(
                     child: Text('Error: ${state.message}',
                         style: const TextStyle(color: Colors.red)));
@@ -100,12 +56,23 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundImage: profile.profilePhotoUrl != null
-                ? FileImage(File(profile.profilePhotoUrl!))
-                : const AssetImage('assets/images/content/user.png')
-                    as ImageProvider,
+          Stack(
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: NetworkImage(
+                    profile.profilePhotoUrl ?? 'https://placeholder.com'),
+              ),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: CircleAvatar(
+                  radius: 15,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.edit, size: 16),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Text(
@@ -116,7 +83,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
           const SizedBox(height: 16),
           Wrap(
             spacing: 8.0,
-            children: profile.skills?.map((skill) {
+            children: profile.skills?.split(',').map((skill) {
                   return Chip(label: Text(skill), backgroundColor: Colors.red);
                 }).toList() ??
                 [],
@@ -136,6 +103,34 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
               Text(profile.bio ?? 'No bio available',
                   style: const TextStyle(fontSize: 14, color: Colors.white)),
             ],
+          ),
+          const SizedBox(height: 16),
+          DefaultTabController(
+            length: 3,
+            child: Column(
+              children: [
+                const TabBar(
+                  indicatorColor: Colors.blue,
+                  labelColor: Colors.blue,
+                  unselectedLabelColor: Colors.white,
+                  tabs: [
+                    Tab(text: 'Project Ideas'),
+                    Tab(text: 'Ongoing'),
+                    Tab(text: 'Completed'),
+                  ],
+                ),
+                SizedBox(
+                  height: 300,
+                  child: TabBarView(
+                    children: [
+                      Text('Project Ideas content here...'),
+                      Text('Ongoing Projects content here...'),
+                      Text('Completed Projects content here...'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

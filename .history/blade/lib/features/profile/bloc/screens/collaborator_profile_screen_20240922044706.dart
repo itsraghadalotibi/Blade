@@ -104,8 +104,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
             radius: 50,
             backgroundImage: profile.profilePhotoUrl != null
                 ? FileImage(File(profile.profilePhotoUrl!))
-                : const AssetImage('assets/images/content/user.png')
-                    as ImageProvider,
+                : AssetImage('assets/images/content/user.png') as ImageProvider,
           ),
           const SizedBox(height: 16),
           Text(

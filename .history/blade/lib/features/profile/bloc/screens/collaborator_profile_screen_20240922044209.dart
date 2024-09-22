@@ -1,7 +1,5 @@
 // Path: lib/features/profile/screens/collaborator_profile_screen.dart
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
@@ -104,8 +102,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
             radius: 50,
             backgroundImage: profile.profilePhotoUrl != null
                 ? FileImage(File(profile.profilePhotoUrl!))
-                : const AssetImage('assets/images/content/user.png')
-                    as ImageProvider,
+                : AssetImage('assets/images/user.png') as ImageProvider,
           ),
           const SizedBox(height: 16),
           Text(

@@ -1,46 +1,66 @@
-// Path: lib/features/profile/screens/supporter_profile_screen.dart
+// Path: lib/features/profile/screens/collaborator_profile_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
-import '../src/supporter_profile_model.dart';
-import 'edit_supporter_profile_screen.dart';
+import '../src/collaborator_profile_model.dart';
+import '../bloc/edit_collaborator_profile_bloc.dart'; // Import the edit bloc
+import '../repository/profile_repository.dart'; // Ensure the repository is imported
+import 'edit_collaborator_profile_screen.dart';
 
-class SupporterProfileScreen extends StatelessWidget {
+class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
 
-  const SupporterProfileScreen({Key? key, required this.userId})
+  const CollaboratorProfileScreen({Key? key, required this.userId})
       : super(key: key);
+
+  @override
+  _CollaboratorProfileScreenState createState() =>
+      _CollaboratorProfileScreenState();
+}
+
+class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
+  CollaboratorProfileModel? _updatedProfile;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ProfileViewBloc(profileRepository: context.read())
-        ..add(LoadProfile(userId)),
+        ..add(LoadProfile(widget.userId)),
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: const Text('Supporter Profile'),
+          title: const Text('Collaborator Profile'),
           backgroundColor: Colors.black,
           actions: [
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () {
-                // Check if the current state is ProfileLoaded and if the profile is a SupporterProfileModel
+              onPressed: () async {
                 final state = BlocProvider.of<ProfileViewBloc>(context).state;
                 if (state is ProfileLoaded &&
-                    state.profile is SupporterProfileModel) {
-                  final profile = state.profile as SupporterProfileModel;
-                  Navigator.push(
+                    state.profile is CollaboratorProfileModel) {
+                  final profile = _updatedProfile ??
+                      state.profile as CollaboratorProfileModel;
+
+                  // Wrap EditCollaboratorProfileScreen with a BlocProvider
+                  final updatedProfile = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EditSupporterProfileScreen(
-                        profile: profile,
+                      builder: (context) => BlocProvider(
+                        create: (context) => EditCollaboratorProfileBloc(
+                          profileRepository: context.read<ProfileRepository>(),
+                        ),
+                        child: EditCollaboratorProfileScreen(profile: profile),
                       ),
                     ),
                   );
+                  if (updatedProfile != null) {
+                    setState(() {
+                      _updatedProfile = updatedProfile;
+                    });
+                  }
                 }
               },
             ),
@@ -50,12 +70,16 @@ class SupporterProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: BlocBuilder<ProfileViewBloc, ProfileViewState>(
             builder: (context, state) {
-              if (state is ProfileLoading) {
+              final profile = _updatedProfile ??
+                  (state is ProfileLoaded &&
+                          state.profile is CollaboratorProfileModel
+                      ? state.profile as CollaboratorProfileModel
+                      : null);
+
+              if (profile != null) {
+                return buildCollaboratorProfile(profile);
+              } else if (state is ProfileLoading) {
                 return const Center(child: CircularProgressIndicator());
-              } else if (state is ProfileLoaded &&
-                  state.profile is SupporterProfileModel) {
-                final profile = state.profile as SupporterProfileModel;
-                return buildSupporterProfile(profile);
               } else if (state is ProfileError) {
                 return Center(
                     child: Text('Error: ${state.message}',
@@ -69,7 +93,7 @@ class SupporterProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget buildSupporterProfile(SupporterProfileModel profile) {
+  Widget buildCollaboratorProfile(CollaboratorProfileModel profile) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -84,6 +108,14 @@ class SupporterProfileScreen extends StatelessWidget {
             '${profile.firstName} ${profile.lastName}',
             style: const TextStyle(
                 fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8.0,
+            children: profile.skills?.map((skill) {
+                  return Chip(label: Text(skill), backgroundColor: Colors.red);
+                }).toList() ??
+                [],
           ),
           const SizedBox(height: 16),
           Column(

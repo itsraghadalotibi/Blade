@@ -1,5 +1,4 @@
-// Path: lib/features/profile/bloc/profile_view_bloc.dart
-
+// lib/features/profile/bloc/profile_view_bloc.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../repository/profile_repository.dart';
 import 'profile_view_event.dart';
@@ -18,20 +17,16 @@ class ProfileViewBloc extends Bloc<ProfileViewEvent, ProfileViewState> {
   Future<void> _onLoadProfile(
       LoadProfile event, Emitter<ProfileViewState> emit) async {
     try {
-      print('Loading profile for userId: ${event.userId}'); // Log the userId
-
       // Try to fetch collaborator profile first
       try {
         final profile =
             await profileRepository.getCollaboratorProfile(event.userId);
         if (profile != null) {
-          print('Collaborator profile loaded successfully'); // Log success
           emit(ProfileLoaded(profile));
           return;
         }
       } catch (e) {
-        print(
-            'Collaborator profile not found, trying supporter...'); // Log if collaborator not found
+        // Continue to fetch supporter profile if not found in collaborators
       }
 
       // Fetch supporter profile if collaborator is not found
@@ -42,7 +37,6 @@ class ProfileViewBloc extends Bloc<ProfileViewEvent, ProfileViewState> {
         emit(ProfileError('Profile not found.'));
       }
     } catch (error) {
-      print('Error loading profile: $error'); // Log any errors
       emit(ProfileError('Failed to load profile.'));
     }
   }
