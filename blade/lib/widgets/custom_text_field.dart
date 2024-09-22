@@ -12,8 +12,9 @@ class CustomTextField extends StatefulWidget {
   final TextInputType? keyboardType;
   final int maxLines;
   final String? inputType;
+  final int? maxLength;
   final VoidCallback? onTap;
-
+  
   const CustomTextField({
     super.key,
     required this.label,
@@ -21,6 +22,7 @@ class CustomTextField extends StatefulWidget {
     this.focusNode,
     this.validator,
     this.errorText,
+    this.maxLength,
     this.obscureText = false, // Default to false
     this.maxLines = 1, // Default to 1
     this.keyboardType,
