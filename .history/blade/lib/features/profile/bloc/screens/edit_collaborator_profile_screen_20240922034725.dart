@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart'; // Image picker
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/edit_collaborator_profile_bloc.dart';
 import '../bloc/edit_collaborator_profile_event.dart';
-import '../bloc/edit_collaborator_profile_state.dart';
 import '../src/collaborator_profile_model.dart';
 
 class EditCollaboratorProfileScreen extends StatefulWidget {

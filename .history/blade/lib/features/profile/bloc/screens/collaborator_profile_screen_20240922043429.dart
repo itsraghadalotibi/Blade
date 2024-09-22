@@ -1,16 +1,14 @@
 // Path: lib/features/profile/screens/collaborator_profile_screen.dart
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
-import '../bloc/edit_collaborator_profile_bloc.dart'; // Import the edit profile bloc
-import '../repository/profile_repository.dart'; // Ensure the repository is available
 import '../src/collaborator_profile_model.dart';
-import '../screens/edit_collaborator_profile_screen.dart';
+import '../bloc/edit_collaborator_profile_bloc.dart'; // Import the edit bloc
+import '../repository/profile_repository.dart'; // Ensure the repository is imported
+import 'edit_collaborator_profile_screen.dart';
 
 class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
@@ -43,10 +41,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
                 final state = BlocProvider.of<ProfileViewBloc>(context).state;
                 if (state is ProfileLoaded &&
                     state.profile is CollaboratorProfileModel) {
-                  final profile = _updatedProfile ??
-                      state.profile as CollaboratorProfileModel;
+                  final profile = _updatedProfile ?? state.profile as CollaboratorProfileModel;
 
-                  // Navigate to EditCollaboratorProfileScreen with BlocProvider
+                  // Navigate to the EditCollaboratorProfileScreen
                   final updatedProfile = await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -100,12 +97,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // Display the profile picture
           CircleAvatar(
             radius: 50,
             backgroundImage: profile.profilePhotoUrl != null
-                ? FileImage(File(profile.profilePhotoUrl!))
-                : const AssetImage('assets/images/content/user.png')
-                    as ImageProvider,
+                ? FileImage(File(profile.profilePhotoUrl!)) as ImageProvider // Show profile image if available
+                : AssetImage('assets/images/user.png'), // Default image from assets
           ),
           const SizedBox(height: 16),
           Text(
@@ -117,8 +114,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
           Wrap(
             spacing: 8.0,
             children: profile.skills?.map((skill) {
-                  return Chip(label: Text(skill), backgroundColor: Colors.red);
-                }).toList() ??
+              return Chip(label: Text(skill), backgroundColor: Colors.red);
+            }).toList() ??
                 [],
           ),
           const SizedBox(height: 16),
@@ -137,8 +134,3 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
                   style: const TextStyle(fontSize: 14, color: Colors.white)),
             ],
           ),
-        ],
-      ),
-    );
-  }
-}

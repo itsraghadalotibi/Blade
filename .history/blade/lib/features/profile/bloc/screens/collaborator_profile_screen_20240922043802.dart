@@ -7,8 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
-import '../bloc/edit_collaborator_profile_bloc.dart'; // Import the edit profile bloc
-import '../repository/profile_repository.dart'; // Ensure the repository is available
 import '../src/collaborator_profile_model.dart';
 import '../screens/edit_collaborator_profile_screen.dart';
 
@@ -46,15 +44,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
                   final profile = _updatedProfile ??
                       state.profile as CollaboratorProfileModel;
 
-                  // Navigate to EditCollaboratorProfileScreen with BlocProvider
+                  // Navigate to the EditCollaboratorProfileScreen
                   final updatedProfile = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => BlocProvider(
-                        create: (context) => EditCollaboratorProfileBloc(
-                          profileRepository: context.read<ProfileRepository>(),
-                        ),
-                        child: EditCollaboratorProfileScreen(profile: profile),
+                      builder: (context) => EditCollaboratorProfileScreen(
+                        profile: profile,
                       ),
                     ),
                   );
@@ -104,8 +99,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
             radius: 50,
             backgroundImage: profile.profilePhotoUrl != null
                 ? FileImage(File(profile.profilePhotoUrl!))
-                : const AssetImage('assets/images/content/user.png')
-                    as ImageProvider,
+                : AssetImage('assets/images/user.png') as ImageProvider,
           ),
           const SizedBox(height: 16),
           Text(

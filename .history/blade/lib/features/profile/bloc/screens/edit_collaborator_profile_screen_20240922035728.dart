@@ -1,12 +1,11 @@
 // Path: lib/features/profile/screens/edit_collaborator_profile_screen.dart
 
-import 'dart:io'; // For File handling
+import 'dart:io'; // For File
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; // Image picker
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/edit_collaborator_profile_bloc.dart';
 import '../bloc/edit_collaborator_profile_event.dart';
-import '../bloc/edit_collaborator_profile_state.dart';
 import '../src/collaborator_profile_model.dart';
 
 class EditCollaboratorProfileScreen extends StatefulWidget {
@@ -37,6 +36,7 @@ class _EditCollaboratorProfileScreenState
         TextEditingController(text: widget.profile.firstName);
     _lastNameController = TextEditingController(text: widget.profile.lastName);
     _bioController = TextEditingController(text: widget.profile.bio);
+
     _skillsController = TextEditingController(
       text: widget.profile.skills?.join(', ') ?? '',
     );
@@ -55,6 +55,7 @@ class _EditCollaboratorProfileScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Adding Scaffold here
       appBar: AppBar(title: const Text('Edit Collaborator Profile')),
       body: BlocListener<EditCollaboratorProfileBloc,
           EditCollaboratorProfileState>(
@@ -72,18 +73,18 @@ class _EditCollaboratorProfileScreenState
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                // Display profile photo or default image
+                // Display profile photo
                 GestureDetector(
                   onTap: _pickImage, // Open gallery on tap
                   child: CircleAvatar(
                     radius: 50,
                     backgroundImage: _newProfileImage != null
                         ? FileImage(
-                            _newProfileImage!) // Show the selected image
-                        : AssetImage('assets/images/user.png')
-                            as ImageProvider, // Default image from assets
-                    child:
-                        const Icon(Icons.camera_alt, size: 30), // Camera icon
+                            _newProfileImage!) // Show new image if picked
+                        : NetworkImage(widget.profile.profilePhotoUrl ??
+                                'https://placeholder.com')
+                            as ImageProvider, // Show existing image
+                    child: Icon(Icons.camera_alt, size: 30), // Camera icon
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -120,7 +121,7 @@ class _EditCollaboratorProfileScreenState
                       lastName: _lastNameController.text,
                       bio: _bioController.text,
                       profilePhotoUrl: _newProfileImage != null
-                          ? _newProfileImage!.path // Store the path for now
+                          ? _newProfileImage!.path // Store new image path
                           : widget.profile
                               .profilePhotoUrl, // Keep old image if not changed
                       skills: skillsList,

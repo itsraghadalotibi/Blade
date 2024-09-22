@@ -1,16 +1,14 @@
 // Path: lib/features/profile/screens/collaborator_profile_screen.dart
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
-import '../bloc/edit_collaborator_profile_bloc.dart'; // Import the edit profile bloc
-import '../repository/profile_repository.dart'; // Ensure the repository is available
 import '../src/collaborator_profile_model.dart';
-import '../screens/edit_collaborator_profile_screen.dart';
+import '../bloc/edit_collaborator_profile_bloc.dart'; // Import the edit bloc
+import '../repository/profile_repository.dart'; // Ensure the repository is imported
+import 'edit_collaborator_profile_screen.dart';
 
 class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
@@ -46,7 +44,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
                   final profile = _updatedProfile ??
                       state.profile as CollaboratorProfileModel;
 
-                  // Navigate to EditCollaboratorProfileScreen with BlocProvider
+                  // Wrap EditCollaboratorProfileScreen with a BlocProvider
                   final updatedProfile = await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -102,10 +100,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundImage: profile.profilePhotoUrl != null
-                ? FileImage(File(profile.profilePhotoUrl!))
-                : const AssetImage('assets/images/content/user.png')
-                    as ImageProvider,
+            backgroundImage: NetworkImage(
+                profile.profilePhotoUrl ?? 'https://placeholder.com'),
           ),
           const SizedBox(height: 16),
           Text(

@@ -18,10 +18,9 @@ class EditCollaboratorProfileBloc
   Future<void> _onSaveCollaboratorProfile(SaveCollaboratorProfile event,
       Emitter<EditCollaboratorProfileState> emit) async {
     try {
-      // Access the profile from the event
       await profileRepository.updateCollaboratorProfile(event.profile);
       emit(CollaboratorProfileUpdateSuccess(
-          event.profile)); // Emit updated profile
+          event.profile)); // Pass updated profile
     } catch (error) {
       emit(CollaboratorProfileUpdateFailure());
     }

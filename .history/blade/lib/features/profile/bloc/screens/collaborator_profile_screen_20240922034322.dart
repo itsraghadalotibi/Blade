@@ -1,16 +1,12 @@
 // Path: lib/features/profile/screens/collaborator_profile_screen.dart
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
-import '../bloc/edit_collaborator_profile_bloc.dart'; // Import the edit profile bloc
-import '../repository/profile_repository.dart'; // Ensure the repository is available
 import '../src/collaborator_profile_model.dart';
-import '../screens/edit_collaborator_profile_screen.dart';
+import 'edit_collaborator_profile_screen.dart';
 
 class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
@@ -45,17 +41,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
                     state.profile is CollaboratorProfileModel) {
                   final profile = _updatedProfile ??
                       state.profile as CollaboratorProfileModel;
-
-                  // Navigate to EditCollaboratorProfileScreen with BlocProvider
+                  // Navigate to edit screen and wait for updated profile
                   final updatedProfile = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => BlocProvider(
-                        create: (context) => EditCollaboratorProfileBloc(
-                          profileRepository: context.read<ProfileRepository>(),
-                        ),
-                        child: EditCollaboratorProfileScreen(profile: profile),
-                      ),
+                      builder: (context) =>
+                          EditCollaboratorProfileScreen(profile: profile),
                     ),
                   );
                   if (updatedProfile != null) {
@@ -72,6 +63,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
           padding: const EdgeInsets.all(16.0),
           child: BlocBuilder<ProfileViewBloc, ProfileViewState>(
             builder: (context, state) {
+              // Use updatedProfile if it exists, else fallback to loaded state
               final profile = _updatedProfile ??
                   (state is ProfileLoaded &&
                           state.profile is CollaboratorProfileModel
@@ -102,10 +94,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundImage: profile.profilePhotoUrl != null
-                ? FileImage(File(profile.profilePhotoUrl!))
-                : const AssetImage('assets/images/content/user.png')
-                    as ImageProvider,
+            backgroundImage: NetworkImage(
+                profile.profilePhotoUrl ?? 'https://placeholder.com'),
           ),
           const SizedBox(height: 16),
           Text(
