@@ -1,3 +1,5 @@
+// Path: lib/features/profile/screens/edit_collaborator_profile_screen.dart
+
 import 'dart:io'; // For File handling
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; // Image picker
@@ -58,6 +60,7 @@ class _EditCollaboratorProfileScreenState
           EditCollaboratorProfileState>(
         listener: (context, state) {
           if (state is CollaboratorProfileUpdateSuccess) {
+            // Return the updated profile to the previous screen
             Navigator.pop(context, state.updatedProfile);
           } else if (state is CollaboratorProfileUpdateFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -105,30 +108,40 @@ class _EditCollaboratorProfileScreenState
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () {
-                    // Split the comma-separated string into a list of skills
-                    final skillsList = _skillsController.text
-                        .split(',')
-                        .map((skill) => skill.trim())
-                        .toList();
+                  // Inside the CollaboratorProfileScreen
+onPressed: () async {
+  // Navigate to the edit screen and wait for the result (updated profile)
+  final updatedProfile = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => BlocProvider(
+        create: (context) => EditCollaboratorProfileBloc(
+          profileRepository: context.read(),
+        ),
+        child: EditCollaboratorProfileScreen(
+          profile: _updatedProfile ?? CollaboratorProfileModel(
+            uid: widget.userId,
+            firstName: '',
+            lastName: '',
+            bio: '',
+            profilePhotoUrl: '',
+            skills: [],
+          ),
+        ),
+      ),
+    ),
+  );
 
-                    final updatedProfile = CollaboratorProfileModel(
-                      uid: widget.profile.uid,
-                      firstName: _firstNameController.text,
-                      lastName: _lastNameController.text,
-                      bio: _bioController.text,
-                      profilePhotoUrl: _newProfileImage != null
-                          ? _newProfileImage!.path
-                          : widget.profile
-                              .profilePhotoUrl, // Keep the old image if unchanged
-                      skills: skillsList,
-                    );
+  // If the profile is updated, reload it immediately in the UI
+  if (updatedProfile != null && updatedProfile is CollaboratorProfileModel) {
+    setState(() {
+      _updatedProfile = updatedProfile;
+    });
 
-                    // Trigger the SaveCollaboratorProfile event
-                    context
-                        .read<EditCollaboratorProfileBloc>()
-                        .add(SaveCollaboratorProfile(updatedProfile));
-                  },
+    // Optionally trigger a profile reload from the repository, or just update UI directly
+    context.read<ProfileViewBloc>().add(LoadProfile(widget.userId));
+  }
+}
                   child: const Text('Save'),
                 ),
               ],

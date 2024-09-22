@@ -1,14 +1,16 @@
+// Path: lib/features/profile/screens/collaborator_profile_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
 import '../src/collaborator_profile_model.dart';
-import '../screens/edit_collaborator_profile_screen.dart'; // Ensure this import is correct
-import '../bloc/edit_collaborator_profile_bloc.dart'; // Add this import
+import '../screens/edit_collaborator_profile_screen.dart'; // Import the edit screen
 import '../screens/project_idea_card_widget.dart';
 import '../repository/project_idea_repository.dart';
 import '../src/project_idea_model.dart';
+import '../bloc/edit_collaborator_profile_bloc.dart'; // Import the edit profile bloc
 
 class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
@@ -47,7 +49,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () async {
-                // Pass the current profile to the edit screen and wait for the updated profile to come back
+                // Navigate to the edit screen with the EditCollaboratorProfileBloc
                 final updatedProfile = await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -99,8 +101,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
                 return buildCollaboratorProfile(profile);
               } else if (state is ProfileError) {
                 return Center(
-                    child: Text('Error: ${state.message}',
-                        style: const TextStyle(color: Colors.red)));
+                  child: Text('Error: ${state.message}',
+                      style: const TextStyle(color: Colors.red)),
+                );
               }
               return const Center(child: Text('Unable to load profile.'));
             },
@@ -190,8 +193,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(
-            child: Text('Error loading ideas: ${snapshot.error}',
-                style: const TextStyle(color: Colors.red)),
+            child: Text(
+              'Error loading ideas: ${snapshot.error}',
+              style: const TextStyle(color: Colors.red),
+            ),
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No project ideas found.'));

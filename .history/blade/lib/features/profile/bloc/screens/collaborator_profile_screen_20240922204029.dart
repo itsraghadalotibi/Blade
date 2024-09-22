@@ -1,11 +1,13 @@
+// Path: lib/features/profile/screens/collaborator_profile_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/edit_collaborator_profile_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
 import '../src/collaborator_profile_model.dart';
-import '../screens/edit_collaborator_profile_screen.dart'; // Ensure this import is correct
-import '../bloc/edit_collaborator_profile_bloc.dart'; // Add this import
+import '../screens/edit_collaborator_profile_screen.dart';
 import '../screens/project_idea_card_widget.dart';
 import '../repository/project_idea_repository.dart';
 import '../src/project_idea_model.dart';
@@ -47,37 +49,34 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () async {
-                // Pass the current profile to the edit screen and wait for the updated profile to come back
+                // Navigate to the edit screen and wait for the result
                 final updatedProfile = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => BlocProvider(
                       create: (context) => EditCollaboratorProfileBloc(
-                        profileRepository: context.read(),
-                      ),
+                          profileRepository: context.read()),
                       child: EditCollaboratorProfileScreen(
-                        profile: _updatedProfile ??
-                            CollaboratorProfileModel(
-                              uid: widget.userId,
-                              firstName: '',
-                              lastName: '',
-                              bio: '',
-                              profilePhotoUrl: '',
-                              skills: [],
-                            ),
-                      ),
+                          profile: _updatedProfile ??
+                              CollaboratorProfileModel(
+                                uid: widget.userId,
+                                firstName: '',
+                                lastName: '',
+                                bio: '',
+                                profilePhotoUrl: '',
+                                skills: [],
+                              )),
                     ),
                   ),
                 );
 
-                // After returning from the edit screen, check if there is an updated profile
+                // Update the UI with the new profile
                 if (updatedProfile != null &&
                     updatedProfile is CollaboratorProfileModel) {
                   setState(() {
                     _updatedProfile = updatedProfile;
                   });
-
-                  // Emit a new event to refresh the profile data
+                  // Emit an event to reload the profile data
                   context
                       .read<ProfileViewBloc>()
                       .add(LoadProfile(widget.userId));

@@ -1,14 +1,11 @@
+// Path: lib/features/profile/screens/collaborator_profile_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/profile_view_bloc.dart';
-import '../bloc/profile_view_event.dart';
-import '../bloc/profile_view_state.dart';
 import '../src/collaborator_profile_model.dart';
-import '../screens/edit_collaborator_profile_screen.dart'; // Ensure this import is correct
-import '../bloc/edit_collaborator_profile_bloc.dart'; // Add this import
-import '../screens/project_idea_card_widget.dart';
-import '../repository/project_idea_repository.dart';
-import '../src/project_idea_model.dart';
+import '../widgets/project_idea_card_widget.dart';
+import '../widgets/avatar_stack.dart'; // Renamed from avatar_stack_widget.dart
+import '../widgets/skill_tag.dart'; // Renamed from skill_tag_widget.dart
 
 class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
@@ -24,12 +21,13 @@ class CollaboratorProfileScreen extends StatefulWidget {
 class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
   CollaboratorProfileModel? _updatedProfile;
   late ProjectIdeaRepository _projectIdeaRepository;
-  Future<List<Idea>>? _futureIdeas;
+  Future<List<Idea>>? _futureIdeas; // This will store the user's project ideas
 
   @override
   void initState() {
     super.initState();
     _projectIdeaRepository = ProjectIdeaRepository();
+    // Fetch project ideas for the user
     _futureIdeas = _projectIdeaRepository.fetchIdeasByOwner(widget.userId);
   }
 
@@ -47,41 +45,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () async {
-                // Pass the current profile to the edit screen and wait for the updated profile to come back
-                final updatedProfile = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => BlocProvider(
-                      create: (context) => EditCollaboratorProfileBloc(
-                        profileRepository: context.read(),
-                      ),
-                      child: EditCollaboratorProfileScreen(
-                        profile: _updatedProfile ??
-                            CollaboratorProfileModel(
-                              uid: widget.userId,
-                              firstName: '',
-                              lastName: '',
-                              bio: '',
-                              profilePhotoUrl: '',
-                              skills: [],
-                            ),
-                      ),
-                    ),
-                  ),
-                );
-
-                // After returning from the edit screen, check if there is an updated profile
-                if (updatedProfile != null &&
-                    updatedProfile is CollaboratorProfileModel) {
-                  setState(() {
-                    _updatedProfile = updatedProfile;
-                  });
-
-                  // Emit a new event to refresh the profile data
-                  context
-                      .read<ProfileViewBloc>()
-                      .add(LoadProfile(widget.userId));
-                }
+                // Navigate to the edit screen (implementation not included here)
               },
             ),
           ],
@@ -95,7 +59,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
               } else if (state is ProfileLoaded &&
                   state.profile is CollaboratorProfileModel) {
                 final profile = state.profile as CollaboratorProfileModel;
-                _updatedProfile = profile; // Store the loaded profile
                 return buildCollaboratorProfile(profile);
               } else if (state is ProfileError) {
                 return Center(
@@ -115,10 +78,23 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundImage: NetworkImage(
-                profile.profilePhotoUrl ?? 'assets/images/user.png'),
+          Stack(
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: NetworkImage(
+                    profile.profilePhotoUrl ?? 'https://placeholder.com'),
+              ),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: CircleAvatar(
+                  radius: 15,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.edit, size: 16),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Text(
@@ -129,9 +105,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
           const SizedBox(height: 16),
           Wrap(
             spacing: 8.0,
-            children: (profile.skills ?? []).map((skill) {
-              return Chip(label: Text(skill), backgroundColor: Colors.red);
-            }).toList(),
+            children: profile.skills?.split(',').map((skill) {
+                  return Chip(label: Text(skill), backgroundColor: Colors.red);
+                }).toList() ??
+                [],
           ),
           const SizedBox(height: 16),
           Column(
@@ -150,6 +127,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
+
+          // Tabs for Projects (Ideas, Ongoing, Completed)
           DefaultTabController(
             length: 3,
             child: Column(
@@ -182,6 +161,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
     );
   }
 
+  // Fetch and display project ideas under the "Project Ideas" tab
   Widget buildProjectIdeasTab() {
     return FutureBuilder<List<Idea>>(
       future: _futureIdeas,
@@ -190,8 +170,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen> {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(
-            child: Text('Error loading ideas: ${snapshot.error}',
-                style: const TextStyle(color: Colors.red)),
+            child: Text(
+              'Error loading ideas: ${snapshot.error}',
+              style: const TextStyle(color: Colors.red),
+            ),
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(child: Text('No project ideas found.'));

@@ -1,3 +1,5 @@
+// Path: lib/features/profile/screens/edit_collaborator_profile_screen.dart
+
 import 'dart:io'; // For File handling
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; // Image picker
@@ -58,7 +60,10 @@ class _EditCollaboratorProfileScreenState
           EditCollaboratorProfileState>(
         listener: (context, state) {
           if (state is CollaboratorProfileUpdateSuccess) {
-            Navigator.pop(context, state.updatedProfile);
+            Navigator.pop(
+                context,
+                state
+                    .updatedProfile); // Pass the updated profile back to the previous screen
           } else if (state is CollaboratorProfileUpdateFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Failed to update profile')),
@@ -105,6 +110,7 @@ class _EditCollaboratorProfileScreenState
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
+// When the save button is pressed
                   onPressed: () {
                     // Split the comma-separated string into a list of skills
                     final skillsList = _skillsController.text

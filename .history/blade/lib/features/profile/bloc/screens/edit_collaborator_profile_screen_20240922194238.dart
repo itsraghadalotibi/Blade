@@ -1,3 +1,5 @@
+// Path: lib/features/profile/screens/edit_collaborator_profile_screen.dart
+
 import 'dart:io'; // For File handling
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; // Image picker
