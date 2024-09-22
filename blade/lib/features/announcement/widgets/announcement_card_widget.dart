@@ -3,6 +3,7 @@ import '../src/announcement_model.dart';
 import '../src/announcement_repository.dart';
 import 'avatar_stack_widget.dart';
 import 'skill_tag_widget.dart';
+import '../screens/members_screen.dart';
 
 class AnnouncementCardWidget extends StatefulWidget {
   final Idea idea;
@@ -23,7 +24,6 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final screenHeight = MediaQuery.of(context).size.height;
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    // Text style to be reused
     final textStyle = TextStyle(
       color: Colors.white,
       fontSize: screenWidth * 0.04 * textScaleFactor,
@@ -38,7 +38,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
       child: Container(
         width: screenWidth * 0.9,
         decoration: BoxDecoration(
-          color: Color(0xFF333333), // Set card background color to #333333
+          color: Color(0xFF333333),
           borderRadius: BorderRadius.circular(23),
         ),
         child: Padding(
@@ -46,7 +46,6 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Row for title and avatar stack
               Row(
                 children: [
                   Expanded(
@@ -60,24 +59,37 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                     ),
                   ),
                   SizedBox(width: screenWidth * 0.02),
-                  // Wrapping AvatarStackWidget in SingleChildScrollView to enable horizontal scrolling
-                  SizedBox(
-                    width: screenWidth * 0.2,
-                    height: screenWidth * 0.1,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: AvatarStackWidget(
-                        userIds: widget.idea.members,
-                        screenWidth: screenWidth,
-                        repository: widget.repository,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MembersScreen(
+                            memberIds: widget.idea.members,  // List of user IDs
+                            ideaSkills: widget.idea.skills,  // List of idea skills
+                            repository: widget.repository,   // Repository to fetch data
+                          ),
+                        ),
+                      );
+                    },
+                    child: SizedBox(
+                      width: screenWidth * 0.2,
+                      height: screenWidth * 0.1,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: AvatarStackWidget(
+                          userIds: widget.idea.members,
+                          screenWidth: screenWidth,
+                          repository: widget.repository,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: screenHeight * 0.01), // Reduced space between title and description
+              SizedBox(height: screenHeight * 0.01),
 
-              // Conditionally show "Show more" based on description length
+              // Description and "Show more" logic
               LayoutBuilder(
                 builder: (context, constraints) {
                   final span = TextSpan(
@@ -87,7 +99,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
 
                   final tp = TextPainter(
                     text: span,
-                    maxLines: 4,  // We measure for 4 lines to check if truncation is needed
+                    maxLines: 4,
                     textAlign: TextAlign.left,
                     textDirection: TextDirection.ltr,
                   );
@@ -102,21 +114,20 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                       Text(
                         widget.idea.description,
                         style: textStyle,
-                        maxLines: isExpanded ? null : 4,  // Show 4 lines when collapsed
-                        overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,  // Ellipsis for truncated text
+                        maxLines: isExpanded ? null : 4,
+                        overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
                       ),
-                      // Only show "Show more" if the description exceeds 4 lines
                       if (exceedsMaxLines)
                         GestureDetector(
                           onTap: () {
                             setState(() {
-                              isExpanded = !isExpanded;  // Toggle between expanded and collapsed state
+                              isExpanded = !isExpanded;
                             });
                           },
                           child: Text(
                             isExpanded ? "Show less" : "Show more",
                             style: TextStyle(
-                              color: Color.fromARGB(255, 41, 151, 235),  // "Show more" in #0000FF blue color
+                              color: Color.fromARGB(255, 41, 151, 235),
                               fontSize: screenWidth * 0.04 * textScaleFactor,
                             ),
                           ),
@@ -125,11 +136,10 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                   );
                 },
               ),
-              SizedBox(height: screenHeight * 0.02), // Reduced space before the skill tags
+              SizedBox(height: screenHeight * 0.02),
 
-              // Skill Tags limited to 2 rows, with scrolling for more
               Container(
-                height: screenHeight * 0.05, // Reduced height for the skill tags
+                height: screenHeight * 0.05,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Wrap(
@@ -139,17 +149,13 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                   ),
                 ),
               ),
-              
-              // Further minimized space between the skills and the Join button
               SizedBox(height: screenHeight * 0.005),
-
-              // Join Button
               Center(
                 child: Container(
                   width: screenWidth * 0.4,
                   height: screenHeight * 0.05,
                   decoration: BoxDecoration(
-                    color: Color(0xFFFD5336), // Set Join button color to #FD5336
+                    color: Color(0xFFFD5336),
                     borderRadius: BorderRadius.circular(48),
                   ),
                   child: Center(
