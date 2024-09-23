@@ -289,15 +289,6 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                     _buildProfileImage(),
                     const SizedBox(height: 24),
 
-                    // Email field with error handling
-                    CustomTextField(
-                      label: 'Email',
-                      controller: emailController,
-                      focusNode: emailFocusNode,
-                      errorText: emailError,
-                    ),
-                    const SizedBox(height: 16),
-
                     // First Name field with error handling
                     CustomTextField(
                       label: 'First Name',
@@ -313,6 +304,15 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       controller: lastNameController,
                       focusNode: lastNameFocusNode,
                       errorText: lastNameError,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Email field with error handling
+                    CustomTextField(
+                      label: 'Email',
+                      controller: emailController,
+                      focusNode: emailFocusNode,
+                      errorText: emailError,
                     ),
                     const SizedBox(height: 16),
 
@@ -446,16 +446,20 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                     ),
                     ),
                     const SizedBox(height: 16),
+                    const Text(
+                      "Already have an account?",
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    // Create Account Outlined Button (OutlinedButton)
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/login', arguments: 'collaborator');
-                      },
-                      child: const Text(
-                        'Already have an account? Log In',
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(context, '/login', arguments: 'collaborator');
+                        },
+                        child: const Text('Login'),
                       ),
-                    ),
                     ),
                   ],
                 ),

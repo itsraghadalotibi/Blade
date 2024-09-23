@@ -61,7 +61,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
               onPressed: () => _navigateToLogin(context, 'collaborator'),
-              child: const Text('Login as Collaborator'),
+              child: const Text('Continue as Collaborator'),
             ),
               ),
               const SizedBox(height: 20),
@@ -70,7 +70,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 width: double.infinity,
                 child: OutlinedButton(
               onPressed: () => _navigateToLogin(context, 'supporter'),
-              child: const Text('Login as Supporter'),
+              child: const Text('Continue as Supporter'),
             ),
               ),
             ],

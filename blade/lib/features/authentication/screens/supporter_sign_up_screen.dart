@@ -278,16 +278,6 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                     _buildProfileImage(),
                     const SizedBox(height: 24),
 
-                    // Email field with error handling
-                    CustomTextField(
-                      label: 'Email',
-                      controller: emailController,
-                      focusNode: emailFocusNode,
-                      errorText: emailError,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 16),
-
                     // First Name field with error handling
                     CustomTextField(
                       label: 'First Name',
@@ -303,6 +293,16 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       controller: lastNameController,
                       focusNode: lastNameFocusNode,
                       errorText: lastNameError,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Email field with error handling
+                    CustomTextField(
+                      label: 'Email',
+                      controller: emailController,
+                      focusNode: emailFocusNode,
+                      errorText: emailError,
+                      keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
 
@@ -361,17 +361,20 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                     ),
 
                      const SizedBox(height: 16),
-
+                    const Text(
+                      "Already have an account?",
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    // Create Account Outlined Button (OutlinedButton)
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/login', arguments: 'supporter');
-                      },
-                      child: const Text(
-                        'Already have an account? Log In',
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(context, '/login', arguments: 'supporter');
+                        },
+                        child: const Text('Login'),
                       ),
-                    ),
                     ),
                   ],
                 ),

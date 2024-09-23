@@ -92,12 +92,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text('Login'),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     GestureDetector(
                       child: Text(
-                        "Forget Password?",
+                        "Forget Password? Reset",
                         style: TextStyle(
-                          color: TColors.textSecondary,
+                          color: TColors.info,
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
                         ),
@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.of(context).pushNamed('/forgetPassword');
                       },
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 16),
                     const Text(
                       "Don't have an account?",
                       style: TextStyle(fontSize: 14),
