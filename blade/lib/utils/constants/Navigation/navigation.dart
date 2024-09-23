@@ -1,8 +1,10 @@
 import 'package:blade_app/home_screen.dart';
-import 'package:blade_app/utils/constants/Navigation/chat.dart';
 import 'package:blade_app/utils/constants/Navigation/dashboard.dart';
-import 'package:blade_app/utils/constants/Navigation/settings.dart';
+import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 import 'package:flutter/material.dart';
+import 'package:blade_app/features/announcement/src/announcement_repository.dart'; // Import the repository
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firebase import
+import '../../../features/announcement/screens/announcement_screen.dart';
 
 import '../../../features/newPost/screens/backgroundPost.dart';
 import 'profile.dart';
@@ -17,12 +19,16 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
 
+      final announcementRepository = AnnouncementRepository(
+    firestore: FirebaseFirestore.instance,
+  );
+
+
   int currentTap = 0;
   final List<Widget> screen = [
     const HomeScreen(),
-    const Chat(),
     const Profile(),
-    const Settings()
+    const settings.Settings()
   ];
 
   final PageStorageBucket bucket = PageStorageBucket();
@@ -134,9 +140,9 @@ backgroundColor: const Color(0xFF333333),
 
             MaterialButton(
                   minWidth: 30,
-                  onPressed: (){
+                  onPressed: () {
                     setState(() {
-                      currentScreen = const Chat();
+                      currentScreen = AnnouncementScreen(repository: announcementRepository); // Pass the repository here
                       currentTap = 1;
                     });
                   },
@@ -164,7 +170,7 @@ backgroundColor: const Color(0xFF333333),
                   minWidth: 30,
                   onPressed: (){
                     setState(() {
-                      currentScreen = const Settings();
+                      currentScreen = const settings.Settings();
                       currentTap = 2;
                     });
                   },
