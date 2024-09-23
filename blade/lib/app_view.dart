@@ -5,6 +5,7 @@ import 'features/authentication/screens/login_screen.dart';
 import 'features/authentication/screens/supporter_sign_up_screen.dart';
 import 'features/authentication/screens/welcome_screen.dart';
 import 'home_screen.dart';
+import 'utils/constants/Navigation/navigation.dart';
 import 'utils/theme/theme.dart';
 class AppView extends StatelessWidget {
   const AppView({Key? key}) : super(key: key);
@@ -36,7 +37,7 @@ class AppView extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => const SupporterSignUpScreen());
 
           case '/home':
-            return MaterialPageRoute(builder: (_) => const HomeScreen());
+            return MaterialPageRoute(builder: (_) => const Navigation());
 
           default:
             return MaterialPageRoute(builder: (_) => const WelcomeScreen());

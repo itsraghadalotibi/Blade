@@ -70,7 +70,7 @@ class HomeScreen extends StatelessWidget {
               return Scaffold(
                 appBar: AppBar(
                   automaticallyImplyLeading: false,
-                  title: const Text('Collaborator Home'),
+                  title: const Text('Collaborator Home', textAlign: TextAlign.center),
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.logout),
@@ -98,7 +98,6 @@ class HomeScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                bottomNavigationBar: const Navigation(),
               );
             } else if (user is SupporterModel) {
               // Render the home screen for supporters
