@@ -1,10 +1,12 @@
-import 'package:blade_app/utils/constants/Navigation/chat.dart';
+import 'package:blade_app/utils/constants/Navigation/announcement.dart';
 import 'package:blade_app/utils/constants/Navigation/dashboard.dart';
-import 'package:blade_app/utils/constants/Navigation/settings.dart';
+import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 import 'package:flutter/material.dart';
-
 import '../../../features/newPost/screens/backgroundPost.dart';
+import '../../../features/announcement/screens/announcement_screen.dart';
 import 'profile.dart';
+import 'package:blade_app/features/announcement/src/announcement_repository.dart'; // Import the repository
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firebase import
 
 
 class Navigation extends StatefulWidget {
@@ -15,17 +17,21 @@ class Navigation extends StatefulWidget {
 }
 
 class _NavigationState extends State<Navigation> {
-
+  
+    final announcementRepository = AnnouncementRepository(
+    firestore: FirebaseFirestore.instance,
+  );
   int currentTap = 0;
   final List<Widget> screen = [
     const Dashboard(),
     const Chat(),
     const Profile(),
-    const Settings()
+    const settings.Settings()
   ];
 
   final PageStorageBucket bucket = PageStorageBucket();
-  Widget currentScreen = const Dashboard();
+    // Create an instance of AnnouncementRepository
+      Widget currentScreen = const Dashboard();
   @override
 Widget build(BuildContext context) {
   return Scaffold(
@@ -132,26 +138,26 @@ backgroundColor: const Color(0xFF333333),
 
 
             MaterialButton(
-                  minWidth: 30,
-                  onPressed: (){
-                    setState(() {
-                      currentScreen = const Chat();
-                      currentTap = 1;
-                    });
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/announcement.png',
-                        color: currentTap == 1 ? const Color(0xFFFD5336) : Colors.grey,  // Tint color
-                        width: 30,  // Set the width to 25 to match your original icon size
-                        height: 30,  // Set the height to 25 to match your original icon size
-                      ),
-                    ],
+              minWidth: 30,
+              onPressed: () {
+                setState(() {
+                  currentScreen = AnnouncementScreen(repository: announcementRepository); // Pass the repository here
+                  currentTap = 1;
+                });
+              },
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/announcement.png',
+                    color: currentTap == 1 ? const Color(0xFFFD5336) : Colors.grey,
+                    width: 30,
+                    height: 30,
                   ),
-                  ),
-                  const SizedBox(width: 15),  // Adjust the width for desired spacing
+                ],
+              ),
+            ),
+            const SizedBox(width: 15),
               ],
             ),
 
@@ -163,7 +169,7 @@ backgroundColor: const Color(0xFF333333),
                   minWidth: 30,
                   onPressed: (){
                     setState(() {
-                      currentScreen = const Settings();
+                      currentScreen = const settings.Settings();
                       currentTap = 2;
                     });
                   },
@@ -209,6 +215,7 @@ backgroundColor: const Color(0xFF333333),
 
     ),
   )
+  
   );
 }
 }
