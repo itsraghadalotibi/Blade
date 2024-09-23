@@ -18,13 +18,13 @@ class AnnouncementScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Announcements'),
+          centerTitle: true, // Center the title
+          automaticallyImplyLeading: false, // Remove the back button
           backgroundColor: Colors.transparent, // Make AppBar background transparent or default
           elevation: 0, // Remove shadow under AppBar
-          iconTheme: const IconThemeData(
-            color: Colors.white, // Set the back button color to #848484
-          ),
           titleTextStyle: const TextStyle(
             fontSize: 20, // You can adjust the font size if needed
+            color: Colors.white, // Ensure the title text is white
           ),
         ),
         backgroundColor: const Color(0xFF161616), // Set the background color to #161616
