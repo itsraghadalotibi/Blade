@@ -1,10 +1,4 @@
-import 'package:blade_app/utils/theme/theme.dart';
 import 'package:flutter/material.dart';
-import '../utils/constants/sizes.dart';
-
-import 'package:blade_app/utils/theme/theme.dart';
-import 'package:flutter/material.dart';
-
 import '../utils/constants/sizes.dart';
 
 class CustomTextField extends StatelessWidget {
@@ -49,6 +43,9 @@ class CustomTextField extends StatelessWidget {
         ),
       ),
       validator: validator,
+      onTapOutside: (event) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
     );
   }
 }

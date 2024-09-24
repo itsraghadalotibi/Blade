@@ -8,12 +8,10 @@ import 'features/authentication/screens/login_screen.dart';
 import 'features/authentication/screens/supporter_sign_up_screen.dart';
 import 'features/authentication/screens/welcome_screen.dart';
 import 'features/authentication/src/authentication_repository.dart';
-import 'home_screen.dart';
 import 'utils/constants/Navigation/navigation.dart';
 import 'utils/theme/theme.dart';
-class AppView extends StatelessWidget {
+class AppView extends StatelessWidget{
   const AppView({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
