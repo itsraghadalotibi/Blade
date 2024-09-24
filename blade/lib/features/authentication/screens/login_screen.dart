@@ -117,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 16),
                     GestureDetector(
                       child: const Text(
-                        "Forget Password?",
+                        "Forgot Password?",
                         style: TextStyle(
                           color: TColors.textSecondary,
                           fontWeight: FontWeight.bold,
