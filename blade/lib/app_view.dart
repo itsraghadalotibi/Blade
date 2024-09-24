@@ -1,5 +1,6 @@
 // gonna contain the material app ( colors, bloc builder, authentication bloc builder to redirect the user either to the auth screen or to the app itself)
 import 'package:flutter/material.dart';
+import 'package:blade_app/features/authentication/screens/forgetPassword_screen.dart';
 import 'features/authentication/screens/collaborator_sign_up_screen.dart';
 import 'features/authentication/screens/login_screen.dart';
 import 'features/authentication/screens/supporter_sign_up_screen.dart';
@@ -35,6 +36,9 @@ class AppView extends StatelessWidget {
 
           case '/supporterSignUp':
             return MaterialPageRoute(builder: (_) => const SupporterSignUpScreen());
+            
+            case '/forgetPassword':
+            return MaterialPageRoute(builder: (_) => const ForgetPasswordScreen()); // Add this case
 
           case '/home':
             return MaterialPageRoute(builder: (_) => const Navigation());
