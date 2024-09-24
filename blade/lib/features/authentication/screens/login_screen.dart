@@ -67,9 +67,9 @@ class _LoginScreenState extends State<LoginScreen> {
               SnackBar(
                 content: const Text(
                   'Login Successful!',
-                  style: TextStyle(color: Colors.green),
+                  style: TextStyle(color: Colors.white),
                 ),
-                backgroundColor: Colors.white,
+                backgroundColor: Colors.green,
               ),
             );
             Navigator.pushReplacementNamed(context, '/home');
