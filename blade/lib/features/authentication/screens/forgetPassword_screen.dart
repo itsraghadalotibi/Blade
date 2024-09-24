@@ -22,22 +22,33 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
 
   Future<void> _sendResetLink() async {
     final email = _emailController.text;
-    if (email.isEmpty && vaildateEmail(email)) {
+    if (email.isEmpty || !vaildateEmail(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your email address')),
+        const SnackBar(content: Text('Please enter a valid email address')),
       );
       return;
     }
-    try { // Send a password reset email
+    try {
+      // Send a password reset email
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      // Show a success message      ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Reset link sent to $email'));
+      // Show a success message with green background
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Reset link sent to $email successfully!'),
+          backgroundColor: Colors.green, // Set background color to green
+        ),
+      );
     } catch (e) {
-      // Show an error message      ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error sending reset link: $e')
+      // Show an error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error sending reset link: $e')),
       );
     }
   }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
