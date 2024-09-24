@@ -109,6 +109,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         event.password,
         profileImage: event.profileImage,
       );
+      await authenticationRepository.signOut();
       emit(AuthenticationUnauthenticated());
     } catch (error) {
       emit(AuthenticationFailure(error: error.toString()));
@@ -124,6 +125,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
         event.password,
         profileImage: event.profileImage,
       );
+      await authenticationRepository.signOut();
       emit(AuthenticationUnauthenticated());
     } catch (error) {
       emit(AuthenticationFailure(error: error.toString()));

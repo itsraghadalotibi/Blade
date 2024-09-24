@@ -21,18 +21,24 @@ class AuthenticationRepository {
 
   // Sign up Collaborator with optional profile image
   Future<void> signUpCollaborator(
-      CollaboratorModel collaborator, String password, {File? profileImage}) async {
-    UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+      CollaboratorModel collaborator, String password,
+      {File? profileImage}) async {
+    UserCredential userCredential =
+        await _firebaseAuth.createUserWithEmailAndPassword(
       email: collaborator.email,
       password: password,
     );
 
+    await signOut();
+
     String? profilePhotoUrl;
 
     if (profileImage != null) {
-      profilePhotoUrl = await uploadProfileImage(userCredential.user!.uid, profileImage);
+      profilePhotoUrl =
+          await uploadProfileImage(userCredential.user!.uid, profileImage);
     } else {
-      profilePhotoUrl = 'https://firebasestorage.googleapis.com/v0/b/blade-87cf7.appspot.com/o/profile_images%2F360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg?alt=media&token=0db52e6c-f589-451d-9d22-c81190c123a1';
+      profilePhotoUrl =
+          'https://firebasestorage.googleapis.com/v0/b/blade-87cf7.appspot.com/o/profile_images%2F360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg?alt=media&token=0db52e6c-f589-451d-9d22-c81190c123a1';
     }
 
     collaborator = collaborator.copyWith(
@@ -40,23 +46,31 @@ class AuthenticationRepository {
       profilePhotoUrl: profilePhotoUrl,
     );
 
-    await _firestore.collection('collaborators').doc(collaborator.uid).set(collaborator.toMap());
+    await _firestore
+        .collection('collaborators')
+        .doc(collaborator.uid)
+        .set(collaborator.toMap());
   }
 
   // Sign up Supporter with optional profile image
-  Future<void> signUpSupporter(
-      SupporterModel supporter, String password, {File? profileImage}) async {
-    UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+  Future<void> signUpSupporter(SupporterModel supporter, String password,
+      {File? profileImage}) async {
+    UserCredential userCredential =
+        await _firebaseAuth.createUserWithEmailAndPassword(
       email: supporter.email,
       password: password,
     );
 
+    await signOut();
+
     String? profilePhotoUrl;
 
     if (profileImage != null) {
-      profilePhotoUrl = await uploadProfileImage(userCredential.user!.uid, profileImage);
+      profilePhotoUrl =
+          await uploadProfileImage(userCredential.user!.uid, profileImage);
     } else {
-      profilePhotoUrl = 'https://firebasestorage.googleapis.com/v0/b/blade-87cf7.appspot.com/o/profile_images%2F360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg?alt=media&token=0db52e6c-f589-451d-9d22-c81190c123a1';
+      profilePhotoUrl =
+          'https://firebasestorage.googleapis.com/v0/b/blade-87cf7.appspot.com/o/profile_images%2F360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg?alt=media&token=0db52e6c-f589-451d-9d22-c81190c123a1';
     }
 
     supporter = supporter.copyWith(
@@ -64,13 +78,17 @@ class AuthenticationRepository {
       profilePhotoUrl: profilePhotoUrl,
     );
 
-    await _firestore.collection('supporters').doc(supporter.uid).set(supporter.toMap());
+    await _firestore
+        .collection('supporters')
+        .doc(supporter.uid)
+        .set(supporter.toMap());
   }
 
   // Upload profile image to Firebase Storage
   Future<String> uploadProfileImage(String userId, File imageFile) async {
     try {
-      Reference storageRef = _firebaseStorage.ref().child('profile_images/$userId.jpg');
+      Reference storageRef =
+          _firebaseStorage.ref().child('profile_images/$userId.jpg');
       UploadTask uploadTask = storageRef.putFile(imageFile);
       await uploadTask.whenComplete(() {});
       String downloadUrl = await storageRef.getDownloadURL();
@@ -82,7 +100,8 @@ class AuthenticationRepository {
 
   // Sign in method
   Future<void> signIn(String email, String password) async {
-    await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
+    await _firebaseAuth.signInWithEmailAndPassword(
+        email: email, password: password);
   }
 
   // Sign out method
@@ -92,8 +111,8 @@ class AuthenticationRepository {
 
   // Check if user is signed in
   Future<bool> isSignedIn() async {
-    final _currentUser = _firebaseAuth.currentUser;
-    return _currentUser != null;
+    final currentUser = _firebaseAuth.currentUser;
+    return currentUser != null;
   }
 
   // Get current user data
@@ -107,16 +126,16 @@ class AuthenticationRepository {
           .get();
 
       if (collaboratorDoc.exists) {
-        return CollaboratorModel.fromMap(collaboratorDoc.data() as Map<String, dynamic>);
+        return CollaboratorModel.fromMap(
+            collaboratorDoc.data() as Map<String, dynamic>);
       }
 
-      DocumentSnapshot supporterDoc = await _firestore
-          .collection('supporters')
-          .doc(firebaseUser.uid)
-          .get();
+      DocumentSnapshot supporterDoc =
+          await _firestore.collection('supporters').doc(firebaseUser.uid).get();
 
       if (supporterDoc.exists) {
-        return SupporterModel.fromMap(supporterDoc.data() as Map<String, dynamic>);
+        return SupporterModel.fromMap(
+            supporterDoc.data() as Map<String, dynamic>);
       }
 
       toastInfo(msg: "User not registered as Collaborator or Supporter");
@@ -156,18 +175,25 @@ class AuthenticationRepository {
 
   // Save collaborator data
   Future<void> saveCollaboratorData(CollaboratorModel collaborator) async {
-    await _firestore.collection('collaborators').doc(collaborator.uid).set(collaborator.toMap());
+    await _firestore
+        .collection('collaborators')
+        .doc(collaborator.uid)
+        .set(collaborator.toMap());
   }
 
   // Save supporter data
   Future<void> saveSupporterData(SupporterModel supporter) async {
-    await _firestore.collection('supporters').doc(supporter.uid).set(supporter.toMap());
+    await _firestore
+        .collection('supporters')
+        .doc(supporter.uid)
+        .set(supporter.toMap());
   }
 
   // Fetch skills from Firestore
   Future<List<String>> fetchSkills() async {
     try {
-      final QuerySnapshot snapshot = await _firestore.collection('skills').get();
+      final QuerySnapshot snapshot =
+          await _firestore.collection('skills').get();
       final List<String> skills = snapshot.docs
           .map((doc) => doc.get('name') as String)
           .toList()

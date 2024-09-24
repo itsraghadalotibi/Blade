@@ -15,7 +15,7 @@ import 'features/profile/bloc/screens/collaborator_profile_screen.dart'; // Impo
 import 'features/profile/bloc/screens/supporter_profile_screen.dart'; // Import the correct profile screens
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   // Updated method to include confirmation message
   void _onLogoutButtonPressed(BuildContext context) {
