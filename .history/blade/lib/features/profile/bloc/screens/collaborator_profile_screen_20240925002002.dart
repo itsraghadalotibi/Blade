@@ -216,7 +216,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                           size: 24,
                         ),
                         padding: const EdgeInsets.all(
-                            0.1), // Remove default padding around the icon
+                            0), // Remove default padding around the icon
                         constraints:
                             const BoxConstraints(), // Make sure the icon button stays small
                         onPressed: profile.socialMediaLinks?['LinkedIn'] != null

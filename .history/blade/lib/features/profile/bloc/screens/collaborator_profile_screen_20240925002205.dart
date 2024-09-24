@@ -155,15 +155,16 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                   const SizedBox(height: 16),
                   // Row for first and last name with social media icons
                   // Row for first and last name with social media icons
+                  // Row for first and last name with social media icons
                   Row(
                     mainAxisAlignment:
-                        MainAxisAlignment.center, // Center the entire row
+                        MainAxisAlignment.center, // Center everything
                     crossAxisAlignment: CrossAxisAlignment
-                        .center, // Align items vertically centered
+                        .center, // Align vertically at the center
                     children: [
-                      // First Name
+                      // First Name and Last Name combined
                       Text(
-                        profile.firstName,
+                        '${profile.firstName} ${profile.lastName}',
                         style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -171,59 +172,45 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                       ),
                       const SizedBox(
                           width:
-                              2), // Minimal spacing between the first and last name
-
-                      // Last Name
-                      Text(
-                        profile.lastName,
-                        style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                      const SizedBox(
-                          width:
-                              2), // Minimal spacing between the name and icons
+                              4), // Minimal space between name and first icon
 
                       // GitHub Icon
                       IconButton(
                         icon: FaIcon(
                           FontAwesomeIcons.github,
                           color: profile.socialMediaLinks?['GitHub'] != null
-                              ? TColors.primary // Use orange for active icons
-                              : Colors.grey,
-                          size: 24,
+                              ? TColors.primary // Orange for active icon
+                              : Colors.grey, // Grey if no URL
+                          size: 22, // Smaller size
                         ),
-                        padding: const EdgeInsets.all(
-                            0), // Remove default padding around the icon
+                        padding: const EdgeInsets.all(0), // Remove padding
                         constraints:
-                            const BoxConstraints(), // Make sure the icon button stays small
+                            const BoxConstraints(), // Keep the button compact
                         onPressed: profile.socialMediaLinks?['GitHub'] != null
                             ? () {
                                 launch(profile.socialMediaLinks!['GitHub']!);
                               }
-                            : null, // Disable button if no link
+                            : null,
                       ),
-                      const SizedBox(width: 2), // Minimal spacing between icons
+                      const SizedBox(width: 4), // Minimal space between icons
 
                       // LinkedIn Icon
                       IconButton(
                         icon: FaIcon(
                           FontAwesomeIcons.linkedin,
                           color: profile.socialMediaLinks?['LinkedIn'] != null
-                              ? TColors.primary // Use orange for active icons
-                              : Colors.grey,
-                          size: 24,
+                              ? TColors.primary // Orange for active icon
+                              : Colors.grey, // Grey if no URL
+                          size: 22, // Smaller size
                         ),
-                        padding: const EdgeInsets.all(
-                            0.1), // Remove default padding around the icon
+                        padding: const EdgeInsets.all(0), // Remove padding
                         constraints:
-                            const BoxConstraints(), // Make sure the icon button stays small
+                            const BoxConstraints(), // Keep the button compact
                         onPressed: profile.socialMediaLinks?['LinkedIn'] != null
                             ? () {
                                 launch(profile.socialMediaLinks!['LinkedIn']!);
                               }
-                            : null, // Disable button if no link
+                            : null,
                       ),
                     ],
                   ),

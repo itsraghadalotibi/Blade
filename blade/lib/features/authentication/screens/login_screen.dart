@@ -67,9 +67,9 @@ class _LoginScreenState extends State<LoginScreen> {
               SnackBar(
                 content: const Text(
                   'Login Successful!',
-                  style: TextStyle(color: Colors.green),
+                  style: TextStyle(color: Colors.white),
                 ),
-                backgroundColor: Colors.white,
+                backgroundColor: Colors.green,
               ),
             );
             Navigator.pushReplacementNamed(context, '/home');
@@ -117,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 16),
                     GestureDetector(
                       child: const Text(
-                        "Forget Password?",
+                        "Forgot Password?",
                         style: TextStyle(
                           color: TColors.textSecondary,
                           fontWeight: FontWeight.bold,

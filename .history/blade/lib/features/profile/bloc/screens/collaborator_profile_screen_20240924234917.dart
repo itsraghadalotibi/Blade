@@ -153,77 +153,45 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             as ImageProvider,
                   ),
                   const SizedBox(height: 16),
-                  // Row for first and last name with social media icons
-                  // Row for first and last name with social media icons
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center, // Center the entire row
-                    crossAxisAlignment: CrossAxisAlignment
-                        .center, // Align items vertically centered
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // First Name
                       Text(
-                        profile.firstName,
+                        '${profile.firstName} ${profile.lastName}',
                         style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Colors.white),
                       ),
-                      const SizedBox(
-                          width:
-                              2), // Minimal spacing between the first and last name
-
-                      // Last Name
-                      Text(
-                        profile.lastName,
-                        style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                      const SizedBox(
-                          width:
-                              2), // Minimal spacing between the name and icons
-
-                      // GitHub Icon
+                      const SizedBox(width: 16),
                       IconButton(
                         icon: FaIcon(
                           FontAwesomeIcons.github,
                           color: profile.socialMediaLinks?['GitHub'] != null
-                              ? TColors.primary // Use orange for active icons
+                              ? TColors.primary
                               : Colors.grey,
                           size: 24,
                         ),
-                        padding: const EdgeInsets.all(
-                            0), // Remove default padding around the icon
-                        constraints:
-                            const BoxConstraints(), // Make sure the icon button stays small
                         onPressed: profile.socialMediaLinks?['GitHub'] != null
                             ? () {
                                 launch(profile.socialMediaLinks!['GitHub']!);
                               }
-                            : null, // Disable button if no link
+                            : null,
                       ),
-                      const SizedBox(width: 2), // Minimal spacing between icons
-
-                      // LinkedIn Icon
+                      const SizedBox(width: 8),
                       IconButton(
                         icon: FaIcon(
                           FontAwesomeIcons.linkedin,
                           color: profile.socialMediaLinks?['LinkedIn'] != null
-                              ? TColors.primary // Use orange for active icons
+                              ? TColors.primary
                               : Colors.grey,
                           size: 24,
                         ),
-                        padding: const EdgeInsets.all(
-                            0.1), // Remove default padding around the icon
-                        constraints:
-                            const BoxConstraints(), // Make sure the icon button stays small
                         onPressed: profile.socialMediaLinks?['LinkedIn'] != null
                             ? () {
                                 launch(profile.socialMediaLinks!['LinkedIn']!);
                               }
-                            : null, // Disable button if no link
+                            : null,
                       ),
                     ],
                   ),
