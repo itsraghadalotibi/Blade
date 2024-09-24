@@ -17,8 +17,22 @@ import 'features/profile/bloc/screens/supporter_profile_screen.dart'; // Import 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  // Updated method to include confirmation message
   void _onLogoutButtonPressed(BuildContext context) {
     context.read<AuthenticationBloc>().add(LoggedOut());
+
+    // Show a green confirmation message at the top of the page after logout
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Logged out successfully!',
+          style: TextStyle(color: Colors.white), // White text color
+        ),
+        backgroundColor: Colors.green, // Green background color
+        behavior: SnackBarBehavior.floating, // Make it floating
+        margin: const EdgeInsets.only(top: 10, left: 10, right: 10), // Show at the top
+      ),
+    );
   }
 
   // Adjusted _onProfileButtonPressed to route to the correct profile screen based on user type
@@ -56,7 +70,7 @@ class HomeScreen extends StatelessWidget {
           Navigator.pushNamedAndRemoveUntil(
             context,
             '/', // Replace with your WelcomeScreen route
-            (Route<dynamic> route) => false,
+                (Route<dynamic> route) => false,
           );
         }
       },
@@ -70,11 +84,11 @@ class HomeScreen extends StatelessWidget {
               return Scaffold(
                 appBar: AppBar(
                   automaticallyImplyLeading: false,
-                  title: const Text('Collaborator Home', textAlign: TextAlign.center),
+                  title: const Text('Collaborator Home'),
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.logout),
-                      onPressed: () => _onLogoutButtonPressed(context),
+                      onPressed: () => _showDialog(context), // Use dialog on logout
                     ),
                   ],
                 ),
@@ -108,7 +122,7 @@ class HomeScreen extends StatelessWidget {
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.logout),
-                      onPressed: () => _onLogoutButtonPressed(context),
+                      onPressed: () => _showDialog(context), // Use dialog on logout
                     ),
                   ],
                 ),
@@ -141,7 +155,7 @@ class HomeScreen extends StatelessWidget {
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.logout),
-                      onPressed: () => _onLogoutButtonPressed(context),
+                      onPressed: () => _showDialog(context), // Use dialog on logout
                     ),
                   ],
                 ),
@@ -162,172 +176,43 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-}
 
+  void _showDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(
+            "Logout Confirmation",
+            style: TextStyle(fontWeight: FontWeight.bold), // Bold title for emphasis
+          ),
+          content: Text(
+            "Are you sure you want to log out from Blade?",
+            style: TextStyle(color: Colors.black), // Ensure content text is black
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+              },
+              child: Text("Cancel"),
+            ),
+            SizedBox(width: 2),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+                _onLogoutButtonPressed(context); // Perform logout
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.red, // Background color for the button
+                foregroundColor: Colors.white, // Text color for the button
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Padding for better touch targets
+              ),
+              child: Text("Logout"),
+            ),
+          ],
+        );
+      },
+    );
+  }}
 
-
-
-// import 'package:flutter/widgets.dart';
-
-// class HomeScreen extends StatelessWidget{
-//   const HomeScreen({super.key});
-  
-//   @override
-//   Widget build(BuildContext context) {
-//     // TODO: implement build
-//     throw UnimplementedError();
-//   }
-  
-// }
-
-// // lib/home_screen.dart
-
-// import 'package:blade_app/features/profile/bloc/bloc/profile_view_bloc.dart';
-// import 'package:blade_app/features/profile/bloc/bloc/profile_view_event.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:provider/provider.dart';
-// import 'features/authentication/bloc/authentication_bloc.dart';
-// import 'features/authentication/bloc/authentication_event.dart';
-// import 'features/authentication/bloc/authentication_state.dart';
-// import 'features/authentication/src/collaborator_model.dart';
-// import 'features/authentication/src/supporter_model.dart';
-// import 'features/profile/bloc/screens/profile_screen.dart';
-// import 'features/profile/bloc/repository/profile_repository.dart';
-
-// class HomeScreen extends StatelessWidget {
-//   const HomeScreen({Key? key}) : super(key: key);
-
-//   void _onLogoutButtonPressed(BuildContext context) {
-//     context.read<AuthenticationBloc>().add(LoggedOut());
-//   }
-
-//   // Add the _onProfileButtonPressed function here
-//   void _onProfileButtonPressed(BuildContext context, String userId) {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) => MultiProvider(
-//           providers: [
-//             RepositoryProvider.value(
-//               value:
-//                   context.read<ProfileRepository>(), // Inject ProfileRepository
-//             ),
-//             BlocProvider(
-//               create: (context) => ProfileViewBloc(
-//                 profileRepository:
-//                     context.read<ProfileRepository>(), // Create ProfileViewBloc
-//               )..add(LoadProfile(
-//                   userId)), // Trigger profile loading event with userId
-//             ),
-//           ],
-//           child: ProfileScreen(userId: userId), // Pass userId to ProfileScreen
-//         ),
-//       ),
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return BlocListener<AuthenticationBloc, AuthenticationState>(
-//       listener: (context, state) {
-//         if (state is AuthenticationUnauthenticated) {
-//           // Navigate to WelcomeScreen when unauthenticated
-//           Navigator.of(context).pushReplacementNamed('/');
-//         }
-//       },
-//       child: BlocBuilder<AuthenticationBloc, AuthenticationState>(
-//         builder: (context, state) {
-//           if (state is AuthenticationAuthenticated) {
-//             final user = state.user;
-
-//             if (user is CollaboratorModel) {
-//               // Render the home screen for collaborators
-//               return Scaffold(
-//                 appBar: AppBar(
-//                   title: const Text('Collaborator Home'),
-//                   actions: [
-//                     IconButton(
-//                       icon: const Icon(Icons.logout),
-//                       onPressed: () => _onLogoutButtonPressed(context),
-//                     ),
-//                   ],
-//                 ),
-//                 body: Center(
-//                   child: Column(
-//                     mainAxisAlignment: MainAxisAlignment.center,
-//                     children: [
-//                       Text(
-//                         'Welcome Collaborator ${user.firstName} ${user.lastName}!',
-//                         style: Theme.of(context).textTheme.headlineMedium,
-//                       ),
-//                       const SizedBox(height: 16),
-//                       ElevatedButton(
-//                         onPressed: () => _onProfileButtonPressed(context,
-//                             user.uid), // Call the profile button handler
-//                         child: const Text('Go to Profile'),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               );
-//             } else if (user is SupporterModel) {
-//               // Render the home screen for supporters
-//               return Scaffold(
-//                 appBar: AppBar(
-//                   title: const Text('Supporter Home'),
-//                   actions: [
-//                     IconButton(
-//                       icon: const Icon(Icons.logout),
-//                       onPressed: () => _onLogoutButtonPressed(context),
-//                     ),
-//                   ],
-//                 ),
-//                 body: Center(
-//                   child: Column(
-//                     mainAxisAlignment: MainAxisAlignment.center,
-//                     children: [
-//                       Text(
-//                         'Welcome Supporter ${user.firstName} ${user.lastName}!',
-//                         style: Theme.of(context).textTheme.headlineMedium,
-//                       ),
-//                       const SizedBox(height: 16),
-//                       ElevatedButton(
-//                         onPressed: () => _onProfileButtonPressed(context,
-//                             user.uid), // Call the profile button handler
-//                         child: const Text('Go to Profile'),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               );
-//             } else {
-//               // Handle unexpected user type
-//               return Scaffold(
-//                 appBar: AppBar(
-//                   title: const Text('Home'),
-//                   actions: [
-//                     IconButton(
-//                       icon: const Icon(Icons.logout),
-//                       onPressed: () => _onLogoutButtonPressed(context),
-//                     ),
-//                   ],
-//                 ),
-//                 body: const Center(
-//                   child: Text('Unknown user type'),
-//                 ),
-//               );
-//             }
-//           } else {
-//             // If not authenticated, show loading indicator
-//             return const Scaffold(
-//               body: Center(
-//                 child: CircularProgressIndicator(),
-//               ),
-//             );
-//           }
-//         },
-//       ),
-//     );
-//   }
-// }
