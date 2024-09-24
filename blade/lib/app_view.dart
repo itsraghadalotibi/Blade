@@ -1,4 +1,5 @@
 // gonna contain the material app ( colors, bloc builder, authentication bloc builder to redirect the user either to the auth screen or to the app itself)
+import 'package:blade_app/intro_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:blade_app/features/authentication/screens/forgetPassword_screen.dart';
@@ -30,7 +31,7 @@ class AppView extends StatelessWidget {
           if (snapshot.hasData && snapshot.data == true) {
             return const Navigation(); // Authenticated user
           } else {
-            return const WelcomeScreen(); // Unauthenticated user
+            return IntroScreen(); // Unauthenticated user
           }
         },
       ),
