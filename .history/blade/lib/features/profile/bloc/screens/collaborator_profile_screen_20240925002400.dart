@@ -156,74 +156,66 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                   // Row for first and last name with social media icons
                   // Row for first and last name with social media icons
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center, // Center the entire row
-                    crossAxisAlignment: CrossAxisAlignment
-                        .center, // Align items vertically centered
+                    mainAxisAlignment: MainAxisAlignment
+                        .center, // Centers all elements in the row
                     children: [
                       // First Name
                       Text(
                         profile.firstName,
                         style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                      const SizedBox(
-                          width:
-                              2), // Minimal spacing between the first and last name
+
+                      // Small spacing between first name and last name
+                      const SizedBox(width: 4), // Minimal space between names
 
                       // Last Name
                       Text(
                         profile.lastName,
                         style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
+
+                      // Small spacing between last name and GitHub icon
                       const SizedBox(
-                          width:
-                              2), // Minimal spacing between the name and icons
+                          width: 8), // Minimal space between name and icons
 
                       // GitHub Icon
                       IconButton(
                         icon: FaIcon(
                           FontAwesomeIcons.github,
                           color: profile.socialMediaLinks?['GitHub'] != null
-                              ? TColors.primary // Use orange for active icons
+                              ? TColors.primary
                               : Colors.grey,
-                          size: 24,
+                          size: 18, // Smaller icon size for better alignment
                         ),
-                        padding: const EdgeInsets.all(
-                            0), // Remove default padding around the icon
-                        constraints:
-                            const BoxConstraints(), // Make sure the icon button stays small
                         onPressed: profile.socialMediaLinks?['GitHub'] != null
-                            ? () {
-                                launch(profile.socialMediaLinks!['GitHub']!);
-                              }
-                            : null, // Disable button if no link
+                            ? () => launch(profile.socialMediaLinks!['GitHub']!)
+                            : null,
                       ),
-                      const SizedBox(width: 2), // Minimal spacing between icons
+
+                      // Small spacing between GitHub and LinkedIn icon
+                      const SizedBox(width: 8), // Minimal space between icons
 
                       // LinkedIn Icon
                       IconButton(
                         icon: FaIcon(
                           FontAwesomeIcons.linkedin,
                           color: profile.socialMediaLinks?['LinkedIn'] != null
-                              ? TColors.primary // Use orange for active icons
+                              ? TColors.primary
                               : Colors.grey,
-                          size: 24,
+                          size: 18, // Smaller icon size for better alignment
                         ),
-                        padding: const EdgeInsets.all(
-                            0.1), // Remove default padding around the icon
-                        constraints:
-                            const BoxConstraints(), // Make sure the icon button stays small
                         onPressed: profile.socialMediaLinks?['LinkedIn'] != null
-                            ? () {
-                                launch(profile.socialMediaLinks!['LinkedIn']!);
-                              }
-                            : null, // Disable button if no link
+                            ? () =>
+                                launch(profile.socialMediaLinks!['LinkedIn']!)
+                            : null,
                       ),
                     ],
                   ),
