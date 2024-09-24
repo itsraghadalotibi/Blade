@@ -29,6 +29,8 @@ class AuthenticationRepository {
       password: password,
     );
 
+    await signOut();
+
     String? profilePhotoUrl;
 
     if (profileImage != null) {
@@ -58,6 +60,8 @@ class AuthenticationRepository {
       email: supporter.email,
       password: password,
     );
+
+    await signOut();
 
     String? profilePhotoUrl;
 

@@ -1,14 +1,17 @@
 // gonna contain the material app ( colors, bloc builder, authentication bloc builder to redirect the user either to the auth screen or to the app itself)
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:blade_app/features/authentication/screens/forgetPassword_screen.dart';
 import 'features/authentication/screens/collaborator_sign_up_screen.dart';
 import 'features/authentication/screens/login_screen.dart';
 import 'features/authentication/screens/supporter_sign_up_screen.dart';
 import 'features/authentication/screens/welcome_screen.dart';
+import 'features/authentication/src/authentication_repository.dart';
 import 'home_screen.dart';
+import 'utils/constants/Navigation/navigation.dart';
 import 'utils/theme/theme.dart';
-
 class AppView extends StatelessWidget {
-  const AppView({super.key});
+  const AppView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,28 +21,38 @@ class AppView extends StatelessWidget {
       themeMode: ThemeMode.system,
       theme: TAppTheme.lightTheme,
       darkTheme: TAppTheme.darkTheme,
+      home: FutureBuilder(
+        future: _checkAuthentication(context), // Check auth state
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasData && snapshot.data == true) {
+            return const Navigation(); // Authenticated user
+          } else {
+            return const WelcomeScreen(); // Unauthenticated user
+          }
+        },
+      ),
       onGenerateRoute: (settings) {
         switch (settings.name) {
-          case '/':
-            return MaterialPageRoute(builder: (_) => const WelcomeScreen());
-
           case '/login':
-            // Extract the userType argument and pass it to LoginScreen
             final String userType = settings.arguments as String;
             return MaterialPageRoute(
               builder: (_) => LoginScreen(userType: userType),
             );
 
           case '/collaboratorSignUp':
-            return MaterialPageRoute(
-                builder: (_) => const CollaboratorSignUpScreen());
+            return MaterialPageRoute(builder: (_) => const CollaboratorSignUpScreen());
 
           case '/supporterSignUp':
-            return MaterialPageRoute(
-                builder: (_) => const SupporterSignUpScreen());
+            return MaterialPageRoute(builder: (_) => const SupporterSignUpScreen());
+            
+            case '/forgetPassword':
+            return MaterialPageRoute(builder: (_) => const ForgetPasswordScreen()); // Add this case
 
           case '/home':
-            return MaterialPageRoute(builder: (_) => const HomeScreen());
+            return MaterialPageRoute(builder: (_) => const Navigation());
 
           default:
             return MaterialPageRoute(builder: (_) => const WelcomeScreen());
@@ -47,4 +60,12 @@ class AppView extends StatelessWidget {
       },
     );
   }
+
+  Future<bool> _checkAuthentication(BuildContext context) async {
+    final isSignedIn = await context.read<AuthenticationRepository>().isSignedIn();
+    return isSignedIn;
+  }
 }
+
+
+

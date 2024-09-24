@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/announcement_bloc.dart'; // Ensure correct path to your bloc
 import '../src/announcement_repository.dart'; // Ensure correct path to your repository
-import '../widgets/announcement_card_widget.dart';
+import '../widgets/announcement_card_widget.dart'; 
 
 class AnnouncementScreen extends StatelessWidget {
   final AnnouncementRepository repository;
 
   // Constructor requiring repository
-  const AnnouncementScreen({required this.repository, super.key});
+  const AnnouncementScreen({required this.repository, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,18 +18,16 @@ class AnnouncementScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Announcements'),
-          backgroundColor: Colors
-              .transparent, // Make AppBar background transparent or default
+          centerTitle: true, // Center the title
+          automaticallyImplyLeading: false, // Remove the back button
+          backgroundColor: Colors.transparent, // Make AppBar background transparent or default
           elevation: 0, // Remove shadow under AppBar
-          iconTheme: const IconThemeData(
-            color: Colors.white, // Set the back button color to #848484
-          ),
           titleTextStyle: const TextStyle(
             fontSize: 20, // You can adjust the font size if needed
+            color: Colors.white, // Ensure the title text is white
           ),
         ),
-        backgroundColor:
-            const Color(0xFF161616), // Set the background color to #161616
+        backgroundColor: const Color(0xFF161616), // Set the background color to #161616
         body: BlocBuilder<AnnouncementBloc, AnnouncementState>(
           builder: (context, state) {
             if (state is AnnouncementLoading) {

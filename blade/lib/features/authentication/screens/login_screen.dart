@@ -24,8 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String userTypeCapitalized =
-        widget.userType[0].toUpperCase() + widget.userType.substring(1);
+    String userTypeCapitalized = widget.userType[0].toUpperCase() + widget.userType.substring(1);
 
     return Scaffold(
       appBar: AppBar(
@@ -62,9 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (hasPressedButton) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your email';
-                          } else if (!RegExp(
-                                  r"^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                              .hasMatch(value)) {
+                          } else if (!RegExp(r"^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value)) {
                             return 'Please enter a valid email';
                           }
                         }
@@ -95,12 +92,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Text('Login'),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     GestureDetector(
-                      child: const Text(
-                        "Forget Password?",
+                      child: Text(
+                        "Forget Password? Reset",
                         style: TextStyle(
-                          color: TColors.textSecondary,
+                          color: TColors.info,
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
                         ),
@@ -109,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.of(context).pushNamed('/forgetPassword');
                       },
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 16),
                     const Text(
                       "Don't have an account?",
                       style: TextStyle(fontSize: 14),
@@ -122,9 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.pushReplacementNamed(
                             context,
-                            widget.userType == 'collaborator'
-                                ? '/collaboratorSignUp'
-                                : '/supporterSignUp',
+                            widget.userType == 'collaborator' ? '/collaboratorSignUp' : '/supporterSignUp',
                           );
                         },
                         child: const Text('Create Account'),
@@ -155,8 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       final authBloc = context.read<AuthenticationBloc>();
-      final userTypeFromRepo = await authBloc.authenticationRepository
-          .getUserTypeByEmail(emailController.text.trim());
+      final userTypeFromRepo = await authBloc.authenticationRepository.getUserTypeByEmail(emailController.text.trim());
 
       if (userTypeFromRepo != null && userTypeFromRepo != widget.userType) {
         ScaffoldMessenger.of(context).showSnackBar(

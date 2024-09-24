@@ -1,7 +1,10 @@
-import 'package:blade_app/utils/constants/Navigation/chat.dart';
+import 'package:blade_app/home_screen.dart';
 import 'package:blade_app/utils/constants/Navigation/dashboard.dart';
-import 'package:blade_app/utils/constants/Navigation/settings.dart';
+import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 import 'package:flutter/material.dart';
+import 'package:blade_app/features/announcement/src/announcement_repository.dart'; // Import the repository
+import 'package:cloud_firestore/cloud_firestore.dart'; // Firebase import
+import '../../../features/announcement/screens/announcement_screen.dart';
 
 import '../../../features/newPost/screens/backgroundPost.dart';
 import 'profile.dart';
@@ -16,16 +19,20 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
 
+      final announcementRepository = AnnouncementRepository(
+    firestore: FirebaseFirestore.instance,
+  );
+
+
   int currentTap = 0;
   final List<Widget> screen = [
-    const Dashboard(),
-    const Chat(),
+    const HomeScreen(),
     const Profile(),
-    const Settings()
+    const settings.Settings()
   ];
 
   final PageStorageBucket bucket = PageStorageBucket();
-  Widget currentScreen = const Dashboard();
+  Widget currentScreen = const HomeScreen();
   @override
 Widget build(BuildContext context) {
   return Scaffold(
@@ -112,7 +119,7 @@ backgroundColor: const Color(0xFF333333),
                   minWidth: 30,
                   onPressed: (){
                     setState(() {
-                      currentScreen = const Dashboard();
+                      currentScreen = const HomeScreen();
                       currentTap = 0;
                     });
                   },
@@ -133,9 +140,9 @@ backgroundColor: const Color(0xFF333333),
 
             MaterialButton(
                   minWidth: 30,
-                  onPressed: (){
+                  onPressed: () {
                     setState(() {
-                      currentScreen = const Chat();
+                      currentScreen = AnnouncementScreen(repository: announcementRepository); // Pass the repository here
                       currentTap = 1;
                     });
                   },
@@ -143,7 +150,7 @@ backgroundColor: const Color(0xFF333333),
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Image.asset(
-                        'assets/images/announcement.png',
+                        'assets/images/content/announcement.png',
                         color: currentTap == 1 ? const Color(0xFFFD5336) : Colors.grey,  // Tint color
                         width: 30,  // Set the width to 25 to match your original icon size
                         height: 30,  // Set the height to 25 to match your original icon size
@@ -163,7 +170,7 @@ backgroundColor: const Color(0xFF333333),
                   minWidth: 30,
                   onPressed: (){
                     setState(() {
-                      currentScreen = const Settings();
+                      currentScreen = const settings.Settings();
                       currentTap = 2;
                     });
                   },
@@ -212,4 +219,3 @@ backgroundColor: const Color(0xFF333333),
   );
 }
 }
-

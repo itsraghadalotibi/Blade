@@ -19,7 +19,7 @@ const String defaultProfileImageUrl =
     'https://firebasestorage.googleapis.com/v0/b/blade-87cf7.appspot.com/o/profile_images%2F360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg?alt=media&token=0db52e6c-f589-451d-9d22-c81190c123a1';
 
 class CollaboratorSignUpScreen extends StatefulWidget {
-  const CollaboratorSignUpScreen({super.key});
+  const CollaboratorSignUpScreen({Key? key}) : super(key: key);
 
   @override
   _CollaboratorSignUpScreenState createState() =>
@@ -48,6 +48,8 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
   String? firstNameError;
   String? lastNameError;
   String? passwordError;
+  String? githubError;
+  String? linkedInError;
 
   // Loading indicator
   bool isLoading = false;
@@ -74,36 +76,40 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
     // Fetch skills from BLoC
     context.read<AuthenticationBloc>().add(FetchSkills());
 
-    emailFocusNode.addListener(() {
-      if (!emailFocusNode.hasFocus) {
-        setState(() {
-          emailError = _validateEmail(emailController.text);
-        });
-      }
+    emailController.addListener(() {
+      setState(() {
+        emailError = _validateEmail(emailController.text);
+      });
     });
 
-    firstNameFocusNode.addListener(() {
-      if (!firstNameFocusNode.hasFocus) {
-        setState(() {
-          firstNameError = _validateFirstName(firstNameController.text);
-        });
-      }
+    firstNameController.addListener(() {
+      setState(() {
+        firstNameError = _validateFirstName(firstNameController.text);
+      });
     });
 
-    lastNameFocusNode.addListener(() {
-      if (!lastNameFocusNode.hasFocus) {
-        setState(() {
-          lastNameError = _validateLastName(lastNameController.text);
-        });
-      }
+    lastNameController.addListener(() {
+      setState(() {
+        lastNameError = _validateLastName(lastNameController.text);
+      });
     });
 
-    passwordFocusNode.addListener(() {
-      if (!passwordFocusNode.hasFocus) {
-        setState(() {
-          passwordError = _validatePassword(passwordController.text);
-        });
-      }
+    passwordController.addListener(() {
+      setState(() {
+        passwordError = _validatePassword(passwordController.text);
+      });
+    });
+
+    githubController.addListener(() {
+      setState(() {
+        githubError = _validateUrl(githubController.text);
+      });
+    });
+
+    linkedInController.addListener(() {
+      setState(() {
+        linkedInError = _validateUrl(linkedInController.text);
+      });
     });
 
     passwordController.addListener(_updatePasswordValidation);
@@ -180,9 +186,19 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
         !hasDigit ||
         !hasSpecialChar ||
         !isMinLength) {
-      return 'Password does not meet the requirements';
+      return 'Password must meet these requirements:';
     }
     return null;
+  }
+
+  String? _validateUrl(String? value) {
+    if (value != null && value.isNotEmpty && 
+        !RegExp(
+            r'^(http|https):\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?$')
+            .hasMatch(value)) {
+      return 'Please enter a valid URL (e.g., https://example.com)';
+    }
+    return null; // No error for optional field
   }
 
   // Method to pick image
@@ -206,12 +222,16 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
       firstNameError = _validateFirstName(firstNameController.text);
       lastNameError = _validateLastName(lastNameController.text);
       passwordError = _validatePassword(passwordController.text);
+      githubError = _validateUrl(githubController.text);
+      linkedInError = _validateUrl(linkedInController.text);
     });
 
     if (emailError == null &&
         firstNameError == null &&
         lastNameError == null &&
-        passwordError == null) {
+        passwordError == null &&
+        githubError == null &&
+        linkedInError == null) {
       String profileImageUrl;
 
       if (_profileImage != null) {
@@ -235,7 +255,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
 
       final collaborator = CollaboratorModel(
         uid: '',
-        email: emailController.text.trim(),
+        email: emailController.text.trim().toLowerCase(),
         firstName: firstNameController.text.trim(),
         lastName: lastNameController.text.trim(),
         skills: _selectedSkills,
@@ -268,19 +288,68 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
 
           if (state is AuthenticationUnauthenticated) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Sign Up Successful. Please log in.')),
-            );
-            Navigator.pushReplacementNamed(context, '/login',
-                arguments: 'collaborator');
+                const SnackBar(
+                    backgroundColor: TColors.success,
+                    content: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const Icon(CupertinoIcons.check_mark_circled_solid,
+                            color: Colors
+                                .white), // Change icon and color as needed
+                        const SizedBox(width: 8), // Space between icon and text
+                        const Expanded(
+                          child: Text(
+                            'Sign Up Successful. Please log in.',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    showCloseIcon: true),
+              );
+              Navigator.pushReplacementNamed(context, '/login', arguments: 'collaborator');
           } else if (state is AuthenticationFailure) {
             if (state.error.contains("email-already-in-use")) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Email is already registered')),
+                const SnackBar(
+                    backgroundColor: TColors.warning,
+                    content: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Icon(CupertinoIcons.exclamationmark_triangle_fill,
+                            color: Colors
+                                .white), // Change icon and color as needed
+                        SizedBox(width: 8), // Space between icon and text
+                        Expanded(
+                          child: Text(
+                            'Email is already registered',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    showCloseIcon: true),
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Sign Up Failed: ${state.error}')),
+                SnackBar(
+                    backgroundColor: TColors.error,
+                    content: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const Icon(CupertinoIcons.xmark_circle_fill,
+                            color: Colors
+                                .white), // Change icon and color as needed
+                        const SizedBox(width: 8), // Space between icon and text
+                        Expanded(
+                          child: Text(
+                            'Sign Up Failed: ${state.error}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    showCloseIcon: true),
               );
             }
           }
@@ -296,18 +365,9 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                     _buildProfileImage(),
                     const SizedBox(height: 24),
 
-                    // Email field with error handling
-                    CustomTextField(
-                      label: 'Email',
-                      controller: emailController,
-                      focusNode: emailFocusNode,
-                      errorText: emailError,
-                    ),
-                    const SizedBox(height: 16),
-
                     // First Name field with error handling
                     CustomTextField(
-                      label: 'First Name',
+                      label: 'First Name*',
                       controller: firstNameController,
                       focusNode: firstNameFocusNode,
                       errorText: firstNameError,
@@ -316,16 +376,25 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
 
                     // Last Name field with error handling
                     CustomTextField(
-                      label: 'Last Name',
+                      label: 'Last Name*',
                       controller: lastNameController,
                       focusNode: lastNameFocusNode,
                       errorText: lastNameError,
                     ),
                     const SizedBox(height: 16),
 
+                    // Email field with error handling
+                    CustomTextField(
+                      label: 'Email*',
+                      controller: emailController,
+                      focusNode: emailFocusNode,
+                      errorText: emailError,
+                    ),
+                    const SizedBox(height: 16),
+
                     // Password field with error handling
                     CustomTextField(
-                      label: 'Password',
+                      label: 'Password*',
                       controller: passwordController,
                       obscureText: true,
                       focusNode: passwordFocusNode,
@@ -334,6 +403,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
 
                     // Display password requirements only when typing
                     if (showPasswordRequirements) ...[
+                      const SizedBox(height: 4),
                       PasswordRequirement(
                         requirement: 'At least 8 characters',
                         isMet: isMinLength,
@@ -383,7 +453,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                             ],
                           );
                         } else if (state is SkillsLoaded) {
-                          final List<MultiSelectItem<String>> skillsItems =
+                          final List<MultiSelectItem<String>> _skillsItems =
                               state.availableSkills
                                   .map((skill) =>
                                       MultiSelectItem<String>(skill, skill))
@@ -392,7 +462,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                           return isDarkMode
                               ? TMultiSelectDialogTheme
                                   .darkMultiSelectDialogField(
-                                  items: skillsItems,
+                                  items: _skillsItems,
                                   selectedItems: _selectedSkills,
                                   onConfirm: (results) {
                                     setState(() {
@@ -404,7 +474,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                                 )
                               : TMultiSelectDialogTheme
                                   .lightMultiSelectDialogField(
-                                  items: skillsItems,
+                                  items: _skillsItems,
                                   selectedItems: _selectedSkills,
                                   onConfirm: (results) {
                                     setState(() {
@@ -425,6 +495,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                     CustomTextField(
                       label: 'GitHub Profile Link (Optional)',
                       controller: githubController,
+                      errorText: githubError,
                     ),
                     const SizedBox(height: 16),
 
@@ -432,6 +503,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                     CustomTextField(
                       label: 'LinkedIn Profile Link (Optional)',
                       controller: linkedInController,
+                      errorText: linkedInError,
                     ),
                     const SizedBox(height: 16),
 
@@ -454,6 +526,12 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    const Text(
+                      "Already have an account?",
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    // Create Account Outlined Button (OutlinedButton)
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
@@ -461,11 +539,10 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                           Navigator.pushReplacementNamed(context, '/login',
                               arguments: 'collaborator');
                         },
-                        child: const Text(
-                          'Already have an account? Log In',
-                        ),
+                        child: const Text('Login'),
                       ),
                     ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -487,21 +564,29 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
         alignment: Alignment.bottomRight,
         children: [
           CircleAvatar(
-            radius: 75,
-            backgroundColor: TColors.secondary,
+            backgroundColor: const Color.fromARGB(255, 160, 234, 218),
+            radius: 82,
             child: CircleAvatar(
-              radius: 73,
-              backgroundImage: _profileImage != null
-                  ? FileImage(_profileImage!)
-                  : const AssetImage('assets/images/content/user.png')
-                      as ImageProvider,
+              radius: 75,
+              backgroundColor: TColors.secondary,
+              child: CircleAvatar(
+                radius: 70,
+                backgroundImage: _profileImage != null
+                    ? FileImage(_profileImage!)
+                    : const AssetImage('assets/images/content/user.png')
+                        as ImageProvider,
+              ),
             ),
           ),
           Positioned(
             bottom: 0,
             right: 0,
             child: IconButton(
-              icon: const Icon(CupertinoIcons.camera, color: TColors.primary),
+              icon: const Icon(
+                CupertinoIcons.camera,
+                color: TColors.primary,
+                size: 32,
+              ),
               onPressed: _pickImage,
             ),
           ),
