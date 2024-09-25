@@ -1,10 +1,10 @@
 import 'package:blade_app/features/announcement/screens/announcement_screen.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
-import 'package:blade_app/features/announcement/widgets/skill_tag_widget.dart';
 import 'package:blade_app/features/newPost/screens/backgroundPost.dart';
 import 'package:blade_app/utils/constants/Navigation/profile.dart';
 import 'package:blade_app/utils/constants/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -23,13 +23,19 @@ import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 
 class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
+  final bool showBackButton; // Add this field
 
-  const CollaboratorProfileScreen({super.key, required this.userId});
+  const CollaboratorProfileScreen({
+    super.key,
+    required this.userId,
+    this.showBackButton = false, // Default value is false
+  });
 
   @override
   _CollaboratorProfileScreenState createState() =>
       _CollaboratorProfileScreenState();
 }
+
 
 class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     with SingleTickerProviderStateMixin {
@@ -37,13 +43,15 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   late ProjectIdeaRepository _projectIdeaRepository;
   Future<List<Idea>>? _futureIdeas;
   late TabController _tabController;
-
+  String? _currentUserId; // Define _currentUserId here
+  
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _projectIdeaRepository = ProjectIdeaRepository();
     _futureIdeas = _projectIdeaRepository.fetchIdeasByOwner(widget.userId);
+    _currentUserId = FirebaseAuth.instance.currentUser?.uid;
   }
 
   @override
@@ -52,93 +60,65 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ProfileViewBloc(profileRepository: context.read())
-        ..add(LoadProfile(widget.userId)),
-      child: Scaffold(
-        backgroundColor: Theme.of(context)
-            .scaffoldBackgroundColor, // Dynamic background color
-        appBar: AppBar(
-          backgroundColor: Theme.of(context)
-              .appBarTheme
-              .backgroundColor, // Dynamic app bar color
-          title: Text(
-            'Profile',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          centerTitle: true,
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              icon: Icon(
-                Icons.edit,
-                color: Theme.of(context).iconTheme.color, // Themed icon color
+@override // This should be outside the method
+Widget build(BuildContext context) {
+  final isOwner = _currentUserId == widget.userId; // Check if logged-in user is the profile owner
+
+  return BlocProvider(
+    create: (context) => ProfileViewBloc(profileRepository: context.read())
+      ..add(LoadProfile(widget.userId)),
+    child: Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar( // The appBar is correctly placed here
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        title: Text(
+          'Profile',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
-              onPressed: () async {
-                final state = BlocProvider.of<ProfileViewBloc>(context).state;
-                if (state is ProfileLoaded &&
-                    state.profile is CollaboratorProfileModel) {
-                  final profile = _updatedProfile ??
-                      state.profile as CollaboratorProfileModel;
-
-                  final updatedProfile = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BlocProvider(
-                        create: (context) => EditCollaboratorProfileBloc(
-                          profileRepository: context.read(),
-                        ),
-                        child: EditCollaboratorProfileScreen(profile: profile),
-                      ),
-                    ),
-                  );
-
-                  if (updatedProfile != null &&
-                      updatedProfile is CollaboratorProfileModel) {
-                    setState(() {
-                      _updatedProfile = updatedProfile;
-                    });
-
-                    context
-                        .read<ProfileViewBloc>()
-                        .add(LoadProfile(widget.userId));
-                  }
-                }
-              },
-            ),
-          ],
         ),
-        body: BlocBuilder<ProfileViewBloc, ProfileViewState>(
-          builder: (context, state) {
-            final profile = _updatedProfile ??
-                (state is ProfileLoaded &&
-                        state.profile is CollaboratorProfileModel
-                    ? state.profile as CollaboratorProfileModel
-                    : null);
-
-            if (profile != null) {
-              return buildCollaboratorProfile(profile);
-            } else if (state is ProfileLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is ProfileError) {
-              return Center(
-                  child: Text('Error: ${state.message}',
-                      style: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .error))); // Use themed error color
-            }
-            return const Center(child: Text('Unable to load profile.'));
-          },
-        ),
+        centerTitle: true,
+        automaticallyImplyLeading: widget.showBackButton, // Use the showBackButton flag
+        actions: isOwner
+            ? [
+                IconButton(
+                  icon: Icon(
+                    Icons.edit,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
+                  onPressed: () async {
+                    // Edit button logic here
+                  },
+                ),
+              ]
+            : null, // Hide edit button if not the owner
       ),
-    );
-  }
+      body: BlocBuilder<ProfileViewBloc, ProfileViewState>(
+        builder: (context, state) {
+          final profile = _updatedProfile ??
+              (state is ProfileLoaded && state.profile is CollaboratorProfileModel
+                  ? state.profile as CollaboratorProfileModel
+                  : null);
+
+          if (profile != null) {
+            return buildCollaboratorProfile(profile);
+          } else if (state is ProfileLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ProfileError) {
+            return Center(
+                child: Text('Error: ${state.message}',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.error)));
+          }
+          return const Center(child: Text('Unable to load profile.'));
+        },
+      ),
+    ),
+  );
+}
+
+
 
   Widget buildCollaboratorProfile(CollaboratorProfileModel profile) {
     return NestedScrollView(
@@ -270,10 +250,11 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                   const SizedBox(height: 16),
                   Wrap(
                     spacing: 8.0,
-                    runSpacing: 8.0,
                     children: profile.skills?.map((skill) {
-                          return SkillTagWidget(
-                            skills: [skill], // Pass each skill as a list
+                          return Chip(
+                            label: Text(skill),
+                            backgroundColor: Theme.of(context).primaryColor,
+                            labelStyle: const TextStyle(color: Colors.white),
                           );
                         }).toList() ??
                         [],

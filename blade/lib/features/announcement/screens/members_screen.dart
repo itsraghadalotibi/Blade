@@ -20,23 +20,24 @@ class MembersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: TColors.primaryBackground, // Light mode background color
+      backgroundColor: TColors.primaryBackground, 
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(
-          color: TColors.textPrimary, // Light mode icon color
-        ),
-        title: const Text(
+        title: Text(
           'Members',
-          style: TextStyle(
-            fontSize: 20,
-            color: TColors.textPrimary, // Light mode text color
-          ),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        centerTitle: true, // This ensures the title is centered
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        elevation: 0,
+        iconTheme: IconThemeData(
+          color: Theme.of(context).iconTheme.color,
         ),
       ),
       body: FutureBuilder<List<Collaborator>>(
-        future: _fetchCollaborators(), // Fetch collaborators first
+        future: _fetchCollaborators(), 
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -54,22 +55,21 @@ class MembersScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final collaborator = collaborators[index];
               
-              // For the first member, show "Idea owner"
               final isIdeaOwner = index == 0;
               final matchingSkills = isIdeaOwner
-                  ? ["Idea owner"] // Only show "Idea owner" for the first member
+                  ? ["Idea owner"] 
                   : collaborator.skills
                       .where((skill) => ideaSkills.contains(skill))
                       .toList();
 
               return GestureDetector(
                 onTap: () {
-                  // Navigate to the Collaborator Profile when container is tapped
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CollaboratorProfileScreen(
                         userId: collaborator.uid,
+                        showBackButton: true, // Add this line
                       ),
                     ),
                   );
@@ -77,9 +77,9 @@ class MembersScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
-                    color: TColors.lightContainer, // Light mode container color
+                    color: TColors.lightContainer, 
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: TColors.borderPrimary), // Light mode border
+                    border: Border.all(color: TColors.borderPrimary), 
                   ),
                   child: Column(
                     children: [
@@ -90,15 +90,14 @@ class MembersScreen extends StatelessWidget {
                         ),
                         title: Text(
                           '${collaborator.firstName} ${collaborator.lastName}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: TColors.textPrimary, // Light mode text color
+                            color: Theme.of(context).textTheme.bodyLarge?.color, 
                             fontSize: 18,
                           ),
                         ),
                         subtitle: matchingSkills.isNotEmpty
                             ? GestureDetector(
-                                // Prevent the scroll on the skill tags from triggering the profile navigation
                                 onTap: () {},
                                 child: SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
@@ -114,7 +113,7 @@ class MembersScreen extends StatelessWidget {
                               )
                             : const Text(
                                 'No matching skills',
-                                style: TextStyle(color: TColors.textSecondary), // Light mode secondary text color
+                                style: TextStyle(color: TColors.textSecondary),
                               ),
                       ),
                     ],
@@ -131,7 +130,6 @@ class MembersScreen extends StatelessWidget {
     );
   }
 
-  // Fetch all collaborators based on memberIds
   Future<List<Collaborator>> _fetchCollaborators() async {
     List<Collaborator> collaborators = [];
     for (String memberId in memberIds) {
