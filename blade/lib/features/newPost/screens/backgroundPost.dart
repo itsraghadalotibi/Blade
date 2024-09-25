@@ -1,4 +1,5 @@
 import 'package:blade_app/home_screen.dart';
+import 'package:blade_app/utils/constants/Navigation/profile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -28,7 +29,7 @@ class _backgroundScreenState extends State<backgroundScreen> with TickerProvider
       if (status == AnimationStatus.completed) {
         // Redirect to the home page when the animation completes
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => HomeScreen()),  // Replace with your HomePage
+          MaterialPageRoute(builder: (context) => const Profile()),  // Replace with your HomePage
           (Route<dynamic> route) => false,
         );
       }

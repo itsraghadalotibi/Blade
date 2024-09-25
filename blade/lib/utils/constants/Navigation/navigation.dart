@@ -73,21 +73,21 @@ class _NavigationState extends State<Navigation> {
                       ),
                     ),
                     const SizedBox(height: 60),
-                    InkWell(
-                      onTap: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(builder: (context) => NewPostPage()),
-                        // );
-                      },
-                      child: const ListTile(
-                        leading: Icon(Icons.post_add, color: Colors.white),
-                        title: Text(
-                          'New Post',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                      ),
-                    ),
+                    // InkWell(
+                    //   onTap: () {
+                    //     // Navigator.push(
+                    //     //   context,
+                    //     //   MaterialPageRoute(builder: (context) => NewPostPage()),
+                    //     // );
+                    //   },
+                    //   child: const ListTile(
+                    //     leading: Icon(Icons.post_add, color: Colors.white),
+                    //     title: Text(
+                    //       'New Post',
+                    //       style: TextStyle(fontSize: 18, color: Colors.white),
+                    //     ),
+                    //   ),
+                    // ),
                     Container(
                       padding: const EdgeInsets.all(30),
                       child: Padding(

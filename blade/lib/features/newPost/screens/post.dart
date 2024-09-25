@@ -3,9 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
 import 'package:uuid/uuid.dart';
-
 import '../../../utils/constants/colors.dart';
 import '../../../utils/constants/sizes.dart';
 import '../../announcement/src/announcement_model.dart';
@@ -13,7 +11,6 @@ import '../../announcement/src/announcement_repository.dart';
 import '../blocs/bloc/post_bloc.dart';
 import '../blocs/bloc/post_event.dart';
 import '../blocs/bloc/post_state.dart';
-import 'chipTags.dart';
 
 final uuid = Uuid();
 final _formKeyStep1 = GlobalKey<FormState>();  // Key for Step 1
@@ -35,56 +32,51 @@ class _NumberStepperState extends State<NumberStepper> {
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: Alignment.centerLeft, // Align the entire widget to the left
+      alignment: Alignment.centerLeft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisSize: MainAxisSize.min, // Make the Row take the minimum space required
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               // Decrement Button
               IconButton(
-                icon: const Icon(Icons.remove, size: 20, color: Colors.white),  // Reduced icon size
+                icon: const Icon(Icons.remove, size: 20, color: Colors.white),
                 onPressed: () {
                   setState(() {
-                    if (_numberOfMembers > 1) {  // Prevent going below 1
+                    if (_numberOfMembers > 1) {
                       _numberOfMembers--;
-                      _showMaxMessage = false;  // Hide the max message if decrementing
+                      _showMaxMessage = false;
                     }
-                    widget.onNumberChanged(_numberOfMembers); // Notify parent
+                    widget.onNumberChanged(_numberOfMembers);
                   });
                 },
               ),
-              
-              // Display the current number of members
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5.0),  // Adjust padding to move the number left
+                padding: const EdgeInsets.symmetric(horizontal: 5.0),
                 child: Text(
                   '$_numberOfMembers',
-                  style: const TextStyle(fontSize: 16.0, color: Colors.white),  // Reduced font size
+                  style: const TextStyle(fontSize: 16.0, color: Colors.white),
                 ),
               ),
-              
-              // Increment Button
               IconButton(
-                icon: const Icon(Icons.add, size: 20),  // Reduced icon size
-                color: (_numberOfMembers < 10) ? Colors.white : Colors.grey, // Change color to silver if at max
-                onPressed: (_numberOfMembers < 10) // Disable the button if at max
+                icon: const Icon(Icons.add, size: 20),
+                color: (_numberOfMembers < 10) ? Colors.white : Colors.grey,
+                onPressed: (_numberOfMembers < 10)
                     ? () {
                         setState(() {
                           _numberOfMembers++;
-                          widget.onNumberChanged(_numberOfMembers); // Notify parent
+                          widget.onNumberChanged(_numberOfMembers);
                         });
                       }
                     : () {
                         setState(() {
-                          _showMaxMessage = true; // Show the max message when user attempts to exceed 10
+                          _showMaxMessage = true;
                         });
                       },
               ),
             ],
           ),
-          // Notify user when the max value (10) is reached
           if (_showMaxMessage)
             const Padding(
               padding: EdgeInsets.only(top: 5.0),
@@ -99,7 +91,6 @@ class _NumberStepperState extends State<NumberStepper> {
   }
 }
 
-
 class Post extends StatefulWidget {
   const Post({super.key});
 
@@ -110,31 +101,29 @@ class Post extends StatefulWidget {
 class _PostState extends State<Post> {
   final _ideanameController = TextEditingController();
   final _ideadescriptionController = TextEditingController();
-  final _numberController = TextEditingController(text: '1'); // Initialize with default value "1"
-  final AnnouncementRepository _ideaRepository = AnnouncementRepository(firestore: FirebaseFirestore.instance); // Use IdeaRepository
-
-  String? _skillsError; // To store error message
-  List<String> topSkills = [];  // To store the top 10 skills
-  bool _isSubmitted = false;  // Flag to track when the next button is pressed
-  List<String> initialTags = [];  
+  final _numberController = TextEditingController(text: '1');
+  final AnnouncementRepository _ideaRepository = AnnouncementRepository(firestore: FirebaseFirestore.instance);
+  String? _skillsError;
+  List<String> topSkills = [];
+  bool _isSubmitted = false;
   List<String> tags = [];
-  List<String> options = [];  
+  List<String> options = [];
 
   @override
   void initState() {
     super.initState();
-    _numberController.text = '1'; // Set the default value to "1"
-    fetchSkills(); // Fetch the skills when the widget initializes
+    _numberController.text = '1';
+    fetchSkills();
   }
 
   Future<void> fetchSkills() async {
     try {
       final skillsSnapshot = await FirebaseFirestore.instance.collection('skills').get();
       final skills = skillsSnapshot.docs.map((doc) => doc['name'] as String).toList();
-      
+
       setState(() {
-        options = skills;  // Store all fetched skills for the search functionality
-        topSkills = skills.take(6).toList();  // Take the first 10 skills for initial display
+        options = skills;
+        topSkills = skills.take(6).toList();
       });
     } catch (e) {
       print('Error fetching skills: $e');
@@ -142,79 +131,63 @@ class _PostState extends State<Post> {
   }
 
   void _submitIdea() async {
-    if (_ideanameController.text.isEmpty || _ideadescriptionController.text.isEmpty || _numberController.text.isEmpty) {
-      // Show error or validation message
+    if (_ideanameController.text.isEmpty || _ideadescriptionController.text.isEmpty || _numberController.text.isEmpty || tags.isEmpty) {
+      setState(() {
+        _skillsError = tags.isEmpty ? 'Please select at least one skill' : null;
+      });
       return;
     }
-  String creatorId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-    // Create a new Idea object
+    String creatorId = FirebaseAuth.instance.currentUser?.uid ?? '';
     Idea newIdea = Idea(
       title: _ideanameController.text,
       description: _ideadescriptionController.text,
       maxMembers: int.parse(_numberController.text),
-      members: [creatorId],  // Initially empty, will be updated later
-      skills: tags,  // Pass the selected skills
+      members: [creatorId],
+      skills: tags,
     );
 
-    // Save the new Idea to Firestore
-  try {
-    // Save the new Idea to Firestore
-    await _ideaRepository.createIdea(newIdea, creatorId);
-
-    // Navigate to the backgroundScreen with success message
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => backgroundScreen(isSuccess: true),
-      ),
-    );
-  } catch (e) {
-    // Handle any errors that occur during submission
-    print('Error creating idea: $e');
-  }
-
-    // Show confirmation or navigate back
+    try {
+      await _ideaRepository.createIdea(newIdea, creatorId);
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => backgroundScreen(isSuccess: true)));
+    } catch (e) {
+      print('Error creating idea: $e');
+    }
   }
 
   void onStepContinue(BuildContext context, int currentStep) {
     setState(() {
-      _isSubmitted = true;  // Set to true when the Next button is pressed
+      _isSubmitted = true;
     });
 
     if (currentStep == 0 && !_formKeyStep1.currentState!.validate()) {
-      return;  // Stop if validation fails for step 1
+      return;
     }
 
-    // Step 2 Validation: Number of Members
     if (currentStep == 1) {
-      final number = int.tryParse(_numberController.text) ?? 1; // Ensure the default value is 1
+      final number = int.tryParse(_numberController.text) ?? 1;
       if (number < 1) {
-        setState(() {
-          _isSubmitted = true;
-        });
         return;
       }
     }
 
-    // Step 3 Validation: Skills
     if (currentStep == 2) {
       setState(() {
-        if (tags.isEmpty) {  // Check if no skill has been selected
+        if (tags.isEmpty) {
           _skillsError = 'Please select at least one skill';
         } else {
-          _skillsError = null;  // Clear error if a skill is selected
+          _skillsError = null;
         }
       });
 
       if (tags.isEmpty) {
-        return;  // Stop if validation fails
+        return;
       }
     }
 
     final isLastStep = currentStep == getSteps().length - 1;
     if (isLastStep) {
-      _submitIdea();  // Submit the form and save the idea
+      _submitIdea();
     } else {
       context.read<PostBloc>().add(NextStep());
     }
@@ -223,7 +196,7 @@ class _PostState extends State<Post> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-    create: (context) => PostBloc(announcementRepository: AnnouncementRepository(firestore: FirebaseFirestore.instance)),
+      create: (context) => PostBloc(announcementRepository: AnnouncementRepository(firestore: FirebaseFirestore.instance)),
       child: Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(10),
@@ -233,8 +206,7 @@ class _PostState extends State<Post> {
                 return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                    ],
+                    children: [],
                   ),
                 );
               }
@@ -269,14 +241,8 @@ class _PostState extends State<Post> {
                               style: TextButton.styleFrom(foregroundColor: Colors.grey),
                               child: const Text('Back'),
                             ),
-                          // Conditionally show "Next" or "Submit" button
                           TextButton(
-                            onPressed: isLastStep
-                                ? () {
-                                    // Submit action on the last step
-                                    _submitIdea();
-                                  }
-                                : details.onStepContinue,  // Next action on previous steps
+                            onPressed: isLastStep ? _submitIdea : details.onStepContinue,
                             style: TextButton.styleFrom(foregroundColor: const Color(0xFFFD5336)),
                             child: Text(isLastStep ? 'Submit' : 'Next'),
                           ),
@@ -307,11 +273,11 @@ class _PostState extends State<Post> {
               TextFormField(
                 controller: _ideanameController,
                 style: const TextStyle(color: Colors.white),
-                autovalidateMode: AutovalidateMode.onUserInteraction,  
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: InputDecoration(
                   hintText: 'Project Name',
                   hintStyle: const TextStyle(
-                    color: Colors.grey, 
+                    color: Colors.grey,
                     fontSize: 13,
                     fontWeight: FontWeight.normal,
                   ),
@@ -346,12 +312,12 @@ class _PostState extends State<Post> {
                 maxLines: 5,
                 maxLength: 250,
                 controller: _ideadescriptionController,
-                style: const TextStyle(color: Colors.white), 
-                autovalidateMode: AutovalidateMode.onUserInteraction, 
+                style: const TextStyle(color: Colors.white),
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: InputDecoration(
                   hintText: 'Describe your idea',
                   hintStyle: const TextStyle(
-                    color: Colors.grey, 
+                    color: Colors.grey,
                     fontSize: 13,
                     fontWeight: FontWeight.normal,
                   ),
@@ -402,7 +368,7 @@ class _PostState extends State<Post> {
             NumberStepper(
               onNumberChanged: (newNumber) {
                 setState(() {
-                  _numberController.text = newNumber.toString(); 
+                  _numberController.text = newNumber.toString();
                 });
               },
             ),
@@ -522,7 +488,7 @@ class _PostState extends State<Post> {
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text(
                   _skillsError!,
-                  style: const TextStyle(color: Colors.red),
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
                 ),
               ),
           ],
