@@ -114,7 +114,7 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
                           child: Text(
                             isExpanded ? "Show less" : "Show more",
                             style: TextStyle(
-                              color: const Color.fromARGB(255, 90, 91, 92),
+                              color: const Color.fromARGB(255, 141, 142, 143),
                               fontSize: screenWidth * 0.04 * textScaleFactor,
                             ),
                           ),

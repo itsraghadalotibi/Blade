@@ -3,7 +3,6 @@ import 'package:blade_app/utils/constants/colors.dart';
 import 'package:blade_app/utils/theme/custom_themes/multi_select_dialog_theme.dart';
 import 'package:blade_app/widgets/custom_button.dart';
 import 'package:blade_app/widgets/custom_text_field.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,27 +32,6 @@ class EditCollaboratorProfileScreen extends StatefulWidget {
 class _EditCollaboratorProfileScreenState
     extends State<EditCollaboratorProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? _validateUrl(String? value, {required String platform}) {
-    if (value != null && value.isNotEmpty) {
-      final urlPattern =
-          r'^(http|https):\/\/[a-zA-Z0-9\-.]+\.[a-zA-Z]{2,3}(/\S*)?$';
-      final result = RegExp(urlPattern, caseSensitive: false).hasMatch(value);
-
-      if (!result) {
-        return 'Please enter a valid URL (e.g., https://example.com)';
-      }
-
-      // Check for platform-specific URLs
-      if (platform == 'GitHub' && !value.contains('github.com')) {
-        return 'Please enter a valid GitHub profile URL';
-      }
-
-      if (platform == 'LinkedIn' && !value.contains('linkedin.com')) {
-        return 'Please enter a valid LinkedIn profile URL';
-      }
-    }
-    return null; // No error if the field is empty (since it's optional)
-  }
 
   // Controllers for fields
   late TextEditingController _firstNameController;
@@ -70,7 +48,6 @@ class _EditCollaboratorProfileScreenState
   List<String> _selectedSkills = [];
 
   @override
-  @override
   void initState() {
     super.initState();
 
@@ -83,9 +60,6 @@ class _EditCollaboratorProfileScreenState
         text: widget.profile.socialMediaLinks?['GitHub'] ?? '');
     _linkedInController = TextEditingController(
         text: widget.profile.socialMediaLinks?['LinkedIn'] ?? '');
-
-    // Initialize _selectedSkills with the profile's current skills
-    _selectedSkills = List<String>.from(widget.profile.skills ?? []);
 
     // Fetch available skills from the BLoC
     context.read<EditCollaboratorProfileBloc>().add(FetchSkills());
@@ -113,13 +87,9 @@ class _EditCollaboratorProfileScreenState
     return null;
   }
 
-  // Image picker function with compression
+  // Image picker function
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 50, // Compress image to 50% quality
-    );
-
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _newProfileImage = File(pickedFile.path);
@@ -129,53 +99,31 @@ class _EditCollaboratorProfileScreenState
 
   // Save button functionality
   // Save button functionality
-  void _onSaveButtonPressed() async {
+  void _onSaveButtonPressed() {
     if (_formKey.currentState!.validate()) {
-      String? profileImageUrl =
-          widget.profile.profilePhotoUrl; // Use existing profile image URL
-
-      if (_newProfileImage != null) {
-        // If the user has selected a new profile image, upload it
-        try {
-          final fileName = '${widget.profile.uid}_profile_image.png';
-          final storageRef =
-              FirebaseStorage.instance.ref().child('profile_images/$fileName');
-
-          // Upload the file to Firebase Storage
-          await storageRef.putFile(_newProfileImage!);
-
-          // Get the downloadable URL for the uploaded image
-          profileImageUrl = await storageRef.getDownloadURL();
-        } catch (e) {
-          // Handle any errors during the upload
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to upload profile image: $e'),
-            ),
-          );
-          return; // Stop further execution if upload fails
-        }
-      }
-
-      // Now, save the updated profile information along with the new image URL
+      // If no changes were made to the skills, keep the initial skills from the profile
       final updatedProfile = CollaboratorProfileModel(
         uid: widget.profile.uid,
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         bio: _bioController.text.trim(),
-        skills: _selectedSkills,
-        profilePhotoUrl: profileImageUrl, // Use the new image URL if it exists
+        // Check if _selectedSkills is empty; if so, retain the original skills
+        skills: _selectedSkills.isEmpty
+            ? widget.profile
+                .skills // Retain original skills if no changes were made
+            : _selectedSkills, // Use updated skills if changes were made
+        profilePhotoUrl:
+            _newProfileImage?.path ?? widget.profile.profilePhotoUrl,
         socialMediaLinks: {
           'GitHub': _githubController.text.trim(),
           'LinkedIn': _linkedInController.text.trim(),
         },
       );
-
       context
           .read<EditCollaboratorProfileBloc>()
           .add(SaveCollaboratorProfile(updatedProfile));
     } else {
-      // Handle validation failure
+      // If form validation fails, you can handle the error here or show a message
     }
   }
 
@@ -342,16 +290,11 @@ class _EditCollaboratorProfileScreenState
                     CustomTextField(
                       label: 'GitHub Profile Link (Optional)',
                       controller: _githubController,
-                      validator: (value) => _validateUrl(value,
-                          platform: 'GitHub'), // Validate GitHub URL
                     ),
                     const SizedBox(height: 16),
-
                     CustomTextField(
                       label: 'LinkedIn Profile Link (Optional)',
                       controller: _linkedInController,
-                      validator: (value) => _validateUrl(value,
-                          platform: 'LinkedIn'), // Validate LinkedIn URL
                     ),
                     const SizedBox(
                         height: 100), // Add some padding at the bottom

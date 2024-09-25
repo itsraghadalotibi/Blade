@@ -1,7 +1,5 @@
-// Path: lib/features/profile/widgets/skill_tag.dart
-
-import 'package:blade_app/utils/constants/colors.dart';
 import 'package:flutter/material.dart';
+import '../../../utils/constants/colors.dart'; // Make sure to import the correct path to TColors
 
 class SkillTagWidget extends StatelessWidget {
   final List<String> skills;
@@ -27,7 +25,8 @@ class SkillTagWidget extends StatelessWidget {
         vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: TColors.grey, // Light mode accent color for the tag
+        color: const Color.fromARGB(
+            255, 190, 189, 189), // Light mode accent color for the tag
         borderRadius: BorderRadius.circular(100),
       ),
       child: Text(

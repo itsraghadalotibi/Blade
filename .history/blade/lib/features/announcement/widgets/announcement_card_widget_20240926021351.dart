@@ -67,7 +67,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
     final textStyle = TextStyle(
-      color: const Color.fromARGB(255, 255, 254, 254),
+      color: TColors.textPrimary,
       fontSize: screenWidth * 0.04 * textScaleFactor,
       fontWeight: FontWeight.w400,
     );

@@ -70,7 +70,6 @@ class _EditCollaboratorProfileScreenState
   List<String> _selectedSkills = [];
 
   @override
-  @override
   void initState() {
     super.initState();
 
@@ -83,9 +82,6 @@ class _EditCollaboratorProfileScreenState
         text: widget.profile.socialMediaLinks?['GitHub'] ?? '');
     _linkedInController = TextEditingController(
         text: widget.profile.socialMediaLinks?['LinkedIn'] ?? '');
-
-    // Initialize _selectedSkills with the profile's current skills
-    _selectedSkills = List<String>.from(widget.profile.skills ?? []);
 
     // Fetch available skills from the BLoC
     context.read<EditCollaboratorProfileBloc>().add(FetchSkills());
@@ -113,13 +109,9 @@ class _EditCollaboratorProfileScreenState
     return null;
   }
 
-  // Image picker function with compression
+  // Image picker function
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 50, // Compress image to 50% quality
-    );
-
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _newProfileImage = File(pickedFile.path);
