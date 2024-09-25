@@ -73,46 +73,17 @@ class HomeScreen extends StatelessWidget {
 
     // Show a green confirmation message after logout
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          backgroundColor: Colors.green, // Green background color
-          content: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0), // Reduce vertical padding
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Space between text and close button
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      CupertinoIcons.check_mark_circled_solid, // Change icon as needed
-                      color: Colors.white, // White icon color
-                    ),
-                    const SizedBox(width: 8), // Space between icon and text
-                    const Text(
-                      'Logged out successfully!', // Updated text
-                      style: TextStyle(
-                        color: Colors.white, // White text color
-                        fontSize: 16, // Adjust font size if needed
-                      ),
-                    ),
-                  ],
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.close, // Close icon
-                    color: Colors.white, // White icon color
-                  ),
-                  onPressed: () {
-                    // Close the SnackBar
-                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  },
-                ),
-              ],
-            ),
-          ),
-          behavior: SnackBarBehavior.floating, // Make it floating
-          margin: const EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 10), // Adjust margin
-        ));
-  
+      const SnackBar(
+        content: Text(
+          'Logged out successfully!',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(top: 10, left: 10, right: 10),
+        showCloseIcon: true,
+      ),
+    );
   }
 
   // Adjusted _onProfileButtonPressed to route to the correct profile screen

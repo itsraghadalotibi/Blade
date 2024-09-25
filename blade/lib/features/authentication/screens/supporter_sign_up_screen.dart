@@ -173,13 +173,44 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 80,
+      imageQuality: 80, // Adjust quality to reduce size if needed
     );
 
     if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
+      // Get the file size
+      final file = File(pickedFile.path);
+      final int fileSizeInBytes = await file.length();
+
+      // Define the maximum file size (e.g., 5 MB)
+      const int maxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
+
+      if (fileSizeInBytes > maxFileSize) {
+        // Show an error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              backgroundColor: TColors.error,
+              behavior: SnackBarBehavior.floating,
+              content: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(CupertinoIcons.xmark_circle_fill,
+                      color: Colors.white), // Change icon and color as needed
+                  SizedBox(width: 8), // Space between icon and text
+                  Expanded(
+                    child: Text(
+                      'Image size should not exceed 5MB',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+              showCloseIcon: true),
+        );
+      } else {
+        setState(() {
+          _profileImage = file;
+        });
+      }
     }
   }
 
@@ -238,10 +269,15 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
       ),
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
-          setState(() {
-            isLoading = state is AuthenticationLoading;
-          });
-
+          if (state is AuthenticationLoading) {
+            setState(() {
+              isLoading = true;
+            });
+          } else {
+            setState(() {
+              isLoading = false;
+            });
+          }
           if (state is AuthenticationUnauthenticated) {
             ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -313,11 +349,11 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
             }
           }
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Stack(
-            children: [
-              Form(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+              child: Form(
                 key: _formKey,
                 child: Column(
                   children: [
@@ -435,12 +471,21 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                   ],
                 ),
               ),
-              if (isLoading)
-                const Center(
-                  child: CircularProgressIndicator(),
+            ),
+            // The loading indicator overlay
+            if (isLoading)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.5),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );

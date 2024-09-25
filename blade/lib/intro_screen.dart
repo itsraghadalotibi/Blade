@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'utils/constants/colors.dart';
+
 class IntroScreen extends StatelessWidget {
   const IntroScreen({Key? key}) : super(key: key);
 
@@ -21,25 +22,52 @@ class IntroScreen extends StatelessWidget {
         // Page 1
         PageViewModel(
           title: "Welcome to Blade",
-          body: "Discover a new way to manage your tasks efficiently.",
-          image: const Center(
-            child: Icon(Icons.task, size: 100.0, color: TColors.primary),
+          body:
+              "Join a global community where innovators and supporters come together. Blade is the platform where ideas take flight through collaboration and empowerment.",
+          image: Center(
+            child: Image.asset(
+              'assets/images/on_boarding_images/welcome-sign.png',
+              width: 250,
+            ),
+          ),
+          decoration: const PageDecoration(
+            pageMargin: EdgeInsets.only(
+              top: 50,
+            ),
           ),
         ),
         // Page 2
         PageViewModel(
-          title: "Explore Features",
-          body: "Stay organized with our intuitive design.",
-          image: const Center(
-            child: Icon(Icons.explore, size: 100.0, color: TColors.primary),
+          title: "Collaborate and Empower",
+          body:
+              "Discover exciting projects, connect with talented individuals, and contribute your skills or resources. Together, we turn visionary ideas into reality and make a meaningful impact.",
+          image: Center(
+            child: Image.asset(
+              'assets/images/on_boarding_images/developer-team.png',
+              width: 250,
+            ),
+          ),
+          decoration: const PageDecoration(
+            pageMargin: EdgeInsets.only(
+              top: 50,
+            ),
           ),
         ),
         // Page 3
         PageViewModel(
-          title: "Get Started",
-          body: "Sign up today and boost your productivity!",
-          image: const Center(
-            child: Icon(Icons.get_app, size: 100.0, color: TColors.primary),
+          title: "Get Started Today",
+          body:
+              "Whether you're here to create, collaborate, or support, Blade offers the tools and community you need. Join us now and be part of a movement that shapes the future.",
+          image: Center(
+            child: Image.asset(
+              'assets/images/on_boarding_images/office-workplace.png',
+              width: 250,
+            ),
+          ),
+          decoration: const PageDecoration(
+            pageMargin: EdgeInsets.only(
+              top: 50,
+            ),
           ),
         ),
       ],

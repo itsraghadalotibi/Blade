@@ -192,9 +192,9 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
   }
 
   String? _validateUrl(String? value) {
-    if (value != null && value.isNotEmpty && 
-        !RegExp(
-            r'^(http|https):\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?$')
+    if (value != null &&
+        value.isNotEmpty &&
+        !RegExp(r'^(http|https):\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?$')
             .hasMatch(value)) {
       return 'Please enter a valid URL (e.g., https://example.com)';
     }
@@ -205,13 +205,44 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 80,
+      imageQuality: 80, // Adjust quality to reduce size if needed
     );
 
     if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
+      // Get the file size
+      final file = File(pickedFile.path);
+      final int fileSizeInBytes = await file.length();
+
+      // Define the maximum file size (e.g., 5 MB)
+      const int maxFileSize = 5 * 1024 * 1024; // 5 MB in bytes
+
+      if (fileSizeInBytes > maxFileSize) {
+        // Show an error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              backgroundColor: TColors.error,
+              behavior: SnackBarBehavior.floating,
+              content: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(CupertinoIcons.xmark_circle_fill,
+                      color: Colors.white), // Change icon and color as needed
+                  SizedBox(width: 8), // Space between icon and text
+                  Expanded(
+                    child: Text(
+                      'Image size should not exceed 5MB',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+              showCloseIcon: true),
+        );
+      } else {
+        setState(() {
+          _profileImage = file;
+        });
+      }
     }
   }
 
@@ -282,33 +313,39 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
       appBar: AppBar(title: const Text('Collaborator Sign Up')),
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
-          setState(() {
-            isLoading = state is AuthenticationLoading;
-          });
-
+          if (state is AuthenticationLoading) {
+            setState(() {
+              isLoading = true;
+            });
+          } else {
+            setState(() {
+              isLoading = false;
+            });
+          }
           if (state is AuthenticationUnauthenticated) {
             ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    backgroundColor: TColors.success,
-                    behavior: SnackBarBehavior.floating,
-                    content: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        const Icon(CupertinoIcons.check_mark_circled_solid,
-                            color: Colors
-                                .white), // Change icon and color as needed
-                        const SizedBox(width: 8), // Space between icon and text
-                        const Expanded(
-                          child: Text(
-                            'Sign Up Successful. Please log in.',
-                            style: TextStyle(fontSize: 16),
-                          ),
+              const SnackBar(
+                  backgroundColor: TColors.success,
+                  behavior: SnackBarBehavior.floating,
+                  content: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const Icon(CupertinoIcons.check_mark_circled_solid,
+                          color:
+                              Colors.white), // Change icon and color as needed
+                      const SizedBox(width: 8), // Space between icon and text
+                      const Expanded(
+                        child: Text(
+                          'Sign Up Successful. Please log in.',
+                          style: TextStyle(fontSize: 16),
                         ),
-                      ],
-                    ),
-                    showCloseIcon: true),
-              );
-              Navigator.pushReplacementNamed(context, '/login', arguments: 'collaborator');
+                      ),
+                    ],
+                  ),
+                  showCloseIcon: true),
+            );
+            Navigator.pushReplacementNamed(context, '/login',
+                arguments: 'collaborator');
           } else if (state is AuthenticationFailure) {
             if (state.error.contains("email-already-in-use")) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -357,11 +394,12 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
             }
           }
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Stack(
-            children: [
-              Form(
+         child: Stack(
+          children: [
+            // The scrollable form content
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Form(
                 key: _formKey,
                 child: Column(
                   children: [
@@ -375,7 +413,8 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       focusNode: firstNameFocusNode,
                       errorText: firstNameError,
                       maxLength: 50,
-                      prefixIcon: const Icon(CupertinoIcons.person_fill, color: TColors.grey),
+                      prefixIcon: const Icon(CupertinoIcons.person_fill,
+                          color: TColors.grey),
                     ),
                     const SizedBox(height: 16),
 
@@ -386,7 +425,8 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       focusNode: lastNameFocusNode,
                       errorText: lastNameError,
                       maxLength: 50,
-                      prefixIcon: const Icon(CupertinoIcons.person_fill, color: TColors.grey),
+                      prefixIcon: const Icon(CupertinoIcons.person_fill,
+                          color: TColors.grey),
                     ),
                     const SizedBox(height: 16),
 
@@ -396,8 +436,8 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       controller: emailController,
                       focusNode: emailFocusNode,
                       errorText: emailError,
-                      prefixIcon: Icon(CupertinoIcons.mail_solid, color: TColors.grey),
-
+                      prefixIcon:
+                          Icon(CupertinoIcons.mail_solid, color: TColors.grey),
                     ),
                     const SizedBox(height: 16),
 
@@ -409,7 +449,8 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       focusNode: passwordFocusNode,
                       errorText: passwordError,
                       maxLength: 128,
-                      prefixIcon: Icon(CupertinoIcons.lock_fill, color: TColors.grey),
+                      prefixIcon:
+                          Icon(CupertinoIcons.lock_fill, color: TColors.grey),
                     ),
 
                     // Display password requirements only when typing
@@ -482,7 +523,6 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                                   },
                                   title: 'Skills',
                                   buttonText: '        Select Skills (Optional)',
-                                  
                                 )
                               : TMultiSelectDialogTheme
                                   .lightMultiSelectDialogField(
@@ -508,7 +548,8 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       label: 'GitHub Profile Link (Optional)',
                       controller: githubController,
                       errorText: githubError,
-                      prefixIcon: Icon(CupertinoIcons.link, color: TColors.grey),
+                      prefixIcon:
+                          Icon(CupertinoIcons.link, color: TColors.grey),
                     ),
                     const SizedBox(height: 16),
 
@@ -517,7 +558,8 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       label: 'LinkedIn Profile Link (Optional)',
                       controller: linkedInController,
                       errorText: linkedInError,
-                      prefixIcon: Icon(CupertinoIcons.link, color: TColors.grey),
+                      prefixIcon:
+                          Icon(CupertinoIcons.link, color: TColors.grey),
                     ),
                     const SizedBox(height: 16),
 
@@ -528,7 +570,8 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       maxLines: 3,
                       maxLength: 300,
                       showCounter: true,
-                      prefixIcon: Icon(CupertinoIcons.pencil, color: TColors.grey),
+                      prefixIcon:
+                          Icon(CupertinoIcons.pencil, color: TColors.grey),
                     ),
 
                     const SizedBox(height: 24),
@@ -547,7 +590,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                       style: TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 8),
-                    // Create Account Outlined Button (OutlinedButton)
+                    // Login Outlined Button (OutlinedButton)
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
@@ -562,17 +605,25 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
                   ],
                 ),
               ),
-              if (isLoading)
-                const Center(
-                  child: CircularProgressIndicator(),
+            ),
+            // The loading indicator overlay
+            if (isLoading)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.5),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
   }
-
   /// Build the profile image at the top
   Widget _buildProfileImage() {
     return Center(

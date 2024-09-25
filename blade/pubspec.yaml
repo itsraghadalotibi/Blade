@@ -71,3 +71,6 @@ flutter:
     - assets/images/content/announcement.png
     - assets/lottie/posted.json
     - assets/lottie/posted2.json
+    - assets/images/on_boarding_images/welcome-sign.png
+    - assets/images/on_boarding_images/developer-team.png
+    - assets/images/on_boarding_images/office-workplace.png
