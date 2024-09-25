@@ -66,7 +66,7 @@ class HomeScreen extends StatelessWidget {
     // Navigate to the welcome screen and clear the navigation stack
     Navigator.pushNamedAndRemoveUntil(
       context,
-      '/', // Assuming this is the welcome screen route
+      '/',
       (Route<dynamic> route) => false, // Clear all previous routes
     );
 

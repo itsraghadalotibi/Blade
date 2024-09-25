@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/constants/sizes.dart';
 
-class CustomTextField extends StatelessWidget {
+class CustomTextField extends StatefulWidget {
   final String label;
   final TextEditingController controller;
   final FocusNode? focusNode;
@@ -11,10 +11,12 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final int maxLines;
   final int? maxLength;
-  final Widget? suffixIcon; // Added this
+  final bool showCounter; //control counter visibility
+  final Widget? suffixIcon;
+  final Widget? prefixIcon;
 
   const CustomTextField({
-    super.key,
+    Key? key,
     required this.label,
     required this.controller,
     this.focusNode,
@@ -22,30 +24,65 @@ class CustomTextField extends StatelessWidget {
     this.validator,
     this.errorText,
     this.maxLines = 1,
-    this.maxLength,
+    this.maxLength = 320, // Default maxLength is 320
     this.keyboardType,
-    this.suffixIcon, // Added this
-  });
+    this.showCounter = false, // Counter is hidden by default
+    this.suffixIcon,
+    this.prefixIcon,
+  }) : super(key: key);
+
+  @override
+  _CustomTextFieldState createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  late bool _obscureText; // State variable to toggle password visibility
+
+  @override
+  void initState() {
+    super.initState();
+    _obscureText = widget.obscureText; // Initialize with the passed obscureText value
+  }
+
+  void _toggleObscureText() {
+    setState(() {
+      _obscureText = !_obscureText; // Toggle the obscureText state
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Determine the suffix icon
+    Widget? suffixIcon = widget.suffixIcon;
+    if (widget.obscureText) {
+      suffixIcon = IconButton(
+        icon: Icon(
+          _obscureText ? Icons.visibility_off : Icons.visibility,
+        ),
+        onPressed: _toggleObscureText,
+      );
+    }
+
     return TextFormField(
-      controller: controller,
-      focusNode: focusNode,
-      obscureText: obscureText,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      maxLength: maxLength,
+      controller: widget.controller,
+      focusNode: widget.focusNode,
+      obscureText: _obscureText,
+      maxLines: widget.maxLines,
+      keyboardType: widget.keyboardType,
+      maxLength: widget.maxLength,
       decoration: InputDecoration(
-        labelText: label,
-        errorText: errorText,
+        labelText: widget.label,
+        errorText: widget.errorText,
         contentPadding: const EdgeInsets.symmetric(
           vertical: TSizes.sm,
           horizontal: TSizes.md,
         ),
-        suffixIcon: suffixIcon, // Added the suffixIcon to the input field
+        suffixIcon: suffixIcon,
+        prefixIcon: widget.prefixIcon,
+        // Hide counter when showCounter is false
+        counterText: widget.showCounter ? null : '',
       ),
-      validator: validator,
+      validator: widget.validator,
       onTapOutside: (event) {
         FocusManager.instance.primaryFocus?.unfocus();
       },
