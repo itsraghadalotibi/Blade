@@ -38,10 +38,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   Future<List<Idea>>? _futureIdeas;
   late TabController _tabController;
 
-  // Variables for bio expansion
-  bool isBioExpanded = false;
-  static const int maxBioLines = 3; // Limit bio to 3 lines initially
-
   @override
   void initState() {
     super.initState();
@@ -145,6 +141,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   }
 
   Widget buildCollaboratorProfile(CollaboratorProfileModel profile) {
+    bool isBioExpanded = false; // To toggle bio expansion
+    const int maxBioLines = 3; // Limit the bio to 3 lines initially
+
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [
