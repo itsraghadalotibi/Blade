@@ -4,13 +4,17 @@ import '../src/announcement_repository.dart';
 import 'avatar_stack_widget.dart';
 import 'skill_tag_widget.dart';
 import '../screens/members_screen.dart';
+import '../../../utils/constants/colors.dart';
 
 class AnnouncementCardWidget extends StatefulWidget {
   final Idea idea;
   final AnnouncementRepository repository;
 
-  const AnnouncementCardWidget(
-      {super.key, required this.idea, required this.repository});
+  const AnnouncementCardWidget({
+    super.key,
+    required this.idea,
+    required this.repository,
+  });
 
   @override
   _AnnouncementCardWidgetState createState() => _AnnouncementCardWidgetState();
@@ -18,6 +22,41 @@ class AnnouncementCardWidget extends StatefulWidget {
 
 class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
   bool isExpanded = false;
+  bool exceedsMaxLines = false; // Cache whether the text exceeds max lines
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkTextOverflow();
+    });
+  }
+
+  // Check if the description exceeds the max lines and update the state
+  void _checkTextOverflow() {
+    final textStyle = TextStyle(
+      color: TColors.textPrimary,
+      fontSize: MediaQuery.of(context).size.width * 0.04 * MediaQuery.of(context).textScaleFactor,
+      fontWeight: FontWeight.w400,
+    );
+
+    final span = TextSpan(
+      text: widget.idea.description,
+      style: textStyle,
+    );
+
+    final tp = TextPainter(
+      text: span,
+      maxLines: 4,
+      textAlign: TextAlign.left,
+      textDirection: TextDirection.ltr,
+    );
+
+    tp.layout(maxWidth: MediaQuery.of(context).size.width * 0.9);
+    setState(() {
+      exceedsMaxLines = tp.didExceedMaxLines;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +65,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
     final textStyle = TextStyle(
-      color: Colors.white,
+      color: TColors.textPrimary,
       fontSize: screenWidth * 0.04 * textScaleFactor,
       fontWeight: FontWeight.w400,
     );
@@ -39,8 +78,9 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
       child: Container(
         width: screenWidth * 0.9,
         decoration: BoxDecoration(
-          color: const Color(0xFF333333),
+          color: TColors.lightContainer,
           borderRadius: BorderRadius.circular(23),
+          border: Border.all(color: TColors.borderPrimary),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -53,7 +93,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                     child: Text(
                       widget.idea.title,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: TColors.textPrimary,
                         fontSize: screenWidth * 0.055 * textScaleFactor,
                         fontWeight: FontWeight.bold,
                       ),
@@ -66,11 +106,9 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => MembersScreen(
-                            memberIds: widget.idea.members, // List of user IDs
-                            ideaSkills:
-                                widget.idea.skills, // List of idea skills
-                            repository:
-                                widget.repository, // Repository to fetch data
+                            memberIds: widget.idea.members,
+                            ideaSkills: widget.idea.skills,
+                            repository: widget.repository,
                           ),
                         ),
                       );
@@ -93,54 +131,28 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
               SizedBox(height: screenHeight * 0.01),
 
               // Description and "Show more" logic
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final span = TextSpan(
-                    text: widget.idea.description,
-                    style: textStyle,
-                  );
-
-                  final tp = TextPainter(
-                    text: span,
-                    maxLines: 4,
-                    textAlign: TextAlign.left,
-                    textDirection: TextDirection.ltr,
-                  );
-
-                  tp.layout(maxWidth: constraints.maxWidth);
-
-                  bool exceedsMaxLines = tp.didExceedMaxLines;
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.idea.description,
-                        style: textStyle,
-                        maxLines: isExpanded ? null : 4,
-                        overflow: isExpanded
-                            ? TextOverflow.visible
-                            : TextOverflow.ellipsis,
-                      ),
-                      if (exceedsMaxLines)
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isExpanded = !isExpanded;
-                            });
-                          },
-                          child: Text(
-                            isExpanded ? "Show less" : "Show more",
-                            style: TextStyle(
-                              color: const Color.fromARGB(255, 41, 151, 235),
-                              fontSize: screenWidth * 0.04 * textScaleFactor,
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
+              Text(
+                widget.idea.description,
+                style: textStyle,
+                maxLines: isExpanded ? null : 4,
+                overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
               ),
+
+              if (exceedsMaxLines)
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isExpanded = !isExpanded;
+                    });
+                  },
+                  child: Text(
+                    isExpanded ? "Show less" : "Show more",
+                    style: TextStyle(
+                      color: TColors.accent,
+                      fontSize: screenWidth * 0.04 * textScaleFactor,
+                    ),
+                  ),
+                ),
               SizedBox(height: screenHeight * 0.02),
 
               SizedBox(
@@ -157,19 +169,21 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                 ),
               ),
               SizedBox(height: screenHeight * 0.005),
+
+              // Join button
               Center(
                 child: Container(
                   width: screenWidth * 0.4,
                   height: screenHeight * 0.05,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFD5336),
+                    color: TColors.grey.withOpacity(0.5), // Reduced opacity for disabled look
                     borderRadius: BorderRadius.circular(48),
                   ),
                   child: Center(
                     child: Text(
-                      'Join',
+                      'Join', 
                       style: TextStyle(
-                        color: Colors.white,
+                        color: TColors.textWhite.withOpacity(0.5), // Lightened text color to indicate it's disabled
                         fontSize: screenWidth * 0.04 * textScaleFactor,
                         fontWeight: FontWeight.bold,
                       ),

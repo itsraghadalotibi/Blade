@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../src/announcement_repository.dart';
 import '../widgets/skill_tag_widget.dart';
 import '../src/announcement_model.dart';
+import '../../../utils/constants/colors.dart';
+import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
 
 class MembersScreen extends StatelessWidget {
   final List<String> memberIds;
@@ -18,18 +20,18 @@ class MembersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF161616),
+      backgroundColor: TColors.primaryBackground, // Light mode background color
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(
-          color: Color(0xFF848484),
+          color: TColors.textPrimary, // Light mode icon color
         ),
         title: const Text(
           'Members',
           style: TextStyle(
             fontSize: 20,
-            color: Colors.white,
+            color: TColors.textPrimary, // Light mode text color
           ),
         ),
       ),
@@ -51,45 +53,72 @@ class MembersScreen extends StatelessWidget {
             itemCount: collaborators.length,
             itemBuilder: (context, index) {
               final collaborator = collaborators[index];
-              final matchingSkills = collaborator.skills
-                  .where((skill) => ideaSkills.contains(skill))
-                  .toList();
+              
+              // For the first member, show "Idea owner"
+              final isIdeaOwner = index == 0;
+              final matchingSkills = isIdeaOwner
+                  ? ["Idea owner"] // Only show "Idea owner" for the first member
+                  : collaborator.skills
+                      .where((skill) => ideaSkills.contains(skill))
+                      .toList();
 
-              return Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF333333),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(collaborator.profilePhotoUrl),
-                    radius: 30,
-                  ),
-                  title: Text(
-                    '${collaborator.firstName} ${collaborator.lastName}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontSize: 18,
+              return GestureDetector(
+                onTap: () {
+                  // Navigate to the Collaborator Profile when container is tapped
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CollaboratorProfileScreen(
+                        userId: collaborator.uid,
+                      ),
                     ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: TColors.lightContainer, // Light mode container color
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: TColors.borderPrimary), // Light mode border
                   ),
-                  subtitle: matchingSkills.isNotEmpty
-                      ? SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: matchingSkills.map((skill) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: SkillTagWidget(skills: [skill]),
-                              );
-                            }).toList(),
-                          ),
-                        )
-                      : const Text(
-                          'No matching skills',
-                          style: TextStyle(color: Colors.white70),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: CircleAvatar(
+                          backgroundImage: NetworkImage(collaborator.profilePhotoUrl),
+                          radius: 30,
                         ),
+                        title: Text(
+                          '${collaborator.firstName} ${collaborator.lastName}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: TColors.textPrimary, // Light mode text color
+                            fontSize: 18,
+                          ),
+                        ),
+                        subtitle: matchingSkills.isNotEmpty
+                            ? GestureDetector(
+                                // Prevent the scroll on the skill tags from triggering the profile navigation
+                                onTap: () {},
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: matchingSkills.map((skill) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(right: 8.0),
+                                        child: SkillTagWidget(skills: [skill]),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              )
+                            : const Text(
+                                'No matching skills',
+                                style: TextStyle(color: TColors.textSecondary), // Light mode secondary text color
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
