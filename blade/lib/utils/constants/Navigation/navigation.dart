@@ -1,12 +1,12 @@
 import 'package:blade_app/features/authentication/bloc/authentication_bloc.dart';
 import 'package:blade_app/features/authentication/bloc/authentication_state.dart';
 import 'package:blade_app/features/authentication/src/collaborator_model.dart';
+import 'package:blade_app/features/collaborator/screens/collaborator_home_screen.dart';
 import 'package:blade_app/features/profile/bloc/bloc/profile_view_bloc.dart';
 import 'package:blade_app/features/profile/bloc/bloc/profile_view_event.dart';
 import 'package:blade_app/features/profile/bloc/repository/profile_repository.dart';
 import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
 import 'package:blade_app/features/profile/bloc/screens/supporter_profile_screen.dart';
-import 'package:blade_app/home_screen.dart';
 import 'package:blade_app/utils/constants/Navigation/dashboard.dart';
 import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 import 'package:flutter/material.dart';
@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import '../../../features/announcement/screens/announcement_screen.dart';
 
 import '../../../features/newPost/screens/backgroundPost.dart';
+import '../colors.dart';
 import 'profile.dart';
 
 class Navigation extends StatefulWidget {
@@ -33,15 +34,16 @@ class _NavigationState extends State<Navigation> {
 
   int currentTap = 0;
   final List<Widget> screen = [
-    const HomeScreen(),
+    const CollaboratorHomeScreen(),
     const Profile(),
     const settings.Settings()
   ];
 
   final PageStorageBucket bucket = PageStorageBucket();
-  Widget currentScreen = const HomeScreen();
+  Widget currentScreen = const CollaboratorHomeScreen();
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
         body: PageStorage(bucket: bucket, child: currentScreen),
         floatingActionButton: FloatingActionButton(
@@ -111,7 +113,7 @@ class _NavigationState extends State<Navigation> {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         bottomNavigationBar: BottomAppBar(
-          color: Colors.black,
+          color: isDarkMode? TColors.light: TColors.dark,
           shape: const CircularNotchedRectangle(),
           notchMargin: 6,
           height: 50,
@@ -128,7 +130,7 @@ class _NavigationState extends State<Navigation> {
                         minWidth: 30,
                         onPressed: () {
                           setState(() {
-                            currentScreen = const HomeScreen();
+                            currentScreen = const CollaboratorHomeScreen();
                             currentTap = 0;
                           });
                         },
