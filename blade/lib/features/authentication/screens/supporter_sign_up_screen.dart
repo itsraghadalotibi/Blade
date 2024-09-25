@@ -266,6 +266,7 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Supporter Sign Up'),
+        centerTitle: true,
       ),
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {

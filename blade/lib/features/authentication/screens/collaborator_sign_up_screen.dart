@@ -310,7 +310,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(title: const Text('Collaborator Sign Up')),
+      appBar: AppBar(title: const Text('Collaborator Sign Up'), centerTitle: true),
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
           if (state is AuthenticationLoading) {
