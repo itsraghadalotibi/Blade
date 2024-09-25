@@ -65,7 +65,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
               .backgroundColor, // Dynamic app bar color
           title: Text(
             'Profile',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            style: Theme.of(context).textTheme.headline6?.copyWith(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -129,8 +129,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                   child: Text('Error: ${state.message}',
                       style: TextStyle(
                           color: Theme.of(context)
-                              .colorScheme
-                              .error))); // Use themed error color
+                              .errorColor))); // Use themed error color
             }
             return const Center(child: Text('Unable to load profile.'));
           },
@@ -165,7 +164,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                       // First Name
                       Text(
                         profile.firstName,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        style: Theme.of(context).textTheme.bodyText1?.copyWith(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 8),
@@ -173,7 +172,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                       // Last Name
                       Text(
                         profile.lastName,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        style: Theme.of(context).textTheme.bodyText1?.copyWith(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 16),
@@ -184,30 +183,17 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                 profile.socialMediaLinks!['GitHub']!.isNotEmpty)
                             ? 'Go to GitHub'
                             : 'No GitHub URL available',
-                        textStyle: const TextStyle(
-                            color: Colors.white), // Tooltip text color
-                        decoration: BoxDecoration(
-                          color: Colors.black87, // Tooltip background color
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        preferBelow:
-                            false, // Ensures tooltip appears above the icon
                         child: IconButton(
                           icon: FaIcon(
                             FontAwesomeIcons.github,
-                            color: (profile.socialMediaLinks?['GitHub'] !=
-                                        null &&
-                                    profile.socialMediaLinks!['GitHub']!
-                                        .isNotEmpty)
-                                ? TColors
-                                    .primary // Always orange for active GitHub URL
-                                : Colors.grey, // Gray when no URL is available
+                            color:
+                                (profile.socialMediaLinks?['GitHub'] != null &&
+                                        profile.socialMediaLinks!['GitHub']!
+                                            .isNotEmpty)
+                                    ? Theme.of(context).iconTheme.color
+                                    : Colors.grey,
                             size: 24,
                           ),
-                          padding: const EdgeInsets.all(
-                              0), // Remove padding around icon
-                          constraints:
-                              const BoxConstraints(), // Keep the icon small
                           onPressed: (profile.socialMediaLinks?['GitHub'] !=
                                       null &&
                                   profile
@@ -215,13 +201,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                               ? () {
                                   launch(profile.socialMediaLinks!['GitHub']!);
                                 }
-                              : null, // Disable button if no link
+                              : null,
                         ),
                       ),
-
                       const SizedBox(width: 4),
 
-// LinkedIn Icon with customized Tooltip
+                      // LinkedIn Icon with customized Tooltip
                       Tooltip(
                         message:
                             (profile.socialMediaLinks?['LinkedIn'] != null &&
@@ -229,14 +214,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                         .isNotEmpty)
                                 ? 'Go to LinkedIn'
                                 : 'No LinkedIn URL available',
-                        textStyle: const TextStyle(
-                            color: Colors.white), // Tooltip text color
-                        decoration: BoxDecoration(
-                          color: Colors.black87, // Tooltip background color
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        preferBelow:
-                            false, // Ensures tooltip appears above the icon
                         child: IconButton(
                           icon: FaIcon(
                             FontAwesomeIcons.linkedin,
@@ -244,15 +221,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                         null &&
                                     profile.socialMediaLinks!['LinkedIn']!
                                         .isNotEmpty)
-                                ? TColors
-                                    .primary // Always orange for active LinkedIn URL
-                                : Colors.grey, // Gray when no URL is available
+                                ? Theme.of(context).iconTheme.color
+                                : Colors.grey,
                             size: 24,
                           ),
-                          padding: const EdgeInsets.all(
-                              0), // Remove padding around icon
-                          constraints:
-                              const BoxConstraints(), // Keep the icon small
                           onPressed: (profile.socialMediaLinks?['LinkedIn'] !=
                                       null &&
                                   profile.socialMediaLinks!['LinkedIn']!
@@ -261,7 +233,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                   launch(
                                       profile.socialMediaLinks!['LinkedIn']!);
                                 }
-                              : null, // Disable button if no link
+                              : null,
                         ),
                       ),
                     ],
@@ -292,7 +264,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                       const SizedBox(height: 8),
                       Text(
                         profile.bio ?? 'No bio available',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style: Theme.of(context).textTheme.bodyText2,
                       ),
                     ],
                   ),
@@ -314,7 +286,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           controller: _tabController,
           indicatorColor: Theme.of(context).primaryColor,
           labelColor: Theme.of(context).primaryColor,
-          unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
+          unselectedLabelColor: Theme.of(context).textTheme.bodyText2?.color,
           tabs: const [
             Tab(text: 'Ideas'),
             Tab(text: 'Ongoing'),
@@ -345,7 +317,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           return Center(
             child: Text(
               'Error loading ideas: ${snapshot.error}',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+              style: TextStyle(color: Theme.of(context).errorColor),
             ),
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {

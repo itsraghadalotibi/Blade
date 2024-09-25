@@ -177,21 +177,21 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(width: 16),
-
-                      // GitHub Icon with customized Tooltip
+// GitHub Icon with Tooltip
                       Tooltip(
                         message: (profile.socialMediaLinks?['GitHub'] != null &&
                                 profile.socialMediaLinks!['GitHub']!.isNotEmpty)
                             ? 'Go to GitHub'
                             : 'No GitHub URL available',
-                        textStyle: const TextStyle(
-                            color: Colors.white), // Tooltip text color
+                        preferBelow: false, // Tooltip shows above the icon
+                        waitDuration: const Duration(
+                            milliseconds: 500), // Wait time before showing
+                        showDuration: const Duration(
+                            seconds: 3), // Tooltip stays for 3 seconds
                         decoration: BoxDecoration(
-                          color: Colors.black87, // Tooltip background color
+                          color: Colors.black87, // Adjust tooltip background
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        preferBelow:
-                            false, // Ensures tooltip appears above the icon
                         child: IconButton(
                           icon: FaIcon(
                             FontAwesomeIcons.github,
@@ -199,15 +199,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                         null &&
                                     profile.socialMediaLinks!['GitHub']!
                                         .isNotEmpty)
-                                ? TColors
-                                    .primary // Always orange for active GitHub URL
-                                : Colors.grey, // Gray when no URL is available
+                                ? TColors.primary // Always orange for valid URL
+                                : Colors.grey, // Grey if no URL
                             size: 24,
                           ),
-                          padding: const EdgeInsets.all(
-                              0), // Remove padding around icon
-                          constraints:
-                              const BoxConstraints(), // Keep the icon small
                           onPressed: (profile.socialMediaLinks?['GitHub'] !=
                                       null &&
                                   profile
@@ -215,13 +210,13 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                               ? () {
                                   launch(profile.socialMediaLinks!['GitHub']!);
                                 }
-                              : null, // Disable button if no link
+                              : null,
                         ),
                       ),
 
                       const SizedBox(width: 4),
 
-// LinkedIn Icon with customized Tooltip
+// LinkedIn Icon with Tooltip
                       Tooltip(
                         message:
                             (profile.socialMediaLinks?['LinkedIn'] != null &&
@@ -229,14 +224,13 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                         .isNotEmpty)
                                 ? 'Go to LinkedIn'
                                 : 'No LinkedIn URL available',
-                        textStyle: const TextStyle(
-                            color: Colors.white), // Tooltip text color
+                        preferBelow: false, // Tooltip shows above the icon
+                        waitDuration: const Duration(milliseconds: 500),
+                        showDuration: const Duration(seconds: 3),
                         decoration: BoxDecoration(
-                          color: Colors.black87, // Tooltip background color
+                          color: Colors.black87, // Adjust tooltip background
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        preferBelow:
-                            false, // Ensures tooltip appears above the icon
                         child: IconButton(
                           icon: FaIcon(
                             FontAwesomeIcons.linkedin,
@@ -244,15 +238,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                         null &&
                                     profile.socialMediaLinks!['LinkedIn']!
                                         .isNotEmpty)
-                                ? TColors
-                                    .primary // Always orange for active LinkedIn URL
-                                : Colors.grey, // Gray when no URL is available
+                                ? TColors.primary // Always orange for valid URL
+                                : Colors.grey, // Grey if no URL
                             size: 24,
                           ),
-                          padding: const EdgeInsets.all(
-                              0), // Remove padding around icon
-                          constraints:
-                              const BoxConstraints(), // Keep the icon small
                           onPressed: (profile.socialMediaLinks?['LinkedIn'] !=
                                       null &&
                                   profile.socialMediaLinks!['LinkedIn']!
@@ -261,7 +250,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                   launch(
                                       profile.socialMediaLinks!['LinkedIn']!);
                                 }
-                              : null, // Disable button if no link
+                              : null,
                         ),
                       ),
                     ],

@@ -179,19 +179,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                       const SizedBox(width: 16),
 
                       // GitHub Icon with customized Tooltip
+                      // GitHub Icon with Tooltip
                       Tooltip(
                         message: (profile.socialMediaLinks?['GitHub'] != null &&
                                 profile.socialMediaLinks!['GitHub']!.isNotEmpty)
                             ? 'Go to GitHub'
                             : 'No GitHub URL available',
-                        textStyle: const TextStyle(
-                            color: Colors.white), // Tooltip text color
-                        decoration: BoxDecoration(
-                          color: Colors.black87, // Tooltip background color
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        preferBelow:
-                            false, // Ensures tooltip appears above the icon
                         child: IconButton(
                           icon: FaIcon(
                             FontAwesomeIcons.github,
@@ -200,14 +193,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                     profile.socialMediaLinks!['GitHub']!
                                         .isNotEmpty)
                                 ? TColors
-                                    .primary // Always orange for active GitHub URL
-                                : Colors.grey, // Gray when no URL is available
+                                    .primary // Orange for active GitHub link
+                                : Colors.grey, // Gray for inactive
                             size: 24,
                           ),
-                          padding: const EdgeInsets.all(
-                              0), // Remove padding around icon
-                          constraints:
-                              const BoxConstraints(), // Keep the icon small
                           onPressed: (profile.socialMediaLinks?['GitHub'] !=
                                       null &&
                                   profile
@@ -215,13 +204,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                               ? () {
                                   launch(profile.socialMediaLinks!['GitHub']!);
                                 }
-                              : null, // Disable button if no link
+                              : null,
                         ),
                       ),
+                      const SizedBox(width: 4), // Space between the icons
 
-                      const SizedBox(width: 4),
-
-// LinkedIn Icon with customized Tooltip
+// LinkedIn Icon with Tooltip
                       Tooltip(
                         message:
                             (profile.socialMediaLinks?['LinkedIn'] != null &&
@@ -229,14 +217,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                         .isNotEmpty)
                                 ? 'Go to LinkedIn'
                                 : 'No LinkedIn URL available',
-                        textStyle: const TextStyle(
-                            color: Colors.white), // Tooltip text color
-                        decoration: BoxDecoration(
-                          color: Colors.black87, // Tooltip background color
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        preferBelow:
-                            false, // Ensures tooltip appears above the icon
                         child: IconButton(
                           icon: FaIcon(
                             FontAwesomeIcons.linkedin,
@@ -245,14 +225,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                     profile.socialMediaLinks!['LinkedIn']!
                                         .isNotEmpty)
                                 ? TColors
-                                    .primary // Always orange for active LinkedIn URL
-                                : Colors.grey, // Gray when no URL is available
+                                    .primary // Orange for active LinkedIn link
+                                : Colors.grey, // Gray for inactive
                             size: 24,
                           ),
-                          padding: const EdgeInsets.all(
-                              0), // Remove padding around icon
-                          constraints:
-                              const BoxConstraints(), // Keep the icon small
                           onPressed: (profile.socialMediaLinks?['LinkedIn'] !=
                                       null &&
                                   profile.socialMediaLinks!['LinkedIn']!
@@ -261,7 +237,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                   launch(
                                       profile.socialMediaLinks!['LinkedIn']!);
                                 }
-                              : null, // Disable button if no link
+                              : null,
                         ),
                       ),
                     ],

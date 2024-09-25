@@ -35,19 +35,20 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   CollaboratorProfileModel? _updatedProfile;
   late ProjectIdeaRepository _projectIdeaRepository;
   Future<List<Idea>>? _futureIdeas;
-  late TabController _tabController;
+  late TabController _tabController; // TabController for managing tab view
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _projectIdeaRepository = ProjectIdeaRepository();
+    _tabController =
+        TabController(length: 3, vsync: this); // Initialize TabController
+    _projectIdeaRepository = ProjectIdeaRepository(); // Fetch project ideas
     _futureIdeas = _projectIdeaRepository.fetchIdeasByOwner(widget.userId);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController.dispose(); // Dispose the TabController when no longer in use
     super.dispose();
   }
 
@@ -57,27 +58,23 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
       create: (context) => ProfileViewBloc(profileRepository: context.read())
         ..add(LoadProfile(widget.userId)),
       child: Scaffold(
-        backgroundColor: Theme.of(context)
-            .scaffoldBackgroundColor, // Dynamic background color
+        backgroundColor: Colors.black,
         appBar: AppBar(
-          backgroundColor: Theme.of(context)
-              .appBarTheme
-              .backgroundColor, // Dynamic app bar color
-          title: Text(
+          backgroundColor: Colors.black,
+          title: const Text(
             'Profile',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.orange,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           centerTitle: true,
-          automaticallyImplyLeading: false,
+          automaticallyImplyLeading: false, // Removes the back button
           actions: [
             IconButton(
-              icon: Icon(
-                Icons.edit,
-                color: Theme.of(context).iconTheme.color, // Themed icon color
-              ),
+              icon: const Icon(Icons.edit,
+                  color: Colors.orange), // Edit icon in orange
               onPressed: () async {
                 final state = BlocProvider.of<ProfileViewBloc>(context).state;
                 if (state is ProfileLoaded &&
@@ -85,6 +82,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                   final profile = _updatedProfile ??
                       state.profile as CollaboratorProfileModel;
 
+                  // Navigate to EditCollaboratorProfileScreen with BlocProvider
                   final updatedProfile = await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -103,6 +101,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                       _updatedProfile = updatedProfile;
                     });
 
+                    // Reload the profile data immediately after editing
                     context
                         .read<ProfileViewBloc>()
                         .add(LoadProfile(widget.userId));
@@ -127,10 +126,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
             } else if (state is ProfileError) {
               return Center(
                   child: Text('Error: ${state.message}',
-                      style: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .error))); // Use themed error color
+                      style: const TextStyle(color: Colors.red)));
             }
             return const Center(child: Text('Unable to load profile.'));
           },
@@ -159,39 +155,44 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                   const SizedBox(height: 16),
                   // Row for first and last name with social media icons
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Center the entire row
+                    crossAxisAlignment: CrossAxisAlignment
+                        .center, // Align items vertically centered
                     children: [
                       // First Name
                       Text(
                         profile.firstName,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(
+                          width:
+                              8), // Add more space between the first and last name
 
                       // Last Name
                       Text(
                         profile.lastName,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(
+                          width:
+                              16), // Add space between the last name and icons
 
-                      // GitHub Icon with customized Tooltip
+// GitHub Icon
+// GitHub Icon
                       Tooltip(
                         message: (profile.socialMediaLinks?['GitHub'] != null &&
                                 profile.socialMediaLinks!['GitHub']!.isNotEmpty)
-                            ? 'Go to GitHub'
+                            ? 'Visit GitHub Profile'
                             : 'No GitHub URL available',
-                        textStyle: const TextStyle(
-                            color: Colors.white), // Tooltip text color
-                        decoration: BoxDecoration(
-                          color: Colors.black87, // Tooltip background color
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        preferBelow:
-                            false, // Ensures tooltip appears above the icon
                         child: IconButton(
                           icon: FaIcon(
                             FontAwesomeIcons.github,
@@ -200,14 +201,15 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                     profile.socialMediaLinks!['GitHub']!
                                         .isNotEmpty)
                                 ? TColors
-                                    .primary // Always orange for active GitHub URL
-                                : Colors.grey, // Gray when no URL is available
+                                    .primary // Orange color for active GitHub URL
+                                : Colors
+                                    .grey, // Gray color when no URL is available
                             size: 24,
                           ),
                           padding: const EdgeInsets.all(
-                              0), // Remove padding around icon
+                              0), // Remove default padding around the icon
                           constraints:
-                              const BoxConstraints(), // Keep the icon small
+                              const BoxConstraints(), // Keep the icon button small
                           onPressed: (profile.socialMediaLinks?['GitHub'] !=
                                       null &&
                                   profile
@@ -219,24 +221,17 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                         ),
                       ),
 
-                      const SizedBox(width: 4),
+                      const SizedBox(
+                          width: 4), // Adjust this as needed for spacing
 
-// LinkedIn Icon with customized Tooltip
+// LinkedIn Icon
                       Tooltip(
                         message:
                             (profile.socialMediaLinks?['LinkedIn'] != null &&
                                     profile.socialMediaLinks!['LinkedIn']!
                                         .isNotEmpty)
-                                ? 'Go to LinkedIn'
+                                ? 'Visit LinkedIn Profile'
                                 : 'No LinkedIn URL available',
-                        textStyle: const TextStyle(
-                            color: Colors.white), // Tooltip text color
-                        decoration: BoxDecoration(
-                          color: Colors.black87, // Tooltip background color
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        preferBelow:
-                            false, // Ensures tooltip appears above the icon
                         child: IconButton(
                           icon: FaIcon(
                             FontAwesomeIcons.linkedin,
@@ -245,14 +240,15 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                     profile.socialMediaLinks!['LinkedIn']!
                                         .isNotEmpty)
                                 ? TColors
-                                    .primary // Always orange for active LinkedIn URL
-                                : Colors.grey, // Gray when no URL is available
+                                    .primary // Orange color for active LinkedIn URL
+                                : Colors
+                                    .grey, // Gray color when no URL is available
                             size: 24,
                           ),
                           padding: const EdgeInsets.all(
-                              0), // Remove padding around icon
+                              0), // Remove default padding around the icon
                           constraints:
-                              const BoxConstraints(), // Keep the icon small
+                              const BoxConstraints(), // Keep the icon button small
                           onPressed: (profile.socialMediaLinks?['LinkedIn'] !=
                                       null &&
                                   profile.socialMediaLinks!['LinkedIn']!
@@ -272,15 +268,19 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                     children: profile.skills?.map((skill) {
                           return Chip(
                             label: Text(skill),
-                            backgroundColor: Theme.of(context).primaryColor,
+                            backgroundColor: TColors.primary,
                             labelStyle: const TextStyle(color: Colors.white),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                           );
                         }).toList() ??
                         [],
                   ),
                   const SizedBox(height: 16),
+                  // About Section (Now centered properly)
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.center, // Center aligned
                     children: [
                       const Text(
                         'About',
@@ -292,7 +292,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                       const SizedBox(height: 8),
                       Text(
                         profile.bio ?? 'No bio available',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        style:
+                            const TextStyle(fontSize: 14, color: Colors.white),
                       ),
                     ],
                   ),
@@ -303,7 +304,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           ),
         ];
       },
-      body: buildTabBarSection(),
+      body:
+          buildTabBarSection(), // The tab bar and its content scrolls together
     );
   }
 
@@ -312,9 +314,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
       children: [
         TabBar(
           controller: _tabController,
-          indicatorColor: Theme.of(context).primaryColor,
-          labelColor: Theme.of(context).primaryColor,
-          unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
+          indicatorColor: TColors.primary,
+          labelColor: TColors.primary,
+          unselectedLabelColor: Colors.white,
           tabs: const [
             Tab(text: 'Ideas'),
             Tab(text: 'Ongoing'),
@@ -345,7 +347,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           return Center(
             child: Text(
               'Error loading ideas: ${snapshot.error}',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+              style: const TextStyle(color: Colors.red),
             ),
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
