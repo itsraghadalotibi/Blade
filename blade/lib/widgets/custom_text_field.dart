@@ -11,6 +11,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final int maxLines;
   final int? maxLength;
+  final Widget? suffixIcon; // Added this
 
   const CustomTextField({
     super.key,
@@ -23,6 +24,7 @@ class CustomTextField extends StatelessWidget {
     this.maxLines = 1,
     this.maxLength,
     this.keyboardType,
+    this.suffixIcon, // Added this
   });
 
   @override
@@ -41,11 +43,12 @@ class CustomTextField extends StatelessWidget {
           vertical: TSizes.sm,
           horizontal: TSizes.md,
         ),
+        suffixIcon: suffixIcon, // Added the suffixIcon to the input field
       ),
       validator: validator,
       onTapOutside: (event) {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                },
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
     );
   }
 }

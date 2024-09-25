@@ -26,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? passwordError;
 
   bool isLoading = false;
+  bool isPasswordVisible = false; // Added for password visibility toggle
 
   static const String emailPattern =
       r"^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z]+";
@@ -33,7 +34,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Set up listeners for real-time validation
     emailController.addListener(_validateEmailField);
     passwordController.addListener(_validatePasswordField);
   }
@@ -88,7 +88,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Email input field with real-time validation
                     CustomTextField(
                       label: 'Email',
                       controller: emailController,
@@ -97,16 +96,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
-                    // Password input field with real-time validation
                     CustomTextField(
                       label: 'Password',
                       controller: passwordController,
-                      obscureText: true,
+                      obscureText: !isPasswordVisible, // Toggle password visibility
                       focusNode: passwordFocusNode,
                       errorText: passwordError,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            isPasswordVisible = !isPasswordVisible;
+                          });
+                        },
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    // Login button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -199,7 +208,6 @@ class _LoginScreenState extends State<LoginScreen> {
   // Function triggered when login button is pressed
   void _onLoginButtonPressed() async {
     setState(() {
-      // Validate all fields after the button is pressed
       _validateEmailField();
       _validatePasswordField();
     });
@@ -240,6 +248,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 }
+
 
 
 
