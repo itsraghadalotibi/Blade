@@ -120,28 +120,23 @@ class _EditCollaboratorProfileScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Profile Image with green shadow
+                // Profile Image section
                 Center(
-                  child: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      CircleAvatar(
-                        radius: 75,
-                        backgroundColor: Colors.greenAccent, // Green shadow
-                        child: CircleAvatar(
-                          radius: 70,
-                          backgroundImage: _newProfileImage != null
-                              ? FileImage(_newProfileImage!)
-                              : NetworkImage(widget.profile.profilePhotoUrl ??
-                                      defaultProfileImageUrl)
-                                  as ImageProvider<Object>?,
-                        ),
+                  child: GestureDetector(
+                    onTap: _pickImage, // Trigger image picker on tap
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundImage: _newProfileImage != null
+                          ? FileImage(_newProfileImage!) as ImageProvider
+                          : (widget.profile.profilePhotoUrl != null
+                              ? NetworkImage(widget.profile.profilePhotoUrl!)
+                              : const AssetImage(
+                                  'assets/images/user.png')) as ImageProvider,
+                      child: const Align(
+                        alignment: Alignment.bottomRight,
+                        child: Icon(Icons.camera_alt, color: Colors.white),
                       ),
-                      IconButton(
-                        icon: const Icon(CupertinoIcons.camera,
-                            color: TColors.primary),
-                        onPressed: _pickImage,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
