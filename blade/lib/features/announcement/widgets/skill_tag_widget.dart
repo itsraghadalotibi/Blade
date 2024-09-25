@@ -25,7 +25,7 @@ class SkillTagWidget extends StatelessWidget {
         vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: TColors.secondary, // Light mode accent color for the tag
+        color: TColors.grey, // Light mode accent color for the tag
         borderRadius: BorderRadius.circular(100),
       ),
       child: Text(

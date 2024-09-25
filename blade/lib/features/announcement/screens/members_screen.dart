@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../src/announcement_repository.dart';
 import '../widgets/skill_tag_widget.dart';
 import '../src/announcement_model.dart';
-import 'announcement_screen.dart';
 import '../../../utils/constants/colors.dart';
 import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
 
@@ -25,6 +24,7 @@ class MembersScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         iconTheme: const IconThemeData(
           color: TColors.textPrimary, // Light mode icon color
         ),
@@ -32,6 +32,7 @@ class MembersScreen extends StatelessWidget {
           'Members',
           style: TextStyle(
             fontSize: 20,
+            fontWeight: FontWeight.bold,
             color: TColors.textPrimary, // Light mode text color
           ),
         ),
