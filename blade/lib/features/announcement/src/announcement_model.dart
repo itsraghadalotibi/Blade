@@ -1,10 +1,8 @@
-// src/models/announcement_model.dart
-
 class Idea {
   final String title;
   final String description;
   final int maxMembers;
-  final List<String> members;
+  final List<String> members;  // Will store user IDs
   final List<String> skills;
 
   Idea({
@@ -26,6 +24,17 @@ class Idea {
           ? List<String>.from(data['skills'])
           : [],
     );
+  }
+
+  // Convert Idea to map
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'description': description,
+      'maxMembers': maxMembers,
+      'members': members,
+      'skills': skills,
+    };
   }
 }
 

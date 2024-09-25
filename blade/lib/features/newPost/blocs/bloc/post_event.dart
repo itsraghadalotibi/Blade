@@ -14,15 +14,13 @@ class PreviousStep extends PostEvent {}
 
 // Add necessary fields to SubmitStep event to pass data to the BLoC
 class SubmitStep extends PostEvent {
-  final String id;
   final String ideaName;
   final String ideaDescription;
   final String number;
   final List<String> tags;
-  final String userId;  // Link the post to the user who submitted it
+  final String userId;  // Link the idea to the user who submitted it
 
   const SubmitStep({
-    required this.id,
     required this.ideaName,
     required this.ideaDescription,
     required this.number,
@@ -31,5 +29,5 @@ class SubmitStep extends PostEvent {
   });
 
   @override
-  List<Object> get props => [id, ideaName, ideaDescription, number, tags, userId];
+  List<Object> get props => [ideaName, ideaDescription, number, tags, userId];
 }

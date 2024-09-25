@@ -1,13 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../src/models/post_model.dart';
-import '../../src/repositories/post_repo.dart';
+import '../../../announcement/src/announcement_model.dart';
+import '../../../announcement/src/announcement_repository.dart';
 import 'post_event.dart';
 import 'post_state.dart';
 
 class PostBloc extends Bloc<PostEvent, PostState> {
-  final PostRepository postRepository;  // Add PostRepository
+  final AnnouncementRepository announcementRepository;
 
-  PostBloc({required this.postRepository}) : super(const PostStepState(0)) {
+  PostBloc({required this.announcementRepository}) : super(const PostStepState(0)) {
     on<NextStep>(_onNextStep);
     on<PreviousStep>(_onPreviousStep);
     on<SubmitStep>(_onSubmitStep);
@@ -34,18 +34,17 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     emit(const SubmissionState()); // Emit loading state when submission starts
 
     try {
-      // Create a PostModel using the data from SubmitStep event
-      final post = PostModel(
-        id: event.id,  // You can generate the ID or pass it from the event
-        ideaName: event.ideaName,
-        ideaDescription: event.ideaDescription,
-        number: event.number,
-        tags: event.tags,
-        userId: event.userId, // The user ID of the person creating the post
+      // Create an Idea using the data from SubmitStep event
+      final idea = Idea(
+        title: event.ideaName,
+        description: event.ideaDescription,
+        maxMembers: int.parse(event.number),
+        members: [event.userId],  // Add the creator's user ID as the first member
+        skills: event.tags,  // Pass the selected skills
       );
 
-      // Call repository to submit the post
-      await postRepository.createPost(post);
+      // Call repository to submit the idea
+      await announcementRepository.createIdea(idea, event.userId);
 
       // Emit success state after successful submission
       emit(const PostSuccessState());

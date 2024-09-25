@@ -3,16 +3,16 @@ import 'package:blade_app/intro_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:blade_app/features/authentication/screens/forgetPassword_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'features/authentication/screens/collaborator_sign_up_screen.dart';
 import 'features/authentication/screens/login_screen.dart';
 import 'features/authentication/screens/supporter_sign_up_screen.dart';
 import 'features/authentication/screens/welcome_screen.dart';
 import 'features/authentication/src/authentication_repository.dart';
 import 'utils/constants/Navigation/navigation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
 import 'utils/theme/theme.dart';
-
 class AppView extends StatelessWidget {
   const AppView({Key? key}) : super(key: key);
 
@@ -36,7 +36,7 @@ class AppView extends StatelessWidget {
        debugShowCheckedModeBanner: false,
       title: 'Blade App',
       themeMode: ThemeMode.system,
-      theme: TAppTheme.lightTheme,
+      theme: TAppTheme.darkTheme,
       darkTheme: TAppTheme.darkTheme,
       home: FutureBuilder<Widget>(
         future: _checkInitialScreen(context),
@@ -72,6 +72,7 @@ class AppView extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => const Navigation());
           default:
             return MaterialPageRoute(builder: (_) => const WelcomeScreen());
+            
         }
       },
     );

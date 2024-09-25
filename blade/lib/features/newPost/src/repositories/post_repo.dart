@@ -1,8 +1,8 @@
-import '../models/post_model.dart';
+// import '../models/post_model.dart';
 
-abstract class PostRepository {
-  Future<void> createPost(PostModel post);
-  Future<PostModel?> getPostById(String postId);
-  Future<List<PostModel>> getPostsByUserId(String userId);
-  Future<void> deletePost(String postId);
-}
+// abstract class IdeaRepository {
+//   Future<void> createIdea(PostModel post);  // Rename createPost to createIdea
+//   Future<PostModel?> getIdeaById(String postId);  // Adjust as needed
+//   Future<List<PostModel>> getIdeasByUserId(String userId);  // Adjust as needed
+//   Future<void> deleteIdea(String postId);  // Adjust as needed
+// }

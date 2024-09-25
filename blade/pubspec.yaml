@@ -22,12 +22,13 @@ dependencies:
   chips_choice_null_safety: ^2.0.6
   easy_stepper: ^0.8.5+1 # Use the suggested version
 
+
   url_launcher: ^6.3.0
   get: ^4.6.6
   flutter_native_splash: ^2.4.1
   intl: ^0.19.0
   connectivity_plus: ^6.0.5
-  lottie: ^3.1.2
+  lottie: ^3.1.0
   firebase_auth: ^5.3.0
   cloud_firestore: ^5.4.2
   firebase_storage: ^12.3.1
@@ -68,6 +69,8 @@ flutter:
     - assets/logos/blade-splash-logo-white.png
     - assets/images/content/user.png
     - assets/images/content/announcement.png
+    - assets/lottie/posted.json
+    - assets/lottie/posted2.json
     - assets/images/on_boarding_images/welcome-sign.png
     - assets/images/on_boarding_images/developer-team.png
     - assets/images/on_boarding_images/office-workplace.png
