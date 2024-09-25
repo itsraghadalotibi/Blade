@@ -1,4 +1,5 @@
 import 'package:blade_app/utils/constants/colors.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/authentication_bloc.dart';
@@ -63,8 +64,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (state is AuthenticationAuthenticated) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text(
+              const SnackBar(
+                content: Text(
                   'Login Successful!',
                   style: TextStyle(color: Colors.white),
                 ),
@@ -92,6 +93,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: emailController,
                       focusNode: emailFocusNode,
                       errorText: emailError,
+                      prefixIcon: const Icon(CupertinoIcons.mail_solid, color: TColors.grey),
+                      maxLength: 320,
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
@@ -102,6 +105,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           !isPasswordVisible, // Toggle password visibility
                       focusNode: passwordFocusNode,
                       errorText: passwordError,
+                      maxLength: 128,
+                      prefixIcon: const Icon(CupertinoIcons.lock_fill, color: TColors.grey),
                       suffixIcon: IconButton(
                         icon: Icon(
                           isPasswordVisible

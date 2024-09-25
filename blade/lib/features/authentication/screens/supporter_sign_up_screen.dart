@@ -327,6 +327,8 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       controller: firstNameController,
                       focusNode: firstNameFocusNode,
                       errorText: firstNameError,
+                      maxLength: 50,
+                      prefixIcon: const Icon(CupertinoIcons.person_fill, color: TColors.grey),
                     ),
                     const SizedBox(height: 16),
 
@@ -336,6 +338,8 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       controller: lastNameController,
                       focusNode: lastNameFocusNode,
                       errorText: lastNameError,
+                      maxLength: 50,
+                      prefixIcon: const Icon(CupertinoIcons.person_fill, color: TColors.grey),
                     ),
                     const SizedBox(height: 16),
 
@@ -345,7 +349,8 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       controller: emailController,
                       focusNode: emailFocusNode,
                       errorText: emailError,
-                      keyboardType: TextInputType.emailAddress,
+                      prefixIcon: const Icon(CupertinoIcons.mail_solid, color: TColors.grey),
+
                     ),
                     const SizedBox(height: 16),
 
@@ -356,7 +361,9 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       obscureText: true,
                       focusNode: passwordFocusNode,
                       errorText: passwordError,
-                    ), 
+                      maxLength: 128,
+                      prefixIcon: const Icon(CupertinoIcons.lock_fill, color: TColors.grey),
+                    ),
 
                     // Display password requirements only when user starts typing
                     if (showPasswordRequirements) ...[
@@ -391,6 +398,8 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       controller: bioController,
                       maxLines: 3,
                       maxLength: 300,
+                      showCounter: true,
+                      prefixIcon: const Icon(CupertinoIcons.pencil, color: TColors.grey),
                     ),
                     const SizedBox(height: 24),
 
