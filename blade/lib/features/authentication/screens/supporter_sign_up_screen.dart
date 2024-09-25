@@ -246,6 +246,7 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                     backgroundColor: TColors.success,
+                    behavior: SnackBarBehavior.floating,
                     content: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -269,6 +270,7 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                     backgroundColor: TColors.warning,
+                    behavior: SnackBarBehavior.floating,
                     content: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -290,6 +292,7 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     backgroundColor: TColors.error,
+                    behavior: SnackBarBehavior.floating,
                     content: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
