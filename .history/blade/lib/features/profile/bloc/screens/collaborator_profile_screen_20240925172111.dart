@@ -38,10 +38,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   Future<List<Idea>>? _futureIdeas;
   late TabController _tabController;
 
-  // Variables for bio expansion
-  bool isBioExpanded = false;
-  static const int maxBioLines = 3; // Limit bio to 3 lines initially
-
   @override
   void initState() {
     super.initState();
@@ -163,9 +159,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                   ),
                   const SizedBox(height: 16),
 
-                  // Name and Social Icons Section
+                  // Column for first/last name and social icons
                   Column(
                     children: [
+                      // First and Last Name in one row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -188,10 +185,15 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(
+                          height:
+                              8), // Reduced the space between names and icons
+
+                      // Row for social media icons
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          // GitHub Icon with customized Tooltip
                           Tooltip(
                             message:
                                 (profile.socialMediaLinks?['GitHub'] != null &&
@@ -229,7 +231,11 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                   : null,
                             ),
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(
+                              width:
+                                  4), // Reduced spacing between the two icons
+
+                          // LinkedIn Icon with customized Tooltip
                           Tooltip(
                             message: (profile.socialMediaLinks?['LinkedIn'] !=
                                         null &&
@@ -273,27 +279,19 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                     ],
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8), // Reduced vertical space
 
-                  // Skills section with scrolling and limited height (max 2 rows)
-                  SizedBox(
-                    height: 80, // Approximate height for two rows of chips
-                    child: SingleChildScrollView(
-                      child: Wrap(
-                        spacing: 8.0,
-                        runSpacing: 8.0,
-                        children: profile.skills?.map((skill) {
-                              return SkillTagWidget(
-                                skills: [skill],
-                              );
-                            }).toList() ??
-                            [],
-                      ),
-                    ),
+                  Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: profile.skills?.map((skill) {
+                          return SkillTagWidget(
+                            skills: [skill], // Pass each skill as a list
+                          );
+                        }).toList() ??
+                        [],
                   ),
                   const SizedBox(height: 16),
-
-                  // About Section with Show More/Show Less
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -305,56 +303,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             color: Colors.orange),
                       ),
                       const SizedBox(height: 8),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          // Measure if the bio text exceeds the max lines
-                          final span = TextSpan(
-                            text: profile.bio ?? 'No bio available',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          );
-
-                          final tp = TextPainter(
-                            text: span,
-                            maxLines: maxBioLines,
-                            textAlign: TextAlign.left,
-                            textDirection: TextDirection.ltr,
-                          );
-
-                          tp.layout(maxWidth: constraints.maxWidth);
-                          final exceedsMaxLines = tp.didExceedMaxLines;
-
-                          return Column(
-                            children: [
-                              Text(
-                                profile.bio ?? 'No bio available',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                                maxLines: isBioExpanded ? null : maxBioLines,
-                                overflow: isBioExpanded
-                                    ? TextOverflow.visible
-                                    : TextOverflow.ellipsis,
-                              ),
-                              if (exceedsMaxLines)
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      isBioExpanded = !isBioExpanded;
-                                    });
-                                  },
-                                  child: Text(
-                                    isBioExpanded ? 'Show less' : 'Show more',
-                                    style: const TextStyle(
-                                      color: Colors.orange,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          );
-                        },
+                      Text(
+                        profile.bio ?? 'No bio available',
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
                 ],
               ),

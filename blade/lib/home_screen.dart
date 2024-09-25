@@ -12,6 +12,7 @@ import 'features/authentication/src/supporter_model.dart';
 import 'features/profile/bloc/repository/profile_repository.dart';
 import 'features/profile/bloc/screens/collaborator_profile_screen.dart';
 import 'features/profile/bloc/screens/supporter_profile_screen.dart';
+import 'package:flutter/cupertino.dart'; // Import this for CupertinoIcons
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

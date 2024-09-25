@@ -156,10 +156,11 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                   const SizedBox(height: 16),
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: profile.profilePhotoUrl != null
+                    backgroundImage: profile.profilePhotoUrl != null &&
+                            profile.profilePhotoUrl!.isNotEmpty
                         ? NetworkImage(profile.profilePhotoUrl!)
                         : const AssetImage('assets/images/user.png')
-                            as ImageProvider,
+                            as ImageProvider<Object>,
                   ),
                   const SizedBox(height: 16),
 
