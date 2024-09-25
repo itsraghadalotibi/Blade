@@ -66,12 +66,12 @@ class MembersScreen extends StatelessWidget {
 
               return GestureDetector(
                 onTap: () {
-                  // Navigate to the Collaborator Profile when container is tapped
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CollaboratorProfileScreen(
                         userId: collaborator.uid,
+                        showBackButton: true, // Pass true to show the back button
                       ),
                     ),
                   );
