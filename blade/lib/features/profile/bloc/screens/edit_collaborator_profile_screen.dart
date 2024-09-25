@@ -51,6 +51,8 @@ class _EditCollaboratorProfileScreenState
   @override
   void initState() {
     super.initState();
+
+    // Initialize the text controllers with profile data
     _firstNameController =
         TextEditingController(text: widget.profile.firstName);
     _lastNameController = TextEditingController(text: widget.profile.lastName);
@@ -59,9 +61,11 @@ class _EditCollaboratorProfileScreenState
         text: widget.profile.socialMediaLinks?['GitHub'] ?? '');
     _linkedInController = TextEditingController(
         text: widget.profile.socialMediaLinks?['LinkedIn'] ?? '');
+
+    // Populate the _selectedSkills with the profile skills
     _selectedSkills = widget.profile.skills ?? [];
 
-    // Fetch skills from the BLoC
+    // Fetch available skills from the BLoC
     context.read<EditCollaboratorProfileBloc>().add(FetchSkills());
   }
 
@@ -83,7 +87,7 @@ class _EditCollaboratorProfileScreenState
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         bio: _bioController.text.trim(),
-        skills: _selectedSkills,
+        skills: _selectedSkills, // Pass the updated skills
         profilePhotoUrl:
             _newProfileImage?.path ?? widget.profile.profilePhotoUrl,
         socialMediaLinks: {
@@ -112,119 +116,120 @@ class _EditCollaboratorProfileScreenState
             );
           }
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Profile Image with green shadow
-                Center(
-                  child: Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      CircleAvatar(
-                        radius: 75,
-                        backgroundColor: Colors.greenAccent, // Green shadow
-                        child: CircleAvatar(
-                          radius: 70,
-                          backgroundImage: _newProfileImage != null
-                              ? FileImage(_newProfileImage!)
-                              : NetworkImage(widget.profile.profilePhotoUrl ??
-                                      defaultProfileImageUrl)
-                                  as ImageProvider<Object>?,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(CupertinoIcons.camera,
-                            color: TColors.primary),
-                        onPressed: _pickImage,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // First Name Field
-                CustomTextField(
-                  label: 'First Name',
-                  controller: _firstNameController,
-                ),
-                const SizedBox(height: 16),
-
-                // Last Name Field
-                CustomTextField(
-                  label: 'Last Name',
-                  controller: _lastNameController,
-                ),
-                const SizedBox(height: 16),
-
-                // Bio Field
-                CustomTextField(
-                  label: 'Bio',
-                  controller: _bioController,
-                  maxLines: 3,
-                  maxLength: 300,
-                ),
-                const SizedBox(height: 16),
-
-                // Skills Dropdown Menu and Chips
-                BlocBuilder<EditCollaboratorProfileBloc,
-                    EditCollaboratorProfileState>(
-                  builder: (context, state) {
-                    if (state is SkillsLoaded) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
                         children: [
-                          // Skills selection
-                          TMultiSelectDialogTheme.lightMultiSelectDialogField(
-                            items: state.availableSkills
-                                .map((skill) => MultiSelectItem(skill, skill))
-                                .toList(),
-                            selectedItems: _selectedSkills,
-                            onConfirm: (results) {
-                              setState(() {
-                                _selectedSkills = results;
-                              });
-                            },
-                            title: 'Skills',
-                            buttonText: 'Select Skills (Optional)',
+                          CircleAvatar(
+                            radius: 75,
+                            backgroundColor: Colors.greenAccent, // Green shadow
+                            child: CircleAvatar(
+                              radius: 70,
+                              backgroundImage: _newProfileImage != null
+                                  ? FileImage(_newProfileImage!)
+                                  : NetworkImage(
+                                          widget.profile.profilePhotoUrl ??
+                                              defaultProfileImageUrl)
+                                      as ImageProvider<Object>?,
+                            ),
                           ),
-                          const SizedBox(height: 16),
+                          IconButton(
+                            icon: const Icon(CupertinoIcons.camera,
+                                color: TColors.primary),
+                            onPressed: _pickImage,
+                          ),
                         ],
-                      );
-                    } else if (state is SkillsLoading) {
-                      return const CircularProgressIndicator();
-                    } else {
-                      return const SizedBox.shrink();
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    CustomTextField(
+                      label: 'First Name',
+                      controller: _firstNameController,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      label: 'Last Name',
+                      controller: _lastNameController,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      label: 'Bio',
+                      controller: _bioController,
+                      maxLines: 3,
+                      maxLength: 300,
+                    ),
+                    const SizedBox(height: 16),
+                    BlocBuilder<EditCollaboratorProfileBloc,
+                        EditCollaboratorProfileState>(
+                      builder: (context, state) {
+                        if (state is SkillsLoaded) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // MultiSelectDialogField for Light Mode
+                              MultiSelectDialogField(
+                                items: state.availableSkills
+                                    .map((skill) =>
+                                        MultiSelectItem(skill, skill))
+                                    .toList(),
+                                initialValue:
+                                    _selectedSkills, // This ensures previously selected skills are checked
+                                onConfirm: (results) {
+                                  setState(() {
+                                    _selectedSkills = results;
+                                  });
+                                },
+                                title: const Text('Skills'),
+                                buttonText:
+                                    const Text('Select Skills (Optional)'),
+                              ),
+                              const SizedBox(height: 16),
 
-                // GitHub Field
-                CustomTextField(
-                  label: 'GitHub Profile Link (Optional)',
-                  controller: _githubController,
+                              // Display selected skills as chips
+                            ],
+                          );
+                        } else if (state is SkillsLoading) {
+                          return const CircularProgressIndicator();
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      label: 'GitHub Profile Link (Optional)',
+                      controller: _githubController,
+                    ),
+                    const SizedBox(height: 16),
+                    CustomTextField(
+                      label: 'LinkedIn Profile Link (Optional)',
+                      controller: _linkedInController,
+                    ),
+                    const SizedBox(
+                        height: 100), // Add some padding at the bottom
+                  ],
                 ),
-                const SizedBox(height: 16),
-
-                // LinkedIn Field
-                CustomTextField(
-                  label: 'LinkedIn Profile Link (Optional)',
-                  controller: _linkedInController,
-                ),
-                const SizedBox(height: 16),
-
-                // Save Button
-                CustomButton(
-                  text: 'Save',
-                  onPressed: _onSaveButtonPressed,
-                ),
-              ],
+              ),
             ),
-          ),
+            Positioned(
+              bottom: 16,
+              left: 16,
+              right: 16,
+              child: CustomButton(
+                text: 'Save',
+                onPressed: _onSaveButtonPressed,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:blade_app/features/announcement/screens/announcement_screen.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
+import 'package:blade_app/features/announcement/widgets/skill_tag_widget.dart';
 import 'package:blade_app/features/newPost/screens/backgroundPost.dart';
 import 'package:blade_app/utils/constants/Navigation/profile.dart';
 import 'package:blade_app/utils/constants/colors.dart';
@@ -269,11 +270,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                   const SizedBox(height: 16),
                   Wrap(
                     spacing: 8.0,
+                    runSpacing: 8.0,
                     children: profile.skills?.map((skill) {
-                          return Chip(
-                            label: Text(skill),
-                            backgroundColor: Theme.of(context).primaryColor,
-                            labelStyle: const TextStyle(color: Colors.white),
+                          return SkillTagWidget(
+                            skills: [skill], // Pass each skill as a list
                           );
                         }).toList() ??
                         [],
