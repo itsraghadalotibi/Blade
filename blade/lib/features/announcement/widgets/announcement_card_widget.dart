@@ -179,7 +179,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                   width: screenWidth * 0.4,
                   height: screenHeight * 0.05,
                   decoration: BoxDecoration(
-                    color: TColors.grey
+                    color: TColors.primary
                         .withOpacity(0.5), // Reduced opacity for disabled look
                     borderRadius: BorderRadius.circular(48),
                   ),
