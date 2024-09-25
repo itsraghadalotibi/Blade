@@ -138,6 +138,16 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
                 ),
               ),
               SizedBox(height: screenHeight * 0.005),
+              Center(
+                child: Container(
+                  width: screenWidth * 0.4,
+                  height: screenHeight * 0.05,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFD5336),
+                    borderRadius: BorderRadius.circular(48),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
