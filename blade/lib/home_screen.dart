@@ -72,14 +72,15 @@ class HomeScreen extends StatelessWidget {
 
     // Show a green confirmation message after logout
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text(
+      const SnackBar(
+        content: Text(
           'Logged out successfully!',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
+        margin: EdgeInsets.only(top: 10, left: 10, right: 10),
+        showCloseIcon: true,
       ),
     );
   }

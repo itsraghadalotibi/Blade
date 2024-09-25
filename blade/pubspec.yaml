@@ -68,3 +68,6 @@ flutter:
     - assets/logos/blade-splash-logo-white.png
     - assets/images/content/user.png
     - assets/images/content/announcement.png
+    - assets/images/on_boarding_images/welcome-sign.png
+    - assets/images/on_boarding_images/developer-team.png
+    - assets/images/on_boarding_images/office-workplace.png
