@@ -49,7 +49,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Welcome to Our App! Experience seamless management and more.',
+                      'Welcome to Our App! Sharpen your skills and bring your ideas to life.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),

@@ -1,10 +1,4 @@
-import 'package:blade_app/utils/theme/theme.dart';
 import 'package:flutter/material.dart';
-import '../utils/constants/sizes.dart';
-
-import 'package:blade_app/utils/theme/theme.dart';
-import 'package:flutter/material.dart';
-
 import '../utils/constants/sizes.dart';
 
 class CustomTextField extends StatelessWidget {
@@ -19,7 +13,7 @@ class CustomTextField extends StatelessWidget {
   final int? maxLength;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.label,
     required this.controller,
     this.focusNode,
@@ -29,7 +23,7 @@ class CustomTextField extends StatelessWidget {
     this.maxLines = 1,
     this.maxLength,
     this.keyboardType,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,13 +37,15 @@ class CustomTextField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         errorText: errorText,
-        contentPadding: EdgeInsets.symmetric(
+        contentPadding: const EdgeInsets.symmetric(
           vertical: TSizes.sm,
           horizontal: TSizes.md,
         ),
       ),
       validator: validator,
+      onTapOutside: (event) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                },
     );
   }
 }
-
