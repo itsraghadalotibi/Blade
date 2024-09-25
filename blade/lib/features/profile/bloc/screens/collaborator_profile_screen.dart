@@ -1,10 +1,10 @@
 import 'package:blade_app/features/announcement/screens/announcement_screen.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
-import 'package:blade_app/features/announcement/widgets/skill_tag_widget.dart';
 import 'package:blade_app/features/newPost/screens/backgroundPost.dart';
 import 'package:blade_app/utils/constants/Navigation/profile.dart';
 import 'package:blade_app/utils/constants/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -23,13 +23,19 @@ import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 
 class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
+  final bool showBackButton; // Add this field
 
-  const CollaboratorProfileScreen({super.key, required this.userId});
+  const CollaboratorProfileScreen({
+    super.key,
+    required this.userId,
+    this.showBackButton = false, // Default value is false
+  });
 
   @override
   _CollaboratorProfileScreenState createState() =>
       _CollaboratorProfileScreenState();
 }
+
 
 class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     with SingleTickerProviderStateMixin {
@@ -37,17 +43,15 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   late ProjectIdeaRepository _projectIdeaRepository;
   Future<List<Idea>>? _futureIdeas;
   late TabController _tabController;
-
-  // Variables for bio expansion
-  bool isBioExpanded = false;
-  static const int maxBioLines = 3; // Limit bio to 3 lines initially
-
+  String? _currentUserId; // Define _currentUserId here
+  
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _projectIdeaRepository = ProjectIdeaRepository();
     _futureIdeas = _projectIdeaRepository.fetchIdeasByOwner(widget.userId);
+    _currentUserId = FirebaseAuth.instance.currentUser?.uid;
   }
 
   @override
@@ -56,93 +60,65 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ProfileViewBloc(profileRepository: context.read())
-        ..add(LoadProfile(widget.userId)),
-      child: Scaffold(
-        backgroundColor: Theme.of(context)
-            .scaffoldBackgroundColor, // Dynamic background color
-        appBar: AppBar(
-          backgroundColor: Theme.of(context)
-              .appBarTheme
-              .backgroundColor, // Dynamic app bar color
-          title: Text(
-            'Profile',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          centerTitle: true,
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              icon: Icon(
-                Icons.edit,
-                color: Theme.of(context).iconTheme.color, // Themed icon color
+@override // This should be outside the method
+Widget build(BuildContext context) {
+  final isOwner = _currentUserId == widget.userId; // Check if logged-in user is the profile owner
+
+  return BlocProvider(
+    create: (context) => ProfileViewBloc(profileRepository: context.read())
+      ..add(LoadProfile(widget.userId)),
+    child: Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar( // The appBar is correctly placed here
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        title: Text(
+          'Profile',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
-              onPressed: () async {
-                final state = BlocProvider.of<ProfileViewBloc>(context).state;
-                if (state is ProfileLoaded &&
-                    state.profile is CollaboratorProfileModel) {
-                  final profile = _updatedProfile ??
-                      state.profile as CollaboratorProfileModel;
-
-                  final updatedProfile = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BlocProvider(
-                        create: (context) => EditCollaboratorProfileBloc(
-                          profileRepository: context.read(),
-                        ),
-                        child: EditCollaboratorProfileScreen(profile: profile),
-                      ),
-                    ),
-                  );
-
-                  if (updatedProfile != null &&
-                      updatedProfile is CollaboratorProfileModel) {
-                    setState(() {
-                      _updatedProfile = updatedProfile;
-                    });
-
-                    context
-                        .read<ProfileViewBloc>()
-                        .add(LoadProfile(widget.userId));
-                  }
-                }
-              },
-            ),
-          ],
         ),
-        body: BlocBuilder<ProfileViewBloc, ProfileViewState>(
-          builder: (context, state) {
-            final profile = _updatedProfile ??
-                (state is ProfileLoaded &&
-                        state.profile is CollaboratorProfileModel
-                    ? state.profile as CollaboratorProfileModel
-                    : null);
-
-            if (profile != null) {
-              return buildCollaboratorProfile(profile);
-            } else if (state is ProfileLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is ProfileError) {
-              return Center(
-                  child: Text('Error: ${state.message}',
-                      style: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .error))); // Use themed error color
-            }
-            return const Center(child: Text('Unable to load profile.'));
-          },
-        ),
+        centerTitle: true,
+        automaticallyImplyLeading: widget.showBackButton, // Use the showBackButton flag
+        actions: isOwner
+            ? [
+                IconButton(
+                  icon: Icon(
+                    Icons.edit,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
+                  onPressed: () async {
+                    // Edit button logic here
+                  },
+                ),
+              ]
+            : null, // Hide edit button if not the owner
       ),
-    );
-  }
+      body: BlocBuilder<ProfileViewBloc, ProfileViewState>(
+        builder: (context, state) {
+          final profile = _updatedProfile ??
+              (state is ProfileLoaded && state.profile is CollaboratorProfileModel
+                  ? state.profile as CollaboratorProfileModel
+                  : null);
+
+          if (profile != null) {
+            return buildCollaboratorProfile(profile);
+          } else if (state is ProfileLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is ProfileError) {
+            return Center(
+                child: Text('Error: ${state.message}',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.error)));
+          }
+          return const Center(child: Text('Unable to load profile.'));
+        },
+      ),
+    ),
+  );
+}
+
+
 
   Widget buildCollaboratorProfile(CollaboratorProfileModel profile) {
     return NestedScrollView(
@@ -162,138 +138,128 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             as ImageProvider,
                   ),
                   const SizedBox(height: 16),
-
-                  // Name and Social Icons Section
-                  Column(
+                  // Row for first and last name with social media icons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            profile.firstName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            profile.lastName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                      // First Name
+                      Text(
+                        profile.firstName,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Tooltip(
-                            message:
-                                (profile.socialMediaLinks?['GitHub'] != null &&
-                                        profile.socialMediaLinks!['GitHub']!
-                                            .isNotEmpty)
-                                    ? 'Go to GitHub'
-                                    : 'No GitHub URL available',
-                            textStyle: const TextStyle(color: Colors.white),
-                            decoration: BoxDecoration(
-                              color: Colors.black87,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            preferBelow: false,
-                            child: IconButton(
-                              icon: FaIcon(
-                                FontAwesomeIcons.github,
-                                color: (profile.socialMediaLinks?['GitHub'] !=
-                                            null &&
-                                        profile.socialMediaLinks!['GitHub']!
-                                            .isNotEmpty)
-                                    ? TColors.primary
-                                    : Colors.grey,
-                                size: 24,
-                              ),
-                              padding: const EdgeInsets.all(0),
-                              constraints: const BoxConstraints(),
-                              onPressed: (profile.socialMediaLinks?['GitHub'] !=
-                                          null &&
-                                      profile.socialMediaLinks!['GitHub']!
-                                          .isNotEmpty)
-                                  ? () {
-                                      launch(
-                                          profile.socialMediaLinks!['GitHub']!);
-                                    }
-                                  : null,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Tooltip(
-                            message: (profile.socialMediaLinks?['LinkedIn'] !=
+                      const SizedBox(width: 8),
+
+                      // Last Name
+                      Text(
+                        profile.lastName,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 16),
+
+                      // GitHub Icon with customized Tooltip
+                      Tooltip(
+                        message: (profile.socialMediaLinks?['GitHub'] != null &&
+                                profile.socialMediaLinks!['GitHub']!.isNotEmpty)
+                            ? 'Go to GitHub'
+                            : 'No GitHub URL available',
+                        textStyle: const TextStyle(
+                            color: Colors.white), // Tooltip text color
+                        decoration: BoxDecoration(
+                          color: Colors.black87, // Tooltip background color
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        preferBelow:
+                            false, // Ensures tooltip appears above the icon
+                        child: IconButton(
+                          icon: FaIcon(
+                            FontAwesomeIcons.github,
+                            color: (profile.socialMediaLinks?['GitHub'] !=
                                         null &&
+                                    profile.socialMediaLinks!['GitHub']!
+                                        .isNotEmpty)
+                                ? TColors
+                                    .primary // Always orange for active GitHub URL
+                                : Colors.grey, // Gray when no URL is available
+                            size: 24,
+                          ),
+                          padding: const EdgeInsets.all(
+                              0), // Remove padding around icon
+                          constraints:
+                              const BoxConstraints(), // Keep the icon small
+                          onPressed: (profile.socialMediaLinks?['GitHub'] !=
+                                      null &&
+                                  profile
+                                      .socialMediaLinks!['GitHub']!.isNotEmpty)
+                              ? () {
+                                  launch(profile.socialMediaLinks!['GitHub']!);
+                                }
+                              : null, // Disable button if no link
+                        ),
+                      ),
+
+                      const SizedBox(width: 4),
+
+// LinkedIn Icon with customized Tooltip
+                      Tooltip(
+                        message:
+                            (profile.socialMediaLinks?['LinkedIn'] != null &&
                                     profile.socialMediaLinks!['LinkedIn']!
                                         .isNotEmpty)
                                 ? 'Go to LinkedIn'
                                 : 'No LinkedIn URL available',
-                            textStyle: const TextStyle(color: Colors.white),
-                            decoration: BoxDecoration(
-                              color: Colors.black87,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            preferBelow: false,
-                            child: IconButton(
-                              icon: FaIcon(
-                                FontAwesomeIcons.linkedin,
-                                color: (profile.socialMediaLinks?['LinkedIn'] !=
-                                            null &&
-                                        profile.socialMediaLinks!['LinkedIn']!
-                                            .isNotEmpty)
-                                    ? TColors.primary
-                                    : Colors.grey,
-                                size: 24,
-                              ),
-                              padding: const EdgeInsets.all(0),
-                              constraints: const BoxConstraints(),
-                              onPressed:
-                                  (profile.socialMediaLinks?['LinkedIn'] !=
-                                              null &&
-                                          profile.socialMediaLinks!['LinkedIn']!
-                                              .isNotEmpty)
-                                      ? () {
-                                          launch(profile
-                                              .socialMediaLinks!['LinkedIn']!);
-                                        }
-                                      : null,
-                            ),
+                        textStyle: const TextStyle(
+                            color: Colors.white), // Tooltip text color
+                        decoration: BoxDecoration(
+                          color: Colors.black87, // Tooltip background color
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        preferBelow:
+                            false, // Ensures tooltip appears above the icon
+                        child: IconButton(
+                          icon: FaIcon(
+                            FontAwesomeIcons.linkedin,
+                            color: (profile.socialMediaLinks?['LinkedIn'] !=
+                                        null &&
+                                    profile.socialMediaLinks!['LinkedIn']!
+                                        .isNotEmpty)
+                                ? TColors
+                                    .primary // Always orange for active LinkedIn URL
+                                : Colors.grey, // Gray when no URL is available
+                            size: 24,
                           ),
-                        ],
+                          padding: const EdgeInsets.all(
+                              0), // Remove padding around icon
+                          constraints:
+                              const BoxConstraints(), // Keep the icon small
+                          onPressed: (profile.socialMediaLinks?['LinkedIn'] !=
+                                      null &&
+                                  profile.socialMediaLinks!['LinkedIn']!
+                                      .isNotEmpty)
+                              ? () {
+                                  launch(
+                                      profile.socialMediaLinks!['LinkedIn']!);
+                                }
+                              : null, // Disable button if no link
+                        ),
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Skills section with scrolling and limited height (max 2 rows)
-                  SizedBox(
-                    height: 80, // Approximate height for two rows of chips
-                    child: SingleChildScrollView(
-                      child: Wrap(
-                        spacing: 8.0,
-                        runSpacing: 8.0,
-                        children: profile.skills?.map((skill) {
-                              return SkillTagWidget(
-                                skills: [skill],
-                              );
-                            }).toList() ??
-                            [],
-                      ),
-                    ),
+                  Wrap(
+                    spacing: 8.0,
+                    children: profile.skills?.map((skill) {
+                          return Chip(
+                            label: Text(skill),
+                            backgroundColor: Theme.of(context).primaryColor,
+                            labelStyle: const TextStyle(color: Colors.white),
+                          );
+                        }).toList() ??
+                        [],
                   ),
                   const SizedBox(height: 16),
-
-                  // About Section with Show More/Show Less
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -305,56 +271,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             color: Colors.orange),
                       ),
                       const SizedBox(height: 8),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          // Measure if the bio text exceeds the max lines
-                          final span = TextSpan(
-                            text: profile.bio ?? 'No bio available',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          );
-
-                          final tp = TextPainter(
-                            text: span,
-                            maxLines: maxBioLines,
-                            textAlign: TextAlign.left,
-                            textDirection: TextDirection.ltr,
-                          );
-
-                          tp.layout(maxWidth: constraints.maxWidth);
-                          final exceedsMaxLines = tp.didExceedMaxLines;
-
-                          return Column(
-                            children: [
-                              Text(
-                                profile.bio ?? 'No bio available',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                                maxLines: isBioExpanded ? null : maxBioLines,
-                                overflow: isBioExpanded
-                                    ? TextOverflow.visible
-                                    : TextOverflow.ellipsis,
-                              ),
-                              if (exceedsMaxLines)
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      isBioExpanded = !isBioExpanded;
-                                    });
-                                  },
-                                  child: Text(
-                                    isBioExpanded ? 'Show less' : 'Show more',
-                                    style: const TextStyle(
-                                      color: Colors.orange,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          );
-                        },
+                      Text(
+                        profile.bio ?? 'No bio available',
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
                 ],
               ),
