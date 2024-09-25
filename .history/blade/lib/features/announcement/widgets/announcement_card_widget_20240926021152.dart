@@ -67,7 +67,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
     final textStyle = TextStyle(
-      color: const Color.fromARGB(255, 255, 254, 254),
+      color: TColors.textPrimary,
       fontSize: screenWidth * 0.04 * textScaleFactor,
       fontWeight: FontWeight.w400,
     );
@@ -99,7 +99,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                     child: Text(
                       widget.idea.title,
                       style: TextStyle(
-                        color: const Color.fromARGB(255, 241, 238, 238),
+                        color: TColors.textPrimary,
                         fontSize: screenWidth * 0.055 * textScaleFactor,
                         fontWeight: FontWeight.bold,
                       ),

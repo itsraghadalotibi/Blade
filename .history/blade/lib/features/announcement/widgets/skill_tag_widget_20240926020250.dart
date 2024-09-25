@@ -1,7 +1,5 @@
-// Path: lib/features/profile/widgets/skill_tag.dart
-
-import 'package:blade_app/utils/constants/colors.dart';
 import 'package:flutter/material.dart';
+import '../../../utils/constants/colors.dart'; // Make sure to import the correct path to TColors
 
 class SkillTagWidget extends StatelessWidget {
   final List<String> skills;
