@@ -1,3 +1,4 @@
+import 'package:blade_app/utils/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/authentication_bloc.dart';
@@ -16,17 +17,14 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
-  // Variable to show loading indicator
   bool isLoading = false;
+  bool hasPressedButton = false; // Track button press
 
   @override
   Widget build(BuildContext context) {
-    String userTypeCapitalized =
-        widget.userType[0].toUpperCase() + widget.userType.substring(1);
+    String userTypeCapitalized = widget.userType[0].toUpperCase() + widget.userType.substring(1);
 
     return Scaffold(
       appBar: AppBar(
@@ -52,7 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Form(
                 key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -61,11 +58,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       label: 'Email',
                       controller: emailController,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        } else if (!RegExp(r"^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                            .hasMatch(value)) {
-                          return 'Please enter a valid email';
+                        if (hasPressedButton) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email';
+                          } else if (!RegExp(r"^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value)) {
+                            return 'Please enter a valid email';
+                          }
                         }
                         return null;
                       },
@@ -77,8 +75,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: passwordController,
                       obscureText: true,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
+                        if (hasPressedButton) {
+                          if (value == null || value.length < 8) {
+                            return 'Please enter a password of at least 8 characters';
+                          }
                         }
                         return null;
                       },
@@ -93,7 +93,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Text asking if user doesn't have an account
+                    GestureDetector(
+                      child: Text(
+                        "Forget Password?",
+                        style: TextStyle(
+                          color: TColors.textSecondary,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.of(context).pushNamed('/forgetPassword');
+                      },
+                    ),
+                    const SizedBox(height: 10),
                     const Text(
                       "Don't have an account?",
                       style: TextStyle(fontSize: 14),
@@ -104,15 +117,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       child: OutlinedButton(
                         onPressed: () {
-                          // Navigate to the corresponding sign-up screen based on user type
                           Navigator.pushReplacementNamed(
                             context,
-                            widget.userType == 'collaborator'
-                                ? '/collaboratorSignUp'
-                                : '/supporterSignUp',
+                            widget.userType == 'collaborator' ? '/collaboratorSignUp' : '/supporterSignUp',
                           );
                         },
-                        
                         child: const Text('Create Account'),
                       ),
                     ),
@@ -130,14 +139,43 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _onLoginButtonPressed() {
+  void _onLoginButtonPressed() async {
+    setState(() {
+      hasPressedButton = true; // Mark that the button was pressed
+    });
+
     if (_formKey.currentState!.validate()) {
-      context.read<AuthenticationBloc>().add(
-            LoginRequested(
-              email: emailController.text.trim(),
-              password: passwordController.text.trim(),
-            ),
-          );
+      setState(() {
+        isLoading = true;
+      });
+
+      final authBloc = context.read<AuthenticationBloc>();
+      final userTypeFromRepo = await authBloc.authenticationRepository.getUserTypeByEmail(emailController.text.trim());
+
+      if (userTypeFromRepo != null && userTypeFromRepo != widget.userType) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Error: You are trying to log in as a ${widget.userType}, but your account is registered as a $userTypeFromRepo.'),
+          ),
+        );
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      authBloc.add(
+        LoginRequested(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+          userType: widget.userType, // Pass the userType
+        ),
+      );
+    } else {
+      setState(() {
+        isLoading = false; // Reset loading state if validation fails
+      });
     }
   }
 }

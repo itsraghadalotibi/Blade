@@ -1,14 +1,15 @@
 import 'dart:io';
+import 'package:blade_app/utils/helpers/flutter_toast.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // Import Firebase Storage
+import 'package:firebase_storage/firebase_storage.dart';
 import '../src/collaborator_model.dart';
 import '../src/supporter_model.dart';
 
 class AuthenticationRepository {
   final FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firestore;
-  final FirebaseStorage _firebaseStorage; // Add Firebase Storage instance
+  final FirebaseStorage _firebaseStorage;
 
   AuthenticationRepository({
     FirebaseAuth? firebaseAuth,
@@ -16,7 +17,7 @@ class AuthenticationRepository {
     FirebaseStorage? firebaseStorage,
   })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
         _firestore = firestore ?? FirebaseFirestore.instance,
-        _firebaseStorage = firebaseStorage ?? FirebaseStorage.instance; // Initialize Firebase Storage
+        _firebaseStorage = firebaseStorage ?? FirebaseStorage.instance;
 
   // Sign up Collaborator with optional profile image
   Future<void> signUpCollaborator(
@@ -28,17 +29,15 @@ class AuthenticationRepository {
 
     String? profilePhotoUrl;
 
-    // If profile image is provided, upload it
     if (profileImage != null) {
       profilePhotoUrl = await uploadProfileImage(userCredential.user!.uid, profileImage);
-    }else{
-      profilePhotoUrl = 'gs://blade-87cf7.appspot.com/profile_images/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg';
+    } else {
+      profilePhotoUrl = 'https://firebasestorage.googleapis.com/v0/b/blade-87cf7.appspot.com/o/profile_images%2F360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg?alt=media&token=0db52e6c-f589-451d-9d22-c81190c123a1';
     }
 
-    // Update collaborator model with UID and profilePhotoUrl
     collaborator = collaborator.copyWith(
       uid: userCredential.user!.uid,
-      profilePhotoUrl: profilePhotoUrl ?? '',
+      profilePhotoUrl: profilePhotoUrl,
     );
 
     await _firestore.collection('collaborators').doc(collaborator.uid).set(collaborator.toMap());
@@ -54,18 +53,15 @@ class AuthenticationRepository {
 
     String? profilePhotoUrl;
 
-    // If profile image is provided, upload it
     if (profileImage != null) {
       profilePhotoUrl = await uploadProfileImage(userCredential.user!.uid, profileImage);
-    }else{
-      profilePhotoUrl = 'gs://blade-87cf7.appspot.com/profile_images/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg';
+    } else {
+      profilePhotoUrl = 'https://firebasestorage.googleapis.com/v0/b/blade-87cf7.appspot.com/o/profile_images%2F360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg?alt=media&token=0db52e6c-f589-451d-9d22-c81190c123a1';
     }
 
-
-    // Update supporter model with UID and profilePhotoUrl
     supporter = supporter.copyWith(
       uid: userCredential.user!.uid,
-      profilePhotoUrl: profilePhotoUrl ?? '',
+      profilePhotoUrl: profilePhotoUrl,
     );
 
     await _firestore.collection('supporters').doc(supporter.uid).set(supporter.toMap());
@@ -74,56 +70,88 @@ class AuthenticationRepository {
   // Upload profile image to Firebase Storage
   Future<String> uploadProfileImage(String userId, File imageFile) async {
     try {
-      // Create a reference to the location you want to upload to in Firebase Storage
       Reference storageRef = _firebaseStorage.ref().child('profile_images/$userId.jpg');
-
-      // Upload the file to Firebase Storage
       UploadTask uploadTask = storageRef.putFile(imageFile);
-
-      // Wait until the upload completes
       await uploadTask.whenComplete(() {});
-
-      // Get the download URL
       String downloadUrl = await storageRef.getDownloadURL();
-
       return downloadUrl;
     } catch (e) {
       throw Exception('Failed to upload profile image: $e');
     }
   }
 
-  // Sign in method remains the same
+  // Sign in method
   Future<void> signIn(String email, String password) async {
     await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  // Sign out method remains the same
+  // Sign out method
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
   }
 
   // Check if user is signed in
   Future<bool> isSignedIn() async {
-    return _firebaseAuth.currentUser != null;
+    final _currentUser = _firebaseAuth.currentUser;
+    return _currentUser != null;
   }
 
   // Get current user data
   Future<dynamic> getUser() async {
     final User? firebaseUser = _firebaseAuth.currentUser;
+
     if (firebaseUser != null) {
-      // Check if user is a collaborator
-      DocumentSnapshot doc =
-          await _firestore.collection('collaborators').doc(firebaseUser.uid).get();
-      if (doc.exists) {
-        return CollaboratorModel.fromMap(doc.data() as Map<String, dynamic>);
+      DocumentSnapshot collaboratorDoc = await _firestore
+          .collection('collaborators')
+          .doc(firebaseUser.uid)
+          .get();
+
+      if (collaboratorDoc.exists) {
+        return CollaboratorModel.fromMap(collaboratorDoc.data() as Map<String, dynamic>);
       }
-      // Check if user is a supporter
-      doc = await _firestore.collection('supporters').doc(firebaseUser.uid).get();
-      if (doc.exists) {
-        return SupporterModel.fromMap(doc.data() as Map<String, dynamic>);
+
+      DocumentSnapshot supporterDoc = await _firestore
+          .collection('supporters')
+          .doc(firebaseUser.uid)
+          .get();
+
+      if (supporterDoc.exists) {
+        return SupporterModel.fromMap(supporterDoc.data() as Map<String, dynamic>);
       }
+
+      toastInfo(msg: "User not registered as Collaborator or Supporter");
+    } else {
+      toastInfo(msg: "The user is not registered");
     }
+
     return null;
+  }
+
+  // Get user type by email
+  Future<String?> getUserTypeByEmail(String email) async {
+    try {
+      QuerySnapshot collaboratorSnapshot = await _firestore
+          .collection('collaborators')
+          .where('email', isEqualTo: email)
+          .get();
+
+      if (collaboratorSnapshot.docs.isNotEmpty) {
+        return 'collaborator';
+      }
+
+      QuerySnapshot supporterSnapshot = await _firestore
+          .collection('supporters')
+          .where('email', isEqualTo: email)
+          .get();
+
+      if (supporterSnapshot.docs.isNotEmpty) {
+        return 'supporter';
+      }
+    } catch (e) {
+      throw Exception('Failed to get user type: $e');
+    }
+
+    return null; // Unknown user type
   }
 
   // Save collaborator data
@@ -135,5 +163,18 @@ class AuthenticationRepository {
   Future<void> saveSupporterData(SupporterModel supporter) async {
     await _firestore.collection('supporters').doc(supporter.uid).set(supporter.toMap());
   }
-}
 
+  // Fetch skills from Firestore
+  Future<List<String>> fetchSkills() async {
+    try {
+      final QuerySnapshot snapshot = await _firestore.collection('skills').get();
+      final List<String> skills = snapshot.docs
+          .map((doc) => doc.get('name') as String)
+          .toList()
+          .cast<String>();
+      return skills;
+    } catch (e) {
+      throw Exception('Failed to fetch skills: $e');
+    }
+  }
+}

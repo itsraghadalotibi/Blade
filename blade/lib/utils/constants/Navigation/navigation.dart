@@ -1,5 +1,6 @@
+import 'package:blade_app/home_screen.dart';
 import 'package:blade_app/utils/constants/Navigation/chat.dart';
-import 'package:blade_app/utils/constants/Navigation/dashboard.dart';
+// import 'package:blade_app/utils/constants/Navigation/dashboard.dart';
 import 'package:blade_app/utils/constants/Navigation/settings.dart';
 import 'package:flutter/material.dart';
 
@@ -18,14 +19,14 @@ class _NavigationState extends State<Navigation> {
 
   int currentTap = 0;
   final List<Widget> screen = [
-    const Dashboard(),
+    const HomeScreen(),
     const Chat(),
     const Profile(),
     const Settings()
   ];
 
   final PageStorageBucket bucket = PageStorageBucket();
-  Widget currentScreen = const Dashboard();
+  Widget currentScreen = const HomeScreen();
   @override
 Widget build(BuildContext context) {
   return Scaffold(
@@ -112,7 +113,7 @@ backgroundColor: const Color(0xFF333333),
                   minWidth: 30,
                   onPressed: (){
                     setState(() {
-                      currentScreen = const Dashboard();
+                      currentScreen = const HomeScreen();
                       currentTap = 0;
                     });
                   },

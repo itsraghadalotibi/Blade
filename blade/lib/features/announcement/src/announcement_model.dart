@@ -2,7 +2,7 @@ class Idea {
   final String title;
   final String description;
   final int maxMembers;
-  final List<String> members;
+  final List<String> members;  // Will store user IDs
   final List<String> skills;
 
   Idea({
@@ -13,14 +13,28 @@ class Idea {
     required this.skills,
   });
 
+  // Factory constructor to create an Idea from Firestore data
   factory Idea.fromMap(Map<String, dynamic> data) {
     return Idea(
       title: data['title'] ?? '',
       description: data['description'] ?? '',
       maxMembers: data['maxMembers'] ?? 0,
-      members: List<String>.from(data['members']),
-      skills: List<String>.from(data['skills']),
+      members: List<String>.from(data['members'] ?? []),
+      skills: data['skills'] != null && data['skills'] is List
+          ? List<String>.from(data['skills'])
+          : [],
     );
+  }
+
+  // Convert Idea to map
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'description': description,
+      'maxMembers': maxMembers,
+      'members': members,
+      'skills': skills,
+    };
   }
 }
 
@@ -29,12 +43,14 @@ class Collaborator {
   final String firstName;
   final String lastName;
   final String profilePhotoUrl;
+  final List<String> skills;
 
   Collaborator({
     required this.uid,
     required this.firstName,
     required this.lastName,
     required this.profilePhotoUrl,
+    required this.skills,
   });
 
   factory Collaborator.fromMap(Map<String, dynamic> data) {
@@ -43,6 +59,21 @@ class Collaborator {
       firstName: data['firstName'] ?? '',
       lastName: data['lastName'] ?? '',
       profilePhotoUrl: data['profilePhotoUrl'] ?? '',
+      skills: data['skills'] != null && data['skills'] is List
+          ? List<String>.from(data['skills'])
+          : [],
     );
   }
+}
+
+class Member {
+  final String name;
+  final List<String> skills;
+  final String imageUrl;
+
+  Member({
+    required this.name,
+    required this.skills,
+    required this.imageUrl,
+  });
 }

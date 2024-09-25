@@ -20,20 +20,41 @@ class ChipTag extends StatefulWidget {
 class _ChipTagState extends State<ChipTag> {
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 8.0,
-      children: widget.options.map((option) {
-        return ChoiceChip(
-          label: Text(option),
+    // Calculate the ideal chip width based on content with a maximum width
+    List<Widget> chips = widget.options.map((option) {
+      double screenWidth = MediaQuery.of(context).size.width;
+      double chipWidth = screenWidth / 3 - 12;  // Assuming 3 chips per row minus spacing
+
+      return Container(
+        width: (option.length * 8 > chipWidth) ? chipWidth : null,  // Allow chips to grow but limit maximum width
+        child: ChoiceChip(
+          label: Text(
+            option,
+            overflow: TextOverflow.ellipsis,  // Use ellipsis for longer names
+            style: TextStyle(color: (widget.initialTags.contains(option) ? Colors.white : Colors.black)),
+          ),
           selected: widget.initialTags.contains(option),
           onSelected: (selected) {
             widget.onTagSelected(option, selected); // Call the passed callback
+            setState(() {
+              if (selected) {
+                widget.initialTags.add(option);
+              } else {
+                widget.initialTags.remove(option);
+              }
+            });
           },
           selectedColor: const Color(0xFFFD5336),
           backgroundColor: Colors.grey[200],
-        );
-      }).toList(),
+        ),
+      );
+    }).toList();
+
+    return Wrap(
+      spacing: 8.0,  // Horizontal space between chips
+      runSpacing: 8.0,  // Vertical space between chip rows
+      alignment: WrapAlignment.start,  // Align chips to the start of the row
+      children: chips,
     );
   }
 }

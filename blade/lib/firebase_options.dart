@@ -77,4 +77,5 @@ class DefaultFirebaseOptions {
     authDomain: 'blade-87cf7.firebaseapp.com',
     storageBucket: 'blade-87cf7.appspot.com',
   );
+
 }

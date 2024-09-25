@@ -6,6 +6,7 @@ import 'features/authentication/screens/supporter_sign_up_screen.dart';
 import 'features/authentication/screens/welcome_screen.dart';
 import 'home_screen.dart';
 import 'utils/theme/theme.dart';
+import 'utils/constants/Navigation/navigation.dart';
 class AppView extends StatelessWidget {
   const AppView({Key? key}) : super(key: key);
 
@@ -15,7 +16,7 @@ class AppView extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Blade App',
       themeMode: ThemeMode.system,
-      theme: TAppTheme.lightTheme,
+      theme: TAppTheme.darkTheme,
       darkTheme: TAppTheme.darkTheme,
       onGenerateRoute: (settings) {
         switch (settings.name) {
@@ -36,10 +37,11 @@ class AppView extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => const SupporterSignUpScreen());
 
           case '/home':
-            return MaterialPageRoute(builder: (_) => const HomeScreen());
+            return MaterialPageRoute(builder: (_) => const Navigation());
 
           default:
             return MaterialPageRoute(builder: (_) => const WelcomeScreen());
+            
         }
       },
     );
