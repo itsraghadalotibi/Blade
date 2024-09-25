@@ -38,10 +38,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   Future<List<Idea>>? _futureIdeas;
   late TabController _tabController;
 
-  // Variables for bio expansion
-  bool isBioExpanded = false;
-  static const int maxBioLines = 3; // Limit bio to 3 lines initially
-
   @override
   void initState() {
     super.initState();
@@ -162,138 +158,127 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             as ImageProvider,
                   ),
                   const SizedBox(height: 16),
-
-                  // Name and Social Icons Section
-                  Column(
+                  // Row for first and last name with social media icons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            profile.firstName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            profile.lastName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                      // First Name
+                      Text(
+                        profile.firstName,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Tooltip(
-                            message:
-                                (profile.socialMediaLinks?['GitHub'] != null &&
-                                        profile.socialMediaLinks!['GitHub']!
-                                            .isNotEmpty)
-                                    ? 'Go to GitHub'
-                                    : 'No GitHub URL available',
-                            textStyle: const TextStyle(color: Colors.white),
-                            decoration: BoxDecoration(
-                              color: Colors.black87,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            preferBelow: false,
-                            child: IconButton(
-                              icon: FaIcon(
-                                FontAwesomeIcons.github,
-                                color: (profile.socialMediaLinks?['GitHub'] !=
-                                            null &&
-                                        profile.socialMediaLinks!['GitHub']!
-                                            .isNotEmpty)
-                                    ? TColors.primary
-                                    : Colors.grey,
-                                size: 24,
-                              ),
-                              padding: const EdgeInsets.all(0),
-                              constraints: const BoxConstraints(),
-                              onPressed: (profile.socialMediaLinks?['GitHub'] !=
-                                          null &&
-                                      profile.socialMediaLinks!['GitHub']!
-                                          .isNotEmpty)
-                                  ? () {
-                                      launch(
-                                          profile.socialMediaLinks!['GitHub']!);
-                                    }
-                                  : null,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Tooltip(
-                            message: (profile.socialMediaLinks?['LinkedIn'] !=
+                      const SizedBox(width: 8),
+
+                      // Last Name
+                      Text(
+                        profile.lastName,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 16),
+
+                      // GitHub Icon with customized Tooltip
+                      Tooltip(
+                        message: (profile.socialMediaLinks?['GitHub'] != null &&
+                                profile.socialMediaLinks!['GitHub']!.isNotEmpty)
+                            ? 'Go to GitHub'
+                            : 'No GitHub URL available',
+                        textStyle: const TextStyle(
+                            color: Colors.white), // Tooltip text color
+                        decoration: BoxDecoration(
+                          color: Colors.black87, // Tooltip background color
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        preferBelow:
+                            false, // Ensures tooltip appears above the icon
+                        child: IconButton(
+                          icon: FaIcon(
+                            FontAwesomeIcons.github,
+                            color: (profile.socialMediaLinks?['GitHub'] !=
                                         null &&
+                                    profile.socialMediaLinks!['GitHub']!
+                                        .isNotEmpty)
+                                ? TColors
+                                    .primary // Always orange for active GitHub URL
+                                : Colors.grey, // Gray when no URL is available
+                            size: 24,
+                          ),
+                          padding: const EdgeInsets.all(
+                              0), // Remove padding around icon
+                          constraints:
+                              const BoxConstraints(), // Keep the icon small
+                          onPressed: (profile.socialMediaLinks?['GitHub'] !=
+                                      null &&
+                                  profile
+                                      .socialMediaLinks!['GitHub']!.isNotEmpty)
+                              ? () {
+                                  launch(profile.socialMediaLinks!['GitHub']!);
+                                }
+                              : null, // Disable button if no link
+                        ),
+                      ),
+
+                      const SizedBox(width: 4),
+
+// LinkedIn Icon with customized Tooltip
+                      Tooltip(
+                        message:
+                            (profile.socialMediaLinks?['LinkedIn'] != null &&
                                     profile.socialMediaLinks!['LinkedIn']!
                                         .isNotEmpty)
                                 ? 'Go to LinkedIn'
                                 : 'No LinkedIn URL available',
-                            textStyle: const TextStyle(color: Colors.white),
-                            decoration: BoxDecoration(
-                              color: Colors.black87,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            preferBelow: false,
-                            child: IconButton(
-                              icon: FaIcon(
-                                FontAwesomeIcons.linkedin,
-                                color: (profile.socialMediaLinks?['LinkedIn'] !=
-                                            null &&
-                                        profile.socialMediaLinks!['LinkedIn']!
-                                            .isNotEmpty)
-                                    ? TColors.primary
-                                    : Colors.grey,
-                                size: 24,
-                              ),
-                              padding: const EdgeInsets.all(0),
-                              constraints: const BoxConstraints(),
-                              onPressed:
-                                  (profile.socialMediaLinks?['LinkedIn'] !=
-                                              null &&
-                                          profile.socialMediaLinks!['LinkedIn']!
-                                              .isNotEmpty)
-                                      ? () {
-                                          launch(profile
-                                              .socialMediaLinks!['LinkedIn']!);
-                                        }
-                                      : null,
-                            ),
+                        textStyle: const TextStyle(
+                            color: Colors.white), // Tooltip text color
+                        decoration: BoxDecoration(
+                          color: Colors.black87, // Tooltip background color
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        preferBelow:
+                            false, // Ensures tooltip appears above the icon
+                        child: IconButton(
+                          icon: FaIcon(
+                            FontAwesomeIcons.linkedin,
+                            color: (profile.socialMediaLinks?['LinkedIn'] !=
+                                        null &&
+                                    profile.socialMediaLinks!['LinkedIn']!
+                                        .isNotEmpty)
+                                ? TColors
+                                    .primary // Always orange for active LinkedIn URL
+                                : Colors.grey, // Gray when no URL is available
+                            size: 24,
                           ),
-                        ],
+                          padding: const EdgeInsets.all(
+                              0), // Remove padding around icon
+                          constraints:
+                              const BoxConstraints(), // Keep the icon small
+                          onPressed: (profile.socialMediaLinks?['LinkedIn'] !=
+                                      null &&
+                                  profile.socialMediaLinks!['LinkedIn']!
+                                      .isNotEmpty)
+                              ? () {
+                                  launch(
+                                      profile.socialMediaLinks!['LinkedIn']!);
+                                }
+                              : null, // Disable button if no link
+                        ),
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Skills section with scrolling and limited height (max 2 rows)
-                  SizedBox(
-                    height: 80, // Approximate height for two rows of chips
-                    child: SingleChildScrollView(
-                      child: Wrap(
-                        spacing: 8.0,
-                        runSpacing: 8.0,
-                        children: profile.skills?.map((skill) {
-                              return SkillTagWidget(
-                                skills: [skill],
-                              );
-                            }).toList() ??
-                            [],
-                      ),
-                    ),
+                  Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: profile.skills?.map((skill) {
+                          return SkillTagWidget(
+                            skills: [skill], // Pass each skill as a list
+                          );
+                        }).toList() ??
+                        [],
                   ),
                   const SizedBox(height: 16),
-
-                  // About Section with Show More/Show Less
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -305,56 +290,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             color: Colors.orange),
                       ),
                       const SizedBox(height: 8),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          // Measure if the bio text exceeds the max lines
-                          final span = TextSpan(
-                            text: profile.bio ?? 'No bio available',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          );
-
-                          final tp = TextPainter(
-                            text: span,
-                            maxLines: maxBioLines,
-                            textAlign: TextAlign.left,
-                            textDirection: TextDirection.ltr,
-                          );
-
-                          tp.layout(maxWidth: constraints.maxWidth);
-                          final exceedsMaxLines = tp.didExceedMaxLines;
-
-                          return Column(
-                            children: [
-                              Text(
-                                profile.bio ?? 'No bio available',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                                maxLines: isBioExpanded ? null : maxBioLines,
-                                overflow: isBioExpanded
-                                    ? TextOverflow.visible
-                                    : TextOverflow.ellipsis,
-                              ),
-                              if (exceedsMaxLines)
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      isBioExpanded = !isBioExpanded;
-                                    });
-                                  },
-                                  child: Text(
-                                    isBioExpanded ? 'Show less' : 'Show more',
-                                    style: const TextStyle(
-                                      color: Colors.orange,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          );
-                        },
+                      Text(
+                        profile.bio ?? 'No bio available',
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
                 ],
               ),
