@@ -49,7 +49,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Welcome to Our App! Experience seamless management and more.',
+                      'Welcome to Our App! Sharpen your skills and bring your ideas to life.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
@@ -61,7 +61,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
               onPressed: () => _navigateToLogin(context, 'collaborator'),
-              child: const Text('Login as Collaborator'),
+              child: const Text('Continue as Collaborator'),
             ),
               ),
               const SizedBox(height: 20),
@@ -70,7 +70,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 width: double.infinity,
                 child: OutlinedButton(
               onPressed: () => _navigateToLogin(context, 'supporter'),
-              child: const Text('Login as Supporter'),
+              child: const Text('Continue as Supporter'),
             ),
               ),
             ],

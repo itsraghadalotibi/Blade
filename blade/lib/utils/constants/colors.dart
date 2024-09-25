@@ -4,7 +4,8 @@ class TColors {
   // App theme colors
   static const Color primary = Color(0xFFFD5336);
   static const Color secondary = Color(0xFF4FE3C2);
-  static const Color accent = Color(0xFFb0c7ff);
+  static const Color accent = Color(0xFF148fff);
+  // static const Color accent = Color(0xFFb0c7ff);
 
   // Text colors
   static const Color textPrimary = Color(0xFF333333);
@@ -13,7 +14,7 @@ class TColors {
 
   // Background colors
   static const Color light = Color(0xFFF6F6F6);
-  static const Color dark = Color(0xFF121212);
+  static const Color dark = Color(0xFF161616);
   static const Color primaryBackground = Color(0xFFF3F5FF);
 
   // Background Container colors
@@ -30,10 +31,12 @@ class TColors {
   static const Color borderSecondary = Color(0xFFE6E6E6);
 
   // Error and validation colors
-  static const Color error = Color(0xFFD32F2F);
+  static const Color error = Color.fromARGB(255, 211, 61, 61);
   static const Color success = Color(0xFF388E3C);
   static const Color warning = Color(0xFFF57C00);
-  static const Color info = Color(0xFF1976D2);
+  static const Color info = Color(0xFF1976D2);//2997EB
+  static const Color info2 = Color(0xFF2997EB);//2997EB
+  
 
   // Neutral Shades
   static const Color black = Color(0xFF232323);

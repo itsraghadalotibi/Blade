@@ -7,11 +7,11 @@ class ChipTag extends StatefulWidget {
   final Function(String, bool) onTagSelected;
 
   const ChipTag({
-    Key? key,
+    super.key,
     required this.initialTags,
     required this.options,
     required this.onTagSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<ChipTag> createState() => _ChipTagState();

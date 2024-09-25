@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../utils/constants/colors.dart'; // Make sure to import the correct path to TColors
 
 class SkillTagWidget extends StatelessWidget {
   final List<String> skills;
 
-  SkillTagWidget({required this.skills});
+  const SkillTagWidget({super.key, required this.skills});
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +24,13 @@ class SkillTagWidget extends StatelessWidget {
         vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: Color(0xFF514949),
+        color: TColors.darkGrey, // Light mode accent color for the tag
         borderRadius: BorderRadius.circular(100),
       ),
       child: Text(
         skill,
         style: TextStyle(
-          color: Colors.white,
+          color: TColors.textWhite, // Keep the text white for contrast
           fontSize: screenWidth * 0.03,
           fontWeight: FontWeight.w400,
         ),

@@ -1,4 +1,5 @@
 import 'package:blade_app/utils/constants/colors.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/authentication_bloc.dart';
@@ -7,7 +8,7 @@ import '../bloc/authentication_state.dart';
 import 'package:blade_app/widgets/custom_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
-  final String userType; // 'collaborator' or 'supporter'
+  final String userType;
 
   const LoginScreen({super.key, required this.userType});
 
@@ -19,12 +20,37 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final FocusNode emailFocusNode = FocusNode();
+  final FocusNode passwordFocusNode = FocusNode();
+
+  String? emailError;
+  String? passwordError;
+
   bool isLoading = false;
-  bool hasPressedButton = false; // Track button press
+  bool isPasswordVisible = false; // Added for password visibility toggle
+
+  static const String emailPattern = r"^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z]+";
+
+  @override
+  void initState() {
+    super.initState();
+    emailController.addListener(_validateEmailField);
+    passwordController.addListener(_validatePasswordField);
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    emailFocusNode.dispose();
+    passwordFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    String userTypeCapitalized = widget.userType[0].toUpperCase() + widget.userType.substring(1);
+    String userTypeCapitalized =
+        widget.userType[0].toUpperCase() + widget.userType.substring(1);
 
     return Scaffold(
       appBar: AppBar(
@@ -37,6 +63,15 @@ class _LoginScreenState extends State<LoginScreen> {
           });
 
           if (state is AuthenticationAuthenticated) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Login Successful!',
+                  style: TextStyle(color: Colors.white),
+                ),
+                backgroundColor: Colors.green,
+              ),
+            );
             Navigator.pushReplacementNamed(context, '/home');
           } else if (state is AuthenticationFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -53,38 +88,39 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Email input field
                     CustomTextField(
                       label: 'Email',
                       controller: emailController,
-                      validator: (value) {
-                        if (hasPressedButton) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          } else if (!RegExp(r"^[a-zA-Z0-9._]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(value)) {
-                            return 'Please enter a valid email';
-                          }
-                        }
-                        return null;
-                      },
+                      focusNode: emailFocusNode,
+                      errorText: emailError,
+                      prefixIcon: const Icon(CupertinoIcons.mail_solid, color: TColors.grey),
+                      maxLength: 320,
+                      keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
-                    // Password input field
                     CustomTextField(
                       label: 'Password',
                       controller: passwordController,
-                      obscureText: true,
-                      validator: (value) {
-                        if (hasPressedButton) {
-                          if (value == null || value.length < 8) {
-                            return 'Please enter a password of at least 8 characters';
-                          }
-                        }
-                        return null;
-                      },
+                      obscureText:
+                          !isPasswordVisible, // Toggle password visibility
+                      focusNode: passwordFocusNode,
+                      errorText: passwordError,
+                      maxLength: 128,
+                      prefixIcon: const Icon(CupertinoIcons.lock_fill, color: TColors.grey),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            isPasswordVisible = !isPasswordVisible;
+                          });
+                        },
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    // Login button (ElevatedButton)
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -94,8 +130,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     GestureDetector(
-                      child: Text(
-                        "Forget Password?",
+                      child: const Text(
+                        "Forgot Password?",
                         style: TextStyle(
                           color: TColors.textSecondary,
                           fontWeight: FontWeight.bold,
@@ -112,14 +148,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 8),
-                    // Create Account Outlined Button (OutlinedButton)
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
                         onPressed: () {
                           Navigator.pushReplacementNamed(
                             context,
-                            widget.userType == 'collaborator' ? '/collaboratorSignUp' : '/supporterSignUp',
+                            widget.userType == 'collaborator'
+                                ? '/collaboratorSignUp'
+                                : '/supporterSignUp',
                           );
                         },
                         child: const Text('Create Account'),
@@ -139,9 +176,45 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // Real-time email validation
+  void _validateEmailField() {
+    setState(() {
+      emailError = _validateEmail(emailController.text);
+    });
+  }
+
+  // Real-time password validation
+  void _validatePasswordField() {
+    setState(() {
+      passwordError = _validatePassword(passwordController.text);
+    });
+  }
+
+  // Email validation logic
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter your email";
+    } else if (!RegExp(emailPattern).hasMatch(value)) {
+      return "Please enter a valid email";
+    }
+    return null;
+  }
+
+  // Password validation logic
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter your password";
+    } else if (value.length < 8) {
+      return "Password must be at least 8 characters";
+    }
+    return null;
+  }
+
+  // Function triggered when login button is pressed
   void _onLoginButtonPressed() async {
     setState(() {
-      hasPressedButton = true; // Mark that the button was pressed
+      _validateEmailField();
+      _validatePasswordField();
     });
 
     if (_formKey.currentState!.validate()) {
@@ -150,7 +223,8 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       final authBloc = context.read<AuthenticationBloc>();
-      final userTypeFromRepo = await authBloc.authenticationRepository.getUserTypeByEmail(emailController.text.trim());
+      final userTypeFromRepo = await authBloc.authenticationRepository
+          .getUserTypeByEmail(emailController.text.trim());
 
       if (userTypeFromRepo != null && userTypeFromRepo != widget.userType) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -167,14 +241,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
       authBloc.add(
         LoginRequested(
-          email: emailController.text.trim(),
+          email: emailController.text.trim().toLowerCase(),
           password: passwordController.text.trim(),
-          userType: widget.userType, // Pass the userType
+          userType: widget.userType,
         ),
       );
     } else {
       setState(() {
-        isLoading = false; // Reset loading state if validation fails
+        isLoading = false;
       });
     }
   }

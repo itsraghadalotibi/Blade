@@ -65,38 +65,30 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
   void initState() {
     super.initState();
 
-    // Add listeners to FocusNodes to trigger validation when losing focus
-    emailFocusNode.addListener(() {
-      if (!emailFocusNode.hasFocus) {
-        setState(() {
-          emailError = _validateEmail(emailController.text);
-        });
-      }
+     emailController.addListener(() {
+      setState(() {
+        emailError = _validateEmail(emailController.text);
+      });
     });
 
-    firstNameFocusNode.addListener(() {
-      if (!firstNameFocusNode.hasFocus) {
-        setState(() {
-          firstNameError = _validateFirstName(firstNameController.text);
-        });
-      }
+    firstNameController.addListener(() {
+      setState(() {
+        firstNameError = _validateFirstName(firstNameController.text);
+      });
     });
 
-    lastNameFocusNode.addListener(() {
-      if (!lastNameFocusNode.hasFocus) {
-        setState(() {
-          lastNameError = _validateLastName(lastNameController.text);
-        });
-      }
+    lastNameController.addListener(() {
+      setState(() {
+        lastNameError = _validateLastName(lastNameController.text);
+      });
     });
 
-    passwordFocusNode.addListener(() {
-      if (!passwordFocusNode.hasFocus) {
-        setState(() {
-          passwordError = _validatePassword(passwordController.text);
-        });
-      }
+    passwordController.addListener(() {
+      setState(() {
+        passwordError = _validatePassword(passwordController.text);
+      });
     });
+
 
     // Add listener to password controller
     passwordController.addListener(_updatePasswordValidation);
@@ -171,7 +163,7 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
         !hasDigit ||
         !hasSpecialChar ||
         !isMinLength) {
-      return 'Password does not meet the requirements';
+      return 'Password must meet these requirements:';
     }
 
     return null;
@@ -220,7 +212,7 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
       // Create a SupporterModel
       final supporter = SupporterModel(
         uid: '',
-        email: emailController.text.trim(),
+        email: emailController.text.trim().toLowerCase(),
         firstName: firstNameController.text.trim(),
         lastName: lastNameController.text.trim(),
         bio: bioController.text.trim(),
@@ -252,17 +244,71 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
 
           if (state is AuthenticationUnauthenticated) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Sign Up Successful. Please log in.')),
-            );
-            Navigator.pushReplacementNamed(context, '/login', arguments: 'collaborator');
+                const SnackBar(
+                    backgroundColor: TColors.success,
+                    behavior: SnackBarBehavior.floating,
+                    content: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const Icon(CupertinoIcons.check_mark_circled_solid,
+                            color: Colors
+                                .white), // Change icon and color as needed
+                        const SizedBox(width: 8), // Space between icon and text
+                        const Expanded(
+                          child: Text(
+                            'Sign Up Successful. Please log in.',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    showCloseIcon: true),
+              );
+              Navigator.pushReplacementNamed(context, '/login', arguments: 'supporter');
           } else if (state is AuthenticationFailure) {
             if (state.error.contains("email-already-in-use")) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Email is already registered')),
+                const SnackBar(
+                    backgroundColor: TColors.warning,
+                    behavior: SnackBarBehavior.floating,
+                    content: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Icon(CupertinoIcons.exclamationmark_triangle_fill,
+                            color: Colors
+                                .white), // Change icon and color as needed
+                        SizedBox(width: 8), // Space between icon and text
+                        Expanded(
+                          child: Text(
+                            'Email is already registered',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    showCloseIcon: true),
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Sign Up Failed: ${state.error}')),
+                SnackBar(
+                    backgroundColor: TColors.error,
+                    behavior: SnackBarBehavior.floating,
+                    content: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const Icon(CupertinoIcons.xmark_circle_fill,
+                            color: Colors
+                                .white), // Change icon and color as needed
+                        const SizedBox(width: 8), // Space between icon and text
+                        Expanded(
+                          child: Text(
+                            'Sign Up Failed: ${state.error}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    showCloseIcon: true),
               );
             }
           }
@@ -278,46 +324,53 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                     _buildProfileImage(),
                     const SizedBox(height: 24),
 
-                    // Email field with error handling
-                    CustomTextField(
-                      label: 'Email',
-                      controller: emailController,
-                      focusNode: emailFocusNode,
-                      errorText: emailError,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 16),
-
                     // First Name field with error handling
                     CustomTextField(
-                      label: 'First Name',
+                      label: 'First Name*',
                       controller: firstNameController,
                       focusNode: firstNameFocusNode,
                       errorText: firstNameError,
+                      maxLength: 50,
+                      prefixIcon: const Icon(CupertinoIcons.person_fill, color: TColors.grey),
                     ),
                     const SizedBox(height: 16),
 
                     // Last Name field with error handling
                     CustomTextField(
-                      label: 'Last Name',
+                      label: 'Last Name*',
                       controller: lastNameController,
                       focusNode: lastNameFocusNode,
                       errorText: lastNameError,
+                      maxLength: 50,
+                      prefixIcon: const Icon(CupertinoIcons.person_fill, color: TColors.grey),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Email field with error handling
+                    CustomTextField(
+                      label: 'Email*',
+                      controller: emailController,
+                      focusNode: emailFocusNode,
+                      errorText: emailError,
+                      prefixIcon: const Icon(CupertinoIcons.mail_solid, color: TColors.grey),
+
                     ),
                     const SizedBox(height: 16),
 
                     // Password field with error handling
                     CustomTextField(
-                      label: 'Password',
+                      label: 'Password*',
                       controller: passwordController,
                       obscureText: true,
                       focusNode: passwordFocusNode,
                       errorText: passwordError,
+                      maxLength: 128,
+                      prefixIcon: const Icon(CupertinoIcons.lock_fill, color: TColors.grey),
                     ),
-                    
 
                     // Display password requirements only when user starts typing
                     if (showPasswordRequirements) ...[
+                      const SizedBox(height: 4),
                       PasswordRequirement(
                         requirement: 'At least 8 characters',
                         isMet: isMinLength,
@@ -348,6 +401,8 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                       controller: bioController,
                       maxLines: 3,
                       maxLength: 300,
+                      showCounter: true,
+                      prefixIcon: const Icon(CupertinoIcons.pencil, color: TColors.grey),
                     ),
                     const SizedBox(height: 24),
 
@@ -361,18 +416,22 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
                     ),
 
                      const SizedBox(height: 16),
-
+                    const Text(
+                      "Already have an account?",
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    // Create Account Outlined Button (OutlinedButton)
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/login', arguments: 'supporter');
-                      },
-                      child: const Text(
-                        'Already have an account? Log In',
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(context, '/login', arguments: 'supporter');
+                        },
+                        child: const Text('Login'),
                       ),
                     ),
-                    ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -394,20 +453,29 @@ class _SupporterSignUpScreenState extends State<SupporterSignUpScreen> {
         alignment: Alignment.bottomRight,
         children: [
           CircleAvatar(
-            radius: 75,
-            backgroundColor: TColors.secondary,
+            backgroundColor: const Color.fromARGB(255, 160, 234, 218),
+            radius: 82,
             child: CircleAvatar(
-              radius: 73,
-              backgroundImage: _profileImage != null
-                ? FileImage(_profileImage!)
-                : const AssetImage('assets/images/content/user.png') as ImageProvider,
+              radius: 75,
+              backgroundColor: TColors.secondary,
+              child: CircleAvatar(
+                radius: 70,
+                backgroundImage: _profileImage != null
+                    ? FileImage(_profileImage!)
+                    : const AssetImage('assets/images/content/user.png')
+                        as ImageProvider,
+              ),
             ),
           ),
           Positioned(
             bottom: 0,
             right: 0,
             child: IconButton(
-              icon: Icon(CupertinoIcons.camera, color: TColors.primary),
+              icon: const Icon(
+                CupertinoIcons.camera,
+                color: TColors.primary,
+                size: 32,
+              ),
               onPressed: _pickImage,
             ),
           ),
