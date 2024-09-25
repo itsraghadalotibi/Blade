@@ -63,8 +63,30 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
       if (collaboratorSnapshot.docs.isEmpty && supporterSnapshot.docs.isEmpty) {
         // Email not found in both collections
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No account found for this email.')),
-        );
+           const SnackBar(
+            backgroundColor: Colors.red, // Red background color
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Icon(
+                  CupertinoIcons.exclamationmark_circle, // Use an exclamation mark icon for error
+                  color: Colors.white, // White icon color
+                ),
+                const SizedBox(width: 8), // Space between icon and text
+                const Expanded(
+                  child: Text(
+                    'No account found for this email.', // Updated text
+                    style: TextStyle(
+                      color: Colors.white, // White text color
+                      fontSize: 16, // Adjust font size if needed
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating, // Make it floating
+            margin: const EdgeInsets.only(top: 10, left: 10, right: 10), // Show at the top
+          ));
         return;
       }
 
@@ -73,11 +95,31 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
 
       // Show a success message with green background
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Reset link sent to $email successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+          SnackBar(
+            backgroundColor: Colors.green, // Green background color
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Icon(
+                  CupertinoIcons.check_mark_circled_solid, // Use check mark icon
+                  color: Colors.white, // White icon color
+                ),
+                const SizedBox(width: 8), // Space between icon and text
+                Expanded(
+                  child: Text(
+                    'Reset link sent to $email successfully!', // Updated text with email variable
+                    style: const TextStyle(
+                      color: Colors.white, // White text color
+                      fontSize: 16, // Adjust font size if needed
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating, // Make it floating
+            margin: const EdgeInsets.only(top: 10, left: 10, right: 10), // Show at the top
+          ));
+      
 
     } catch (e) {
       // Handle errors

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:blade_app/utils/helpers/flutter_toast.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../src/authentication_repository.dart';
@@ -19,12 +18,12 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     on<FetchSkills>(_onFetchSkills); 
   }
 
+  // Handle App Started Event
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthenticationState> emit) async {
     emit(AuthenticationLoading());
 
     try {
       final isSignedIn = await authenticationRepository.isSignedIn();
-
       if (isSignedIn) {
         final user = await authenticationRepository.getUser();
         emit(AuthenticationAuthenticated(user: user));
@@ -36,17 +35,18 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     }
   }
 
+  // Handle Login Event
   Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthenticationState> emit) async {
     emit(AuthenticationLoading());
 
     // Check for empty email and password when the button is clicked
     if (event.email.isEmpty) {
-      toastInfo(msg: "Email required input");
+      emit(AuthenticationFailure(error: "Email is required"));
       emit(AuthenticationUnauthenticated());
       return;
     }
     if (event.password.isEmpty) {
-      toastInfo(msg: "Password required input");
+      emit(AuthenticationFailure(error: "Password is required"));
       emit(AuthenticationUnauthenticated());
       return;
     }
@@ -54,7 +54,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     // Validate email format
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!emailRegex.hasMatch(event.email)) {
-      toastInfo(msg: "Invalid email format.");
+      emit(AuthenticationFailure(error: "Invalid email format"));
       emit(AuthenticationUnauthenticated());
       return;
     }
@@ -62,7 +62,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     // Check if the user is registered
     String? userType = await authenticationRepository.getUserTypeByEmail(event.email);
     if (userType == null) {
-      toastInfo(msg: "User is not registered.");
+      emit(AuthenticationFailure(error: "User is not registered"));
       emit(AuthenticationUnauthenticated());
       return;
     }
@@ -74,14 +74,14 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       // Handle sign-in errors
       if (error is FirebaseAuthException) {
         if (error.code == 'wrong-password') {
-          toastInfo(msg: "The password is invalid");
+          emit(AuthenticationFailure(error: "Invalid password"));
         } else {
-          toastInfo(msg: "Login failed: email or password invalid");
+          emit(AuthenticationFailure(error: "Login failed: email or password invalid"));
         }
         emit(AuthenticationUnauthenticated());
         return;
       } else {
-        toastInfo(msg: "Login failed: email or password invalid");
+        emit(AuthenticationFailure(error: "Login failed: email or password invalid"));
         emit(AuthenticationUnauthenticated());
         return;
       }
@@ -100,7 +100,9 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     emit(AuthenticationAuthenticated(user: user));
   }
 
-  Future<void> _onSignUpCollaboratorRequested(SignUpCollaboratorRequested event, Emitter<AuthenticationState> emit) async {
+  // Handle Collaborator Sign-Up Event
+  Future<void> _onSignUpCollaboratorRequested(
+      SignUpCollaboratorRequested event, Emitter<AuthenticationState> emit) async {
     emit(AuthenticationLoading());
 
     try {
@@ -116,7 +118,9 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     }
   }
 
-  Future<void> _onSignUpSupporterRequested(SignUpSupporterRequested event, Emitter<AuthenticationState> emit) async {
+  // Handle Supporter Sign-Up Event
+  Future<void> _onSignUpSupporterRequested(
+      SignUpSupporterRequested event, Emitter<AuthenticationState> emit) async {
     emit(AuthenticationLoading());
 
     try {
@@ -132,6 +136,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     }
   }
 
+  // Handle Log Out Event
   Future<void> _onLoggedOut(LoggedOut event, Emitter<AuthenticationState> emit) async {
     emit(AuthenticationLoading());
 
@@ -143,8 +148,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     }
   }
 
-  Future<void> _onFetchSkills(
-      FetchSkills event, Emitter<AuthenticationState> emit) async {
+  // Handle Fetch Skills Event
+  Future<void> _onFetchSkills(FetchSkills event, Emitter<AuthenticationState> emit) async {
     emit(SkillsLoading());
 
     try {

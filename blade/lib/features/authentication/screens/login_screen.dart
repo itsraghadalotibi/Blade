@@ -64,18 +64,70 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (state is AuthenticationAuthenticated) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Login Successful!',
-                  style: TextStyle(color: Colors.white),
+              SnackBar(
+                backgroundColor: Colors.green, // Green background color
+                content: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Space between content and close button
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          CupertinoIcons.check_mark_circled_solid, // Check mark icon
+                          color: Colors.white, // White icon color
+                        ),
+                        const SizedBox(width: 8), // Space between icon and text
+                        const Text(
+                          'Login Successful!',
+                          style: TextStyle(
+                            color: Colors.white, // White text color
+                            fontSize: 16, // Adjust font size if needed
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.close, // Close icon
+                        color: Colors.white, // White icon color
+                      ),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar(); // Close the SnackBar
+                      },
+                    ),
+                  ],
                 ),
-                backgroundColor: Colors.green,
-              ),
+                behavior: SnackBarBehavior.floating, // Make it floating
+                margin: const EdgeInsets.only(top: 10, left: 10, right: 10), // Show at the top
+              )
             );
+
             Navigator.pushReplacementNamed(context, '/home');
           } else if (state is AuthenticationFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Login Failed: ${state.error}')),
+              SnackBar(
+                backgroundColor: Colors.red, // Red background for error
+                content: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Icon(
+                      CupertinoIcons.exclamationmark_circle, // Error icon
+                      color: Colors.white, // White icon color
+                    ),
+                    const SizedBox(width: 8), // Space between icon and text
+                    Expanded(
+                      child: Text(
+                        'Login Failed: ${state.error}', // Show error message from bloc
+                        style: const TextStyle(
+                          color: Colors.white, // White text color
+                          fontSize: 16, // Adjust font size if needed
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                behavior: SnackBarBehavior.floating, // Make it floating
+                margin: const EdgeInsets.only(left: 10, right: 10, bottom: 10), // Show at the bottom
+              )
             );
           }
         },
@@ -228,11 +280,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (userTypeFromRepo != null && userTypeFromRepo != widget.userType) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Error: You are trying to log in as a ${widget.userType}, but your account is registered as a $userTypeFromRepo.'),
-          ),
-        );
+           SnackBar(
+              backgroundColor: Colors.red, // Red background color for error
+              content: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(
+                    CupertinoIcons.exclamationmark_circle, // Use error icon
+                    color: Colors.white, // White icon color
+                  ),
+                  const SizedBox(width: 8), // Space between icon and text
+                  Expanded(
+                    child: Text(
+                      'Error: You are trying to log in as a ${widget.userType}, but your account is registered as a $userTypeFromRepo.', // Dynamic error message
+                      style: const TextStyle(
+                        color: Colors.white, // White text color
+                        fontSize: 16, // Adjust font size if needed
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              behavior: SnackBarBehavior.floating, // Make it floating
+              margin: const EdgeInsets.only(left: 10, right: 10, bottom: 10), // Show at the bottom
+            ));
+        
         setState(() {
           isLoading = false;
         });
