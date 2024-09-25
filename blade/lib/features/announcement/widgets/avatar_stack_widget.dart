@@ -1,3 +1,4 @@
+import 'package:blade_app/utils/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'avatar_widget.dart';
 import '../src/announcement_repository.dart';
@@ -59,11 +60,11 @@ class AvatarStackWidget extends StatelessWidget {
                 width: avatarSize,
                 height: avatarSize,
                 child: CircleAvatar(
-                  backgroundColor: const Color(0xFFD9D9D9),
+                  backgroundColor: TColors.borderPrimary,  //0xFFD9D9D9
                   radius: avatarSize * 0.5, // Ensure consistent size
                   child: Text(
                     '+${userIds.length - maxVisibleAvatars}', // Display the number of extra avatars
-                    style: const TextStyle(color: Color(0xFFFD5336)),
+                    style: const TextStyle(color: TColors.buttonPrimary),
                   ),
                 ),
               ),
