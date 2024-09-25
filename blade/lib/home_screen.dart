@@ -12,7 +12,6 @@ import 'features/authentication/src/supporter_model.dart';
 import 'features/profile/bloc/repository/profile_repository.dart';
 import 'features/profile/bloc/screens/collaborator_profile_screen.dart';
 import 'features/profile/bloc/screens/supporter_profile_screen.dart';
-import 'package:flutter/cupertino.dart'; // Import this for CupertinoIcons
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -23,39 +22,45 @@ class HomeScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text(
-            "Logout Confirmation",
+      title: const Text(
+        "Logout Confirmation",
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: const Text(
+        "Are you sure you want to log out from Blade?",
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(dialogContext).pop(); // Close the dialog
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black,
+          ),
+          child: const Text("Cancel"),
+        ),
+        const SizedBox(width: 2),
+        TextButton(
+          onPressed: () {
+            Navigator.of(dialogContext).pop(); // Close the dialog
+            _onLogoutButtonPressed(context); // Perform logout
+          },
+          style: TextButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error, // Red background
+          ),
+          child: Text(
+            "Logout",
             style: TextStyle(
-              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onError, // White text
             ),
           ),
-          content: const Text(
-            "Are you sure you want to log out from Blade?",
-            style: TextStyle(color: Colors.black),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close the dialog
-              },
-              child: const Text("Cancel"),
-            ),
-            const SizedBox(width: 2),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close the dialog
-                _onLogoutButtonPressed(context); // Perform logout
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              ),
-              child: const Text("Logout"),
-            ),
-          ],
-        );
+        ),
+      ],
+    );
       },
     );
   }
@@ -63,27 +68,6 @@ class HomeScreen extends StatelessWidget {
   // Updated method to include confirmation message after logging out
   void _onLogoutButtonPressed(BuildContext context) {
     context.read<AuthenticationBloc>().add(LoggedOut());
-
-    // Navigate to the welcome screen and clear the navigation stack
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      '/',
-      (Route<dynamic> route) => false, // Clear all previous routes
-    );
-
-    // Show a green confirmation message after logout
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Logged out successfully!',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(top: 10, left: 10, right: 10),
-        showCloseIcon: true,
-      ),
-    );
   }
 
   // Adjusted _onProfileButtonPressed to route to the correct profile screen
@@ -116,11 +100,25 @@ class HomeScreen extends StatelessWidget {
     return BlocListener<AuthenticationBloc, AuthenticationState>(
       listener: (context, state) {
         if (state is AuthenticationUnauthenticated) {
-          // Navigate to the welcome screen and remove all previous routes
+          // Show the success snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Logged out successfully!',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(top: 10, left: 10, right: 10),
+              showCloseIcon: true,
+            ),
+          );
+
+          // Navigate to the welcome screen and clear the navigation stack
           Navigator.pushNamedAndRemoveUntil(
             context,
-            '/', // Replace with your WelcomeScreen route
-            (Route<dynamic> route) => false,
+            '/',
+            (Route<dynamic> route) => false, // Clear all previous routes
           );
         }
       },
@@ -134,6 +132,7 @@ class HomeScreen extends StatelessWidget {
                 appBar: AppBar(
                   automaticallyImplyLeading: false,
                   title: const Text('Collaborator Home'),
+                  centerTitle: true,
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.logout),
@@ -159,6 +158,7 @@ class HomeScreen extends StatelessWidget {
                 appBar: AppBar(
                   automaticallyImplyLeading: false,
                   title: const Text('Supporter Home'),
+                  centerTitle: true,
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.logout),

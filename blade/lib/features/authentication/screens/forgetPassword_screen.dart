@@ -50,8 +50,29 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
     if (_emailError != null) {
       // Show error if there's an issue with the email
       ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    backgroundColor: TColors.error,
+                    behavior: SnackBarBehavior.floating,
+                    content: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const Icon(CupertinoIcons.xmark_circle_fill,
+                            color: Colors
+                                .white), // Change icon and color as needed
+                        const SizedBox(width: 8), // Space between icon and text
+                        Expanded(
+                          child: Text(
+                            _emailError!,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                    showCloseIcon: true),
+              );
+      /*ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(_emailError!)), // Display error message
-      );
+      );*/
       return; // Don't proceed if there's an email error
     }
 
@@ -63,30 +84,26 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
       if (collaboratorSnapshot.docs.isEmpty && supporterSnapshot.docs.isEmpty) {
         // Email not found in both collections
         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(
-            backgroundColor: Colors.red, // Red background color
-            content: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Icon(
-                  CupertinoIcons.exclamationmark_circle, // Use an exclamation mark icon for error
-                  color: Colors.white, // White icon color
-                ),
-                const SizedBox(width: 8), // Space between icon and text
-                const Expanded(
-                  child: Text(
-                    'No account found for this email.', // Updated text
-                    style: TextStyle(
-                      color: Colors.white, // White text color
-                      fontSize: 16, // Adjust font size if needed
+                const SnackBar(
+                    backgroundColor: TColors.error,
+                    behavior: SnackBarBehavior.floating,
+                    content: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Icon(CupertinoIcons.xmark_circle_fill,
+                            color: Colors
+                                .white), // Change icon and color as needed
+                        SizedBox(width: 8), // Space between icon and text
+                        Expanded(
+                          child: Text(
+                            'This email is not registered',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-            behavior: SnackBarBehavior.floating, // Make it floating
-            margin: const EdgeInsets.only(top: 10, left: 10, right: 10), // Show at the top
-          ));
+                    showCloseIcon: true),
+              );
         return;
       }
 
@@ -95,31 +112,26 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
 
       // Show a success message with green background
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.green, // Green background color
-            content: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Icon(
-                  CupertinoIcons.check_mark_circled_solid, // Use check mark icon
-                  color: Colors.white, // White icon color
-                ),
-                const SizedBox(width: 8), // Space between icon and text
-                Expanded(
-                  child: Text(
-                    'Reset link sent to $email successfully!', // Updated text with email variable
-                    style: const TextStyle(
-                      color: Colors.white, // White text color
-                      fontSize: 16, // Adjust font size if needed
-                    ),
+              SnackBar(
+                  backgroundColor: TColors.success,
+                  behavior: SnackBarBehavior.floating,
+                  content: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const Icon(CupertinoIcons.check_mark_circled_solid,
+                          color:
+                              Colors.white), // Change icon and color as needed
+                      const SizedBox(width: 8), // Space between icon and text
+                      Expanded(
+                        child: Text(
+                          'Reset link sent to $email successfully!',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            behavior: SnackBarBehavior.floating, // Make it floating
-            margin: const EdgeInsets.only(top: 10, left: 10, right: 10), // Show at the top
-          ));
-      
+                  showCloseIcon: true),
+            );
 
     } catch (e) {
       // Handle errors
@@ -152,6 +164,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Forgot Password'),
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -174,7 +187,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  maximumSize: Size.fromWidth(double.infinity),
+                  maximumSize: const Size.fromWidth(double.infinity),
                   backgroundColor: TColors.primary,
                 ),
                 onPressed: _sendResetLink,
