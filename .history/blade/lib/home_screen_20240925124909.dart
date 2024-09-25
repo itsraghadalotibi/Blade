@@ -12,6 +12,7 @@ import 'features/authentication/src/supporter_model.dart';
 import 'features/profile/bloc/repository/profile_repository.dart';
 import 'features/profile/bloc/screens/collaborator_profile_screen.dart';
 import 'features/profile/bloc/screens/supporter_profile_screen.dart';
+import 'welcome_screen.dart'; // Add the import for your WelcomeScreen
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -59,14 +60,14 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Updated method to include confirmation message after logging out
+  // Updated method to route to WelcomeScreen after logout
   void _onLogoutButtonPressed(BuildContext context) {
     context.read<AuthenticationBloc>().add(LoggedOut());
 
-    // Navigate to the welcome screen and clear the navigation stack
+    // Navigate to the WelcomeScreen and clear the navigation stack
     Navigator.pushNamedAndRemoveUntil(
       context,
-      '/', // Assuming this is the welcome screen route
+      '/welcome', // Make sure this matches your WelcomeScreen route
       (Route<dynamic> route) => false, // Clear all previous routes
     );
 
@@ -114,10 +115,10 @@ class HomeScreen extends StatelessWidget {
     return BlocListener<AuthenticationBloc, AuthenticationState>(
       listener: (context, state) {
         if (state is AuthenticationUnauthenticated) {
-          // Navigate to the welcome screen and remove all previous routes
+          // Navigate to the WelcomeScreen and remove all previous routes
           Navigator.pushNamedAndRemoveUntil(
             context,
-            '/', // Replace with your WelcomeScreen route
+            '/welcome', // Ensure this is the correct route for your WelcomeScreen
             (Route<dynamic> route) => false,
           );
         }

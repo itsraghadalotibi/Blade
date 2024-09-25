@@ -16,50 +16,7 @@ import 'features/profile/bloc/screens/supporter_profile_screen.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  // Method for showing logout confirmation dialog
-  void _showLogoutConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text(
-            "Logout Confirmation",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: const Text(
-            "Are you sure you want to log out from Blade?",
-            style: TextStyle(color: Colors.black),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close the dialog
-              },
-              child: const Text("Cancel"),
-            ),
-            const SizedBox(width: 2),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close the dialog
-                _onLogoutButtonPressed(context); // Perform logout
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              ),
-              child: const Text("Logout"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Updated method to include confirmation message after logging out
+  // Updated method to include confirmation message
   void _onLogoutButtonPressed(BuildContext context) {
     context.read<AuthenticationBloc>().add(LoggedOut());
 
@@ -135,7 +92,7 @@ class HomeScreen extends StatelessWidget {
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.logout),
-                      onPressed: () => _showLogoutConfirmation(context),
+                      onPressed: () => _showDialog(context),
                     ),
                   ],
                 ),
@@ -148,6 +105,15 @@ class HomeScreen extends StatelessWidget {
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 16),
+                      // Uncomment this if needed for profile navigation
+                      // ElevatedButton(
+                      //   onPressed: () => _onProfileButtonPressed(
+                      // context,
+                      //  user.uid,
+                      //  true,
+                      // ),
+                      // child: const Text('Go to Profile'),
+                      //),
                     ],
                   ),
                 ),
@@ -160,7 +126,7 @@ class HomeScreen extends StatelessWidget {
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.logout),
-                      onPressed: () => _showLogoutConfirmation(context),
+                      onPressed: () => _showDialog(context),
                     ),
                   ],
                 ),
@@ -192,7 +158,7 @@ class HomeScreen extends StatelessWidget {
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.logout),
-                      onPressed: () => _showLogoutConfirmation(context),
+                      onPressed: () => _showDialog(context),
                     ),
                   ],
                 ),
@@ -210,6 +176,49 @@ class HomeScreen extends StatelessWidget {
           }
         },
       ),
+    );
+  }
+
+  void _showDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            "Logout Confirmation",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text(
+            "Are you sure you want to log out from Blade?",
+            style: TextStyle(color: Colors.black),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            const SizedBox(width: 2),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _onLogoutButtonPressed(
+                    context); // Updated to avoid the infinite loading
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              child: const Text("Logout"),
+            ),
+          ],
+        );
+      },
     );
   }
 }

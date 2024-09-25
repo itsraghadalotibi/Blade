@@ -148,6 +148,15 @@ class HomeScreen extends StatelessWidget {
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 16),
+                      // Uncomment this if needed for profile navigation
+                      // ElevatedButton(
+                      //   onPressed: () => _onProfileButtonPressed(
+                      // context,
+                      //  user.uid,
+                      //  true,
+                      // ),
+                      // child: const Text('Go to Profile'),
+                      //),
                     ],
                   ),
                 ),
