@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../src/announcement_repository.dart';
 import '../widgets/skill_tag_widget.dart';
 import '../src/announcement_model.dart';
+import 'announcement_screen.dart';
 import '../../../utils/constants/colors.dart';
 import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
 
@@ -66,12 +67,12 @@ class MembersScreen extends StatelessWidget {
 
               return GestureDetector(
                 onTap: () {
-                  // Navigate to the Collaborator Profile when container is tapped
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CollaboratorProfileScreen(
                         userId: collaborator.uid,
+                        showBackButton: true, // Pass true to show the back button
                       ),
                     ),
                   );

@@ -5,6 +5,7 @@ import 'package:blade_app/features/newPost/screens/backgroundPost.dart';
 import 'package:blade_app/utils/constants/Navigation/profile.dart';
 import 'package:blade_app/utils/constants/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -23,13 +24,19 @@ import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 
 class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
+  final bool showBackButton; // Add this parameter
 
-  const CollaboratorProfileScreen({super.key, required this.userId});
+  const CollaboratorProfileScreen({
+    super.key,
+    required this.userId,
+    this.showBackButton = false, // Default value is false
+  });
 
   @override
   _CollaboratorProfileScreenState createState() =>
       _CollaboratorProfileScreenState();
 }
+
 
 class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     with SingleTickerProviderStateMixin {
@@ -41,6 +48,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   // Variables for bio expansion
   bool isBioExpanded = false;
   static const int maxBioLines = 3; // Limit bio to 3 lines initially
+  String? _currentUserId; // Variable to hold the authenticated user's ID
 
   @override
   void initState() {
@@ -48,7 +56,11 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     _tabController = TabController(length: 3, vsync: this);
     _projectIdeaRepository = ProjectIdeaRepository();
     _futureIdeas = _projectIdeaRepository.fetchIdeasByOwner(widget.userId);
+
+    // Fetch the authenticated user's ID from Firebase
+    _currentUserId = FirebaseAuth.instance.currentUser?.uid;
   }
+
 
   @override
   void dispose() {
@@ -58,16 +70,16 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Check if the logged-in user is the profile owner
+    final bool isOwner = _currentUserId == widget.userId;
+
     return BlocProvider(
       create: (context) => ProfileViewBloc(profileRepository: context.read())
         ..add(LoadProfile(widget.userId)),
       child: Scaffold(
-        backgroundColor: Theme.of(context)
-            .scaffoldBackgroundColor, // Dynamic background color
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: Theme.of(context)
-              .appBarTheme
-              .backgroundColor, // Dynamic app bar color
+          backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
           title: Text(
             'Profile',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -76,52 +88,51 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                 ),
           ),
           centerTitle: true,
-          automaticallyImplyLeading: false,
-          actions: [
-            IconButton(
-              icon: Icon(
-                Icons.edit,
-                color: Theme.of(context).iconTheme.color, // Themed icon color
-              ),
-              onPressed: () async {
-                final state = BlocProvider.of<ProfileViewBloc>(context).state;
-                if (state is ProfileLoaded &&
-                    state.profile is CollaboratorProfileModel) {
-                  final profile = _updatedProfile ??
-                      state.profile as CollaboratorProfileModel;
-
-                  final updatedProfile = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BlocProvider(
-                        create: (context) => EditCollaboratorProfileBloc(
-                          profileRepository: context.read(),
-                        ),
-                        child: EditCollaboratorProfileScreen(profile: profile),
-                      ),
+          automaticallyImplyLeading: widget.showBackButton, // Use showBackButton flag
+          actions: isOwner
+              ? [
+                  IconButton(
+                    icon: Icon(
+                      Icons.edit,
+                      color: Theme.of(context).iconTheme.color, // Themed icon color
                     ),
-                  );
+                    onPressed: () async {
+                      final state = BlocProvider.of<ProfileViewBloc>(context).state;
+                      if (state is ProfileLoaded &&
+                          state.profile is CollaboratorProfileModel) {
+                        final profile = _updatedProfile ??
+                            state.profile as CollaboratorProfileModel;
 
-                  if (updatedProfile != null &&
-                      updatedProfile is CollaboratorProfileModel) {
-                    setState(() {
-                      _updatedProfile = updatedProfile;
-                    });
+                        final updatedProfile = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BlocProvider(
+                              create: (context) => EditCollaboratorProfileBloc(
+                                profileRepository: context.read(),
+                              ),
+                              child: EditCollaboratorProfileScreen(profile: profile),
+                            ),
+                          ),
+                        );
 
-                    context
-                        .read<ProfileViewBloc>()
-                        .add(LoadProfile(widget.userId));
-                  }
-                }
-              },
-            ),
-          ],
+                        if (updatedProfile != null &&
+                            updatedProfile is CollaboratorProfileModel) {
+                          setState(() {
+                            _updatedProfile = updatedProfile;
+                          });
+
+                          context.read<ProfileViewBloc>().add(LoadProfile(widget.userId));
+                        }
+                      }
+                    },
+                  ),
+                ]
+              : null, // Hide edit button if not the owner
         ),
         body: BlocBuilder<ProfileViewBloc, ProfileViewState>(
           builder: (context, state) {
             final profile = _updatedProfile ??
-                (state is ProfileLoaded &&
-                        state.profile is CollaboratorProfileModel
+                (state is ProfileLoaded && state.profile is CollaboratorProfileModel
                     ? state.profile as CollaboratorProfileModel
                     : null);
 
@@ -133,9 +144,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
               return Center(
                   child: Text('Error: ${state.message}',
                       style: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .error))); // Use themed error color
+                          color: Theme.of(context).colorScheme.error)));
             }
             return const Center(child: Text('Unable to load profile.'));
           },
@@ -143,6 +152,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
       ),
     );
   }
+
 
   Widget buildCollaboratorProfile(CollaboratorProfileModel profile) {
     return NestedScrollView(
@@ -431,3 +441,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     );
   }
 }
+
+
+
+
+
+

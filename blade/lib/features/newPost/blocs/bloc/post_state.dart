@@ -18,17 +18,17 @@ class PostStepState extends PostState {
   List<Object> get props => [currentStep];
 }
 
-// State for when the post is being submitted (loading)
+// State for when the idea is being submitted (loading)
 class SubmissionState extends PostState {
   const SubmissionState();
 }
 
-// State for when the post is submitted successfully
+// State for when the idea is submitted successfully
 class PostSuccessState extends PostState {
   const PostSuccessState();
 }
 
-// State for when there is an error during post submission
+// State for when there is an error during idea submission
 class PostFailureState extends PostState {
   final String error;
 
