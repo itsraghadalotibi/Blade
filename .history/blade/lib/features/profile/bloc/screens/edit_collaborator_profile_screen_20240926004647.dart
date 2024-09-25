@@ -109,13 +109,9 @@ class _EditCollaboratorProfileScreenState
     return null;
   }
 
-  // Image picker function with compression
+  // Image picker function
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 50, // Compress image to 50% quality
-    );
-
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _newProfileImage = File(pickedFile.path);
