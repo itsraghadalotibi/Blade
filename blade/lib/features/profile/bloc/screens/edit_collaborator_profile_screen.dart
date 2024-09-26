@@ -182,7 +182,7 @@ class _EditCollaboratorProfileScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Collaborator Profile')),
+      appBar: AppBar(title: const Text('                Edit Profile')),
       body: BlocListener<EditCollaboratorProfileBloc,
           EditCollaboratorProfileState>(
         listener: (context, state) {
