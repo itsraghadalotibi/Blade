@@ -62,6 +62,7 @@ class _backgroundScreenState extends State<backgroundScreen> with TickerProvider
         backgroundColor: isDarkMode ? Colors.grey.shade900 : const Color.fromARGB(255, 255, 255, 255), // Background color for AppBar
         elevation: 0, // Remove shadow under AppBar
         iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black), // Icon color for AppBar
+        automaticallyImplyLeading: false,
       ),
       body: Container(
         width: double.infinity,
