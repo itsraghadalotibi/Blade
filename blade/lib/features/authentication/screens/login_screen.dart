@@ -7,6 +7,8 @@ import '../bloc/authentication_event.dart';
 import '../bloc/authentication_state.dart';
 import 'package:blade_app/widgets/custom_text_field.dart';
 
+import '../src/collaborator_model.dart';
+
 class LoginScreen extends StatefulWidget {
   final String userType;
 
@@ -64,6 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
           });
 
           if (state is AuthenticationAuthenticated) {
+            final user = state.user;
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                   backgroundColor: TColors.success,
@@ -85,7 +88,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   showCloseIcon: true),
             );
-            Navigator.pushReplacementNamed(context, '/home');
+            if (user is CollaboratorModel) {
+              Navigator.pushReplacementNamed(context, '/collaboratorHome');
+            } else{
+              Navigator.pushReplacementNamed(context, '/supporterHome');
+            }
           } else if (state is AuthenticationFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

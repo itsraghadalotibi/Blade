@@ -317,7 +317,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: TColors.primary),
+                            color: Colors.orange),
                       ),
                       const SizedBox(height: 8),
                       LayoutBuilder(
@@ -358,7 +358,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                   child: Text(
                                     isBioExpanded ? 'Show less' : 'Show more',
                                     style: const TextStyle(
-                                      color: TColors.primary,
+                                      color: Colors.orange,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
