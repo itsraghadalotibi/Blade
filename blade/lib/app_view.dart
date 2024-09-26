@@ -36,7 +36,7 @@ class AppView extends StatelessWidget {
        debugShowCheckedModeBanner: false,
       title: 'Blade App',
       themeMode: ThemeMode.system,
-      theme: TAppTheme.darkTheme,
+      theme: TAppTheme.lightTheme,
       darkTheme: TAppTheme.darkTheme,
       home: FutureBuilder<Widget>(
         future: _checkInitialScreen(context),
