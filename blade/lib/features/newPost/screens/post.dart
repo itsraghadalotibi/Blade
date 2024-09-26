@@ -13,11 +13,11 @@ import '../blocs/bloc/post_event.dart';
 import '../blocs/bloc/post_state.dart';
 
 final uuid = Uuid();
-final _formKeyStep1 = GlobalKey<FormState>();  // Key for Step 1
-final _formKeyStep2 = GlobalKey<FormState>();  // Key for Step 2
+final _formKeyStep1 = GlobalKey<FormState>();
+final _formKeyStep2 = GlobalKey<FormState>();
 
 class NumberStepper extends StatefulWidget {
-  final ValueChanged<int> onNumberChanged;  // Callback for number change
+  final ValueChanged<int> onNumberChanged;
 
   NumberStepper({required this.onNumberChanged});
 
@@ -26,11 +26,13 @@ class NumberStepper extends StatefulWidget {
 }
 
 class _NumberStepperState extends State<NumberStepper> {
-  int _numberOfMembers = 1; // Initial value is now 1
-  bool _showMaxMessage = false; // Flag to show message when user tries to go beyond 10
+  int _numberOfMembers = 1;
+  bool _showMaxMessage = false;
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Align(
       alignment: Alignment.centerLeft,
       child: Column(
@@ -39,9 +41,14 @@ class _NumberStepperState extends State<NumberStepper> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              // Decrement Button
               IconButton(
-                icon: const Icon(Icons.remove, size: 20, color: Colors.white),
+                icon: Icon(
+                  Icons.remove,
+                  size: 20,
+                  color: isDarkMode
+                      ? const Color.fromARGB(255, 255, 255, 255)
+                      : const Color.fromARGB(255, 0, 0, 0),
+                ),
                 onPressed: () {
                   setState(() {
                     if (_numberOfMembers > 1) {
@@ -56,16 +63,27 @@ class _NumberStepperState extends State<NumberStepper> {
                 padding: const EdgeInsets.symmetric(horizontal: 5.0),
                 child: Text(
                   '$_numberOfMembers',
-                  style: const TextStyle(fontSize: 16.0, color: Colors.white),
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.add, size: 20),
-                color: (_numberOfMembers < 10) ? Colors.white : Colors.grey,
-                onPressed: (_numberOfMembers < 10)
+                icon: Icon(
+                  Icons.add,
+                  size: 20,
+                  color: (_numberOfMembers < 20)
+                      ? (isDarkMode
+                          ? const Color.fromARGB(255, 255, 255, 255)
+                          : const Color.fromARGB(255, 0, 0, 0))
+                      : Colors.grey,
+                ),
+                onPressed: (_numberOfMembers < 20)
                     ? () {
                         setState(() {
                           _numberOfMembers++;
+                          _showMaxMessage = false;
                           widget.onNumberChanged(_numberOfMembers);
                         });
                       }
@@ -81,7 +99,7 @@ class _NumberStepperState extends State<NumberStepper> {
             const Padding(
               padding: EdgeInsets.only(top: 5.0),
               child: Text(
-                'Maximum number of members is 10',
+                'Maximum number of members is 20',
                 style: TextStyle(color: Colors.red, fontSize: 12),
               ),
             ),
@@ -102,10 +120,18 @@ class _PostState extends State<Post> {
   final _ideanameController = TextEditingController();
   final _ideadescriptionController = TextEditingController();
   final _numberController = TextEditingController(text: '1');
-  final AnnouncementRepository _ideaRepository = AnnouncementRepository(firestore: FirebaseFirestore.instance);
+  final AnnouncementRepository _ideaRepository = AnnouncementRepository(
+    firestore: FirebaseFirestore.instance,
+  );
+  final FocusNode _projectNameFocusNode = FocusNode();
+  final FocusNode _descriptionFocusNode = FocusNode();
+  final GlobalKey<FormState> _projectNameFormKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _descriptionFormKey = GlobalKey<FormState>();
+
   String? _skillsError;
-  List<String> topSkills = [];
+  Color _messageColor = Colors.grey;
   bool _isSubmitted = false;
+  List<String> topSkills = [];
   List<String> tags = [];
   List<String> options = [];
 
@@ -114,6 +140,25 @@ class _PostState extends State<Post> {
     super.initState();
     _numberController.text = '1';
     fetchSkills();
+
+    _projectNameFocusNode.addListener(() {
+      if (!_projectNameFocusNode.hasFocus) {
+        _projectNameFormKey.currentState!.validate();
+      }
+    });
+
+    _descriptionFocusNode.addListener(() {
+      if (!_descriptionFocusNode.hasFocus) {
+        _descriptionFormKey.currentState!.validate();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _projectNameFocusNode.dispose();
+    _descriptionFocusNode.dispose();
+    super.dispose();
   }
 
   Future<void> fetchSkills() async {
@@ -131,9 +176,13 @@ class _PostState extends State<Post> {
   }
 
   void _submitIdea() async {
-    if (_ideanameController.text.isEmpty || _ideadescriptionController.text.isEmpty || _numberController.text.isEmpty || tags.isEmpty) {
+    if (_ideanameController.text.isEmpty ||
+        _ideadescriptionController.text.isEmpty ||
+        _numberController.text.isEmpty ||
+        tags.isEmpty) {
       setState(() {
-        _skillsError = tags.isEmpty ? 'Please select at least one skill' : null;
+        _skillsError = tags.isEmpty ? 'select at least one skill*' : null;
+        _messageColor = tags.isEmpty ? Colors.red : Colors.grey;
       });
       return;
     }
@@ -149,7 +198,10 @@ class _PostState extends State<Post> {
 
     try {
       await _ideaRepository.createIdea(newIdea, creatorId);
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => backgroundScreen(isSuccess: true)));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => backgroundScreen(isSuccess: true)),
+      );
     } catch (e) {
       print('Error creating idea: $e');
     }
@@ -160,7 +212,9 @@ class _PostState extends State<Post> {
       _isSubmitted = true;
     });
 
-    if (currentStep == 0 && !_formKeyStep1.currentState!.validate()) {
+    if (currentStep == 0 &&
+        (!_projectNameFormKey.currentState!.validate() ||
+            !_descriptionFormKey.currentState!.validate())) {
       return;
     }
 
@@ -175,8 +229,10 @@ class _PostState extends State<Post> {
       setState(() {
         if (tags.isEmpty) {
           _skillsError = 'Please select at least one skill';
+          _messageColor = Colors.red;
         } else {
           _skillsError = null;
+          _messageColor = Colors.grey;
         }
       });
 
@@ -195,27 +251,29 @@ class _PostState extends State<Post> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return BlocProvider(
-      create: (context) => PostBloc(announcementRepository: AnnouncementRepository(firestore: FirebaseFirestore.instance)),
+      create: (context) => PostBloc(
+        announcementRepository: AnnouncementRepository(
+          firestore: FirebaseFirestore.instance,
+        ),
+      ),
       child: Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(10),
           child: BlocBuilder<PostBloc, PostState>(
             builder: (context, state) {
               if (state is SubmissionState) {
-                return const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [],
-                  ),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
 
               if (state is PostStepState) {
                 return Theme(
-                  data: ThemeData(
-                    primaryColor: const Color(0xFFFD5336),
-                    colorScheme: const ColorScheme.light(primary: Color(0xFFFD5336)),
+                  data: Theme.of(context).copyWith(
+                    colorScheme: Theme.of(context).colorScheme.copyWith(
+                          primary: const Color(0xFFFD5336),
+                        ),
                   ),
                   child: Stepper(
                     steps: getSteps(),
@@ -262,82 +320,86 @@ class _PostState extends State<Post> {
   }
 
   List<Step> getSteps() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return <Step>[
       Step(
-        title: const Text('Project', style: TextStyle(color: Colors.white)),
-        content: Form(
-          key: _formKeyStep1,
-          child: Column(
-            children: [
-              const SizedBox(height: 5),
-              TextFormField(
+        title: Text('Project', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
+        content: Column(
+          children: [
+            const SizedBox(height: 5),
+            Form(
+              key: _projectNameFormKey,
+              child: TextFormField(
                 controller: _ideanameController,
-                style: const TextStyle(color: Colors.white),
+                focusNode: _projectNameFocusNode,
+                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: InputDecoration(
-                  hintText: 'Project Name',
-                  hintStyle: const TextStyle(
-                    color: Colors.grey,
+                  hintText: 'Project Name*',
+                  hintStyle: TextStyle(
+                    color: isDarkMode ? Colors.grey : Colors.black54,
                     fontSize: 13,
                     fontWeight: FontWeight.normal,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-                    borderSide: const BorderSide(width: 1, color: TColors.grey),
+                    borderSide: BorderSide(width: 1, color: isDarkMode ? Colors.white : TColors.grey),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-                    borderSide: const BorderSide(width: 1, color: TColors.grey),
+                    borderSide: BorderSide(width: 1, color: isDarkMode ? Colors.white : TColors.grey),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-                    borderSide: const BorderSide(width: 2, color: TColors.borderPrimary),
+                    borderSide: BorderSide(width: 2, color: TColors.borderPrimary),
                   ),
+                  errorStyle: const TextStyle(color: Colors.red),
                 ),
                 validator: (value) {
-                  if (_isSubmitted && (value == null || value.isEmpty)) {
+                  if (value == null || value.isEmpty) {
                     return 'Please enter a project name';
                   }
                   return null;
                 },
-                onChanged: (value) {
-                  if (_isSubmitted) {
-                    _formKeyStep1.currentState!.validate();
-                  }
-                },
               ),
-              const SizedBox(height: 20),
-              TextFormField(
+            ),
+            const SizedBox(height: 20),
+            Form(
+              key: _descriptionFormKey,
+              child: TextFormField(
                 keyboardType: TextInputType.multiline,
                 maxLines: 5,
                 maxLength: 250,
                 controller: _ideadescriptionController,
-                style: const TextStyle(color: Colors.white),
+                focusNode: _descriptionFocusNode,
+                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 decoration: InputDecoration(
-                  hintText: 'Describe your idea',
-                  hintStyle: const TextStyle(
-                    color: Colors.grey,
+                  hintText: 'Describe your idea*',
+                  hintStyle: TextStyle(
+                    color: isDarkMode ? Colors.grey : Colors.black54,
                     fontSize: 13,
                     fontWeight: FontWeight.normal,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-                    borderSide: const BorderSide(width: 1, color: TColors.grey),
+                    borderSide: BorderSide(width: 1, color: isDarkMode ? Colors.white : TColors.grey),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-                    borderSide: const BorderSide(width: 1, color: TColors.grey),
+                    borderSide: BorderSide(width: 1, color: isDarkMode ? Colors.white : TColors.grey),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-                    borderSide: const BorderSide(width: 2, color: TColors.borderPrimary),
+                    borderSide: BorderSide(width: 2, color: TColors.borderPrimary),
                   ),
+                  errorStyle: const TextStyle(color: Colors.red),
                 ),
                 validator: (value) {
-                  if (_isSubmitted && (value == null || value.isEmpty)) {
+                  if (value == null || value.isEmpty) {
                     return 'Please describe your idea';
-                  } else if (value != null && value.length < 50) {
+                  } else if (value.length < 50) {
                     return 'At least 50 characters required';
                   }
                   return null;
@@ -350,18 +412,21 @@ class _PostState extends State<Post> {
                 }) {
                   return Text(
                     '$currentLength / $maxLength',
-                    style: TextStyle(color: Colors.grey[300], fontSize: 12),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.grey[300] : Colors.black87,
+                      fontSize: 12,
+                    ),
                   );
                 },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         isActive: true,
         state: StepState.indexed,
       ),
       Step(
-        title: const Text('Members', style: TextStyle(color: Colors.white)),
+        title: Text('Needed Members', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
         content: Column(
           children: [
             const SizedBox(height: 5),
@@ -379,7 +444,7 @@ class _PostState extends State<Post> {
         state: StepState.indexed,
       ),
       Step(
-        title: const Text('Skills', style: TextStyle(color: Colors.white)),
+        title: Text('Skills', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -396,45 +461,65 @@ class _PostState extends State<Post> {
                 setState(() {
                   if (!tags.contains(selectedTag)) {
                     tags.add(selectedTag);
+                    _messageColor = Colors.grey;
                   }
                   if (!topSkills.contains(selectedTag)) {
                     topSkills.add(selectedTag);
                   }
                 });
               },
-              fieldViewBuilder: (BuildContext context, TextEditingController textEditingController, FocusNode focusNode, VoidCallback onFieldSubmitted) {
-                return TextFormField(
-                  controller: textEditingController,
-                  focusNode: focusNode,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    hintText: 'Search and add more skills',
-                    hintStyle: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 13,
-                      fontWeight: FontWeight.normal,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: TColors.grey),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: TColors.borderPrimary, width: 2),
-                    ),
-                  ),
-                );
+fieldViewBuilder: (
+  BuildContext context, 
+  TextEditingController textEditingController, 
+  FocusNode focusNode, 
+  VoidCallback onFieldSubmitted
+) {
+  return TextFormField(
+    controller: textEditingController,
+    focusNode: focusNode,
+    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+    decoration: InputDecoration(
+      hintText: 'Search and add more skills',
+      hintStyle: TextStyle(
+        color: isDarkMode ? Colors.grey : Colors.black54,
+        fontSize: 13,
+        fontWeight: FontWeight.normal,
+      ),
+      suffixIcon: textEditingController.text.isNotEmpty
+          ? IconButton(
+              icon: Icon(Icons.clear),
+              onPressed: () {
+                textEditingController.clear();
+                focusNode.requestFocus(); // Keep the focus on the field after clearing
               },
-              optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<String> onSelected, Iterable<String> options) {
+            )
+          : null, // Do not display if text is empty
+      border: InputBorder.none,
+      enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: isDarkMode ? Colors.white : TColors.grey),
+      ),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: TColors.borderPrimary, width: 2),
+      ),
+    ),
+    onChanged: (text) {
+      // Force rebuild to show/hide clear icon dynamically
+      setState(() {});
+    },
+  );
+},
+              optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<String> onSelected,
+                  Iterable<String> options) {
                 return Align(
                   alignment: Alignment.topLeft,
                   child: Material(
-                    color: Colors.grey[850],
+                    color: isDarkMode ? Colors.grey[850] : Colors.white,
                     elevation: 4,
                     child: Container(
                       width: 325,
                       height: 220,
                       child: ListView.builder(
-                        padding: EdgeInsets.all(1.0),
+                        padding: const EdgeInsets.all(1.0),
                         itemCount: options.length,
                         itemBuilder: (BuildContext context, int index) {
                           final String option = options.elementAt(index);
@@ -445,10 +530,10 @@ class _PostState extends State<Post> {
                             child: ListTile(
                               title: Text(
                                 option,
-                                style: const TextStyle(color: Colors.white),
+                                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                               ),
-                              tileColor: Colors.grey[800],
-                              hoverColor: Colors.blueGrey,
+                              tileColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                              hoverColor: isDarkMode ? Colors.blueGrey : const Color(0xFFFD5336),
                             ),
                           );
                         },
@@ -464,33 +549,33 @@ class _PostState extends State<Post> {
               runSpacing: 4.0,
               children: topSkills.map((skill) {
                 return FilterChip(
-                  label: Text(skill, style: const TextStyle(color: Colors.white)),
+                  label: Text(skill, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
                   selected: tags.contains(skill),
                   onSelected: (selected) {
                     setState(() {
                       if (selected) {
                         tags.add(skill);
+                        _messageColor = Colors.grey;
                       } else {
                         tags.remove(skill);
                       }
                     });
                   },
-                  backgroundColor: Colors.grey[700],
-                  selectedColor: Color(0xFFFD5336),
+                  backgroundColor: isDarkMode ? Colors.grey[500] : Colors.white70,
+                  selectedColor: const Color(0xFFFD5336),
                   showCheckmark: true,
                   checkmarkColor: Colors.white,
                 );
               }).toList(),
             ),
-            const SizedBox(height: 20),
-            if (_skillsError != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  _skillsError!,
-                  style: const TextStyle(color: Colors.red, fontSize: 16),
-                ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                _skillsError ?? ' select at least one skill*',
+                style: TextStyle(color: _messageColor, fontSize: 13),
               ),
+            ),
           ],
         ),
         isActive: true,
@@ -499,3 +584,4 @@ class _PostState extends State<Post> {
     ];
   }
 }
+
