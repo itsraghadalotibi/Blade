@@ -468,29 +468,46 @@ class _PostState extends State<Post> {
                   }
                 });
               },
-              fieldViewBuilder: (BuildContext context, TextEditingController textEditingController,
-                  FocusNode focusNode, VoidCallback onFieldSubmitted) {
-                return TextFormField(
-                  controller: textEditingController,
-                  focusNode: focusNode,
-                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-                  decoration: InputDecoration(
-                    hintText: 'Search and add more skills',
-                    hintStyle: TextStyle(
-                      color: isDarkMode ? Colors.grey : Colors.black54,
-                      fontSize: 13,
-                      fontWeight: FontWeight.normal,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: isDarkMode ? Colors.white : TColors.grey),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: TColors.borderPrimary, width: 2),
-                    ),
-                  ),
-                );
+fieldViewBuilder: (
+  BuildContext context, 
+  TextEditingController textEditingController, 
+  FocusNode focusNode, 
+  VoidCallback onFieldSubmitted
+) {
+  return TextFormField(
+    controller: textEditingController,
+    focusNode: focusNode,
+    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+    decoration: InputDecoration(
+      hintText: 'Search and add more skills',
+      hintStyle: TextStyle(
+        color: isDarkMode ? Colors.grey : Colors.black54,
+        fontSize: 13,
+        fontWeight: FontWeight.normal,
+      ),
+      suffixIcon: textEditingController.text.isNotEmpty
+          ? IconButton(
+              icon: Icon(Icons.clear),
+              onPressed: () {
+                textEditingController.clear();
+                focusNode.requestFocus(); // Keep the focus on the field after clearing
               },
+            )
+          : null, // Do not display if text is empty
+      border: InputBorder.none,
+      enabledBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: isDarkMode ? Colors.white : TColors.grey),
+      ),
+      focusedBorder: UnderlineInputBorder(
+        borderSide: BorderSide(color: TColors.borderPrimary, width: 2),
+      ),
+    ),
+    onChanged: (text) {
+      // Force rebuild to show/hide clear icon dynamically
+      setState(() {});
+    },
+  );
+},
               optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<String> onSelected,
                   Iterable<String> options) {
                 return Align(
