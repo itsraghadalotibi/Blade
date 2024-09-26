@@ -7,15 +7,19 @@ class AnnouncementRepository {
   AnnouncementRepository({required this.firestore});
 
   // Method to create a new Idea in Firestore with the creator as the first member
-  Future<void> createIdea(Idea idea, String creatorId) async {
-    try {
+Future<void> createIdea(Idea idea, String creatorId) async {
+  try {
+    // Check if the creatorId is already present in the members list
+    if (idea.members.isEmpty || idea.members[0] != creatorId) {
       // Ensure the creator is the first member of the idea
       idea.members.insert(0, creatorId);
-      await firestore.collection('ideas').add(idea.toMap());
-    } catch (e) {
-      throw Exception('Failed to create idea: $e');
     }
+    
+    await firestore.collection('ideas').add(idea.toMap());
+  } catch (e) {
+    throw Exception('Failed to create idea: $e');
   }
+}
 
   // Fetch all ideas from the 'ideas' collection
   Future<List<Idea>> fetchIdeas() async {

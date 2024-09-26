@@ -2,7 +2,9 @@ import 'package:blade_app/home_screen.dart';
 import 'package:blade_app/utils/constants/Navigation/profile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // For SystemUiOverlayStyle
 import 'package:lottie/lottie.dart';
+import '../../../utils/constants/Navigation/navigation.dart';
 import 'post.dart'; // Assuming this is your custom widget for creating a post
 
 class backgroundScreen extends StatefulWidget {
@@ -27,9 +29,9 @@ class _backgroundScreenState extends State<backgroundScreen> with TickerProvider
     // Add listener to know when the animation finishes
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        // Redirect to the home page when the animation completes
+        // Redirect to the profile page when the animation completes
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const Profile()),  // Replace with your HomePage
+          MaterialPageRoute(builder: (context) => const Navigation()),
           (Route<dynamic> route) => false,
         );
       }
@@ -44,24 +46,37 @@ class _backgroundScreenState extends State<backgroundScreen> with TickerProvider
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    // Set system UI overlay style based on theme
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarBrightness: isDarkMode ? Brightness.dark : Brightness.light, // For iOS
+        statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark, // For Android
+      ),
+    );
+
     return Scaffold(
-      appBar: AppBar(title: const Text('New Idea')),
+      appBar: AppBar(
+        title: const Text('New Idea'),
+        backgroundColor: isDarkMode ? Colors.grey.shade900 : const Color.fromARGB(255, 255, 255, 255), // Background color for AppBar
+        elevation: 0, // Remove shadow under AppBar
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black), // Icon color for AppBar
+      ),
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
-            colors: [
-              Color(0xFFFD5336),   
-              Color.fromARGB(255, 139, 139, 139),
-              Color(0xFFFD5336),
-            ],
+            colors: isDarkMode
+                ? [Colors.grey.shade800, Colors.grey.shade900] // Dark mode gradient
+                : [const Color(0xFFFD5336), const Color(0xFFFD5336)], // Light mode gradient
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -70,19 +85,13 @@ class _backgroundScreenState extends State<backgroundScreen> with TickerProvider
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Align(
-                      //   alignment: Alignment.centerLeft,
-                      //   child: IconButton(
-                      //     icon: const Icon(Icons.arrow_back, color: Colors.white, size: 32),
-                      //     onPressed: () {
-                      //       Navigator.pop(context);
-                      //     },
-                      //   ),
-                      // ),
                       Center(
                         child: Text(
                           widget.isSuccess ? "" : "",
-                          style: const TextStyle(color: Colors.white, fontSize: 40),
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black, // Adjust text color based on theme
+                            fontSize: 40,
+                          ),
                         ),
                       ),
                     ],
@@ -93,12 +102,20 @@ class _backgroundScreenState extends State<backgroundScreen> with TickerProvider
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade900,
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
+                  color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(40),
+                    topRight: Radius.circular(40),
+                  ),
                 ),
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
-                  child: widget.isSuccess ? _buildSuccessMessage(context) : const Post(),  // Conditional rendering
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(40),
+                    topRight: Radius.circular(40),
+                  ),
+                  child: widget.isSuccess
+                      ? _buildSuccessMessage(context)
+                      : const Post(), // Conditional rendering
                 ),
               ),
             ),
@@ -109,6 +126,8 @@ class _backgroundScreenState extends State<backgroundScreen> with TickerProvider
   }
 
   Widget _buildSuccessMessage(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -125,21 +144,16 @@ class _backgroundScreenState extends State<backgroundScreen> with TickerProvider
             },
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Your post has been successfully created!',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : Colors.black, // Adjust text color based on theme
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-          // ElevatedButton(
-          //   onPressed: () {
-          //     Navigator.pop(context);  // Navigate back or close the screen
-          //   },
-          //   style: ElevatedButton.styleFrom(
-          //     backgroundColor: const Color(0xFFFD5336),
-          //   ),
-          //   child: const Text('Go Back'),
-          // ),
         ],
       ),
     );
