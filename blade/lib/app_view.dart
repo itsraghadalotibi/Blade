@@ -9,6 +9,10 @@ import 'features/authentication/screens/login_screen.dart';
 import 'features/authentication/screens/supporter_sign_up_screen.dart';
 import 'features/authentication/screens/welcome_screen.dart';
 import 'features/authentication/src/authentication_repository.dart';
+import 'features/authentication/src/collaborator_model.dart';
+import 'features/authentication/src/supporter_model.dart';
+import 'features/collaborator/screens/collaborator_home_screen.dart';
+import 'features/supporter/screens/supporter_home_screen.dart';
 import 'utils/constants/Navigation/navigation.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,19 +21,27 @@ class AppView extends StatelessWidget {
   const AppView({Key? key}) : super(key: key);
 
   Future<Widget> _checkInitialScreen(BuildContext context) async {
-    final isSignedIn = await context.read<AuthenticationRepository>().isSignedIn();
+    final authRepo = context.read<AuthenticationRepository>();
+    final isSignedIn = await authRepo.isSignedIn();
     final prefs = await SharedPreferences.getInstance();
     final bool hasSeenIntro = prefs.getBool('hasSeenIntro') ?? false;
 
     if (!hasSeenIntro) {
       return const IntroScreen();
     } else if (isSignedIn) {
-      return const Navigation(); // Authenticated user
+      final user = await authRepo.getUser();
+
+      if (user is CollaboratorModel) {
+        return const Navigation();
+      } else if (user is SupporterModel) {
+        return const SupporterHomeScreen();
+      } else {
+        return const WelcomeScreen(); // Unknown user type
+      }
     } else {
       return const WelcomeScreen(); // Unauthenticated user
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -68,8 +80,14 @@ class AppView extends StatelessWidget {
           case '/forgetPassword':
             return MaterialPageRoute(
                 builder: (_) => const ForgetPasswordScreen());
-          case '/home':
-            return MaterialPageRoute(builder: (_) => const Navigation());
+          case '/collaboratorHome':
+            return MaterialPageRoute(
+              builder: (_) => const Navigation(),
+            );
+          case '/supporterHome':
+            return MaterialPageRoute(
+              builder: (_) => const SupporterHomeScreen(),
+            );
           default:
             return MaterialPageRoute(builder: (_) => const WelcomeScreen());
             

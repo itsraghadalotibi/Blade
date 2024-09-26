@@ -1,37 +1,39 @@
+//dynammic theming
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/announcement_bloc.dart'; // Ensure correct path to your bloc
-import '../src/announcement_repository.dart'; // Ensure correct path to your repository
+import '../bloc/announcement_bloc.dart';
+import '../src/announcement_repository.dart';
 import '../widgets/announcement_card_widget.dart';
 import '../../../utils/constants/colors.dart';
 
 class AnnouncementScreen extends StatelessWidget {
   final AnnouncementRepository repository;
 
-  // Constructor requiring repository
-  const AnnouncementScreen({required this.repository, Key? key})
-      : super(key: key);
+  const AnnouncementScreen({required this.repository, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Determine if the system is in dark mode
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return BlocProvider(
       create: (context) => AnnouncementBloc(repository: repository)
-        ..add(FetchAnnouncements()), // Trigger fetching announcements
+        ..add(FetchAnnouncements()),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Announcements'),
+          backgroundColor: Colors.transparent, // Transparent AppBar
+          elevation: 0, // No shadow under AppBar
           centerTitle: true, // Center the title
-          automaticallyImplyLeading: false, // Remove the back button
-          backgroundColor:
-              Colors.transparent, // Make AppBar background transparent
-          elevation: 0, // Remove shadow under AppBar
-          titleTextStyle: const TextStyle(
-            fontSize: 20, // Adjust the font size if needed
-            color: TColors.textPrimary, // Light mode text color
+          title: Text(
+            'Announcements',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? TColors.textWhite : TColors.textPrimary, // Adjust color based on theme
+                ),
           ),
         ),
-        backgroundColor: TColors
-            .primaryBackground, // Set background to light mode primary background
+        backgroundColor: isDarkMode ? TColors.dark : TColors.primaryBackground, // Background color based on theme
         body: BlocBuilder<AnnouncementBloc, AnnouncementState>(
           builder: (context, state) {
             if (state is AnnouncementLoading) {
@@ -43,7 +45,7 @@ class AnnouncementScreen extends StatelessWidget {
                   final idea = state.ideas[index];
                   return AnnouncementCardWidget(
                     idea: idea,
-                    repository: repository, // Pass the repository to the widget
+                    repository: repository,
                   );
                 },
               );
@@ -51,15 +53,14 @@ class AnnouncementScreen extends StatelessWidget {
               return Center(
                 child: Text(
                   'Error: ${state.message}',
-                  style: const TextStyle(color: TColors.error), // Error color
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               );
             }
             return const Center(
               child: Text(
                 'No announcements available.',
-                style: TextStyle(
-                    color: TColors.textSecondary), // Secondary text color
+                style: TextStyle(color: TColors.textSecondary),
               ),
             );
           },
@@ -68,3 +69,4 @@ class AnnouncementScreen extends StatelessWidget {
     );
   }
 }
+

@@ -1,4 +1,3 @@
-//theaming
 import 'package:flutter/material.dart';
 import '../src/announcement_model.dart';
 import '../src/announcement_repository.dart';
@@ -36,7 +35,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
   // Check if the description exceeds the max lines and update the state
   void _checkTextOverflow() {
     final textStyle = TextStyle(
-      color: Theme.of(context).textTheme.bodyLarge?.color ?? TColors.textPrimary,
+      color: Colors.white,
       fontSize: MediaQuery.of(context).size.width *
           0.04 *
           MediaQuery.of(context).textScaleFactor,
@@ -66,18 +65,16 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
-    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     final textStyle = TextStyle(
-      color: isDarkMode ? TColors.textWhite : TColors.textWhite,
+      color: TColors.textPrimary,
       fontSize: screenWidth * 0.04 * textScaleFactor,
       fontWeight: FontWeight.w400,
     );
 
-    // Dynamically calculate the number of members needed
-    final int maxMembers = widget.idea.maxMembers; // Assuming maxMembers is a field in the idea model
-    final int currentMembers = widget.idea.members.length;
-    final int membersNeeded = maxMembers > currentMembers ? maxMembers - currentMembers : 0;
+    // Assuming the max number of members for the idea is a predefined constant, e.g., 10
+    const int maxMembers = 10;
+    final int membersNeeded = maxMembers - widget.idea.members.length;
 
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -87,9 +84,9 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
       child: Container(
         width: screenWidth * 0.9,
         decoration: BoxDecoration(
-          color: isDarkMode ? TColors.container : TColors.container,
+          color: Color.fromARGB(255, 42, 151, 241),
           borderRadius: BorderRadius.circular(23),
-          border: Border.all(color: Colors.transparent),
+          border: Border.all(color: TColors.borderPrimary),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -102,7 +99,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                     child: Text(
                       widget.idea.title,
                       style: TextStyle(
-                        color: isDarkMode ? TColors.textWhite : TColors.textWhite,
+                        color: const Color.fromARGB(255, 241, 238, 238),
                         fontSize: screenWidth * 0.055 * textScaleFactor,
                         fontWeight: FontWeight.bold,
                       ),
@@ -144,7 +141,8 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                 widget.idea.description,
                 style: textStyle,
                 maxLines: isExpanded ? null : 4,
-                overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                overflow:
+                    isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
               ),
 
               if (exceedsMaxLines)
@@ -157,34 +155,22 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                   child: Text(
                     isExpanded ? "Show less" : "Show more",
                     style: TextStyle(
-                      color: TColors.info,
+                      color: Color.fromARGB(255, 90, 91, 92),
                       fontSize: screenWidth * 0.04 * textScaleFactor,
                     ),
                   ),
                 ),
               SizedBox(height: screenHeight * 0.02),
 
-              // Dynamically display the number of members needed
-              if (membersNeeded > 0)
-                Text(
-                  '$membersNeeded members needed',
-                  style: TextStyle(
-                    color: isDarkMode ? TColors.grey : TColors.grey,
-                    fontSize: screenWidth * 0.035 * textScaleFactor, // Small font size
-                    fontStyle: FontStyle.italic, // Italic for subtle emphasis
-                    fontWeight: FontWeight.w400,
-                  ),
-                )
-              else
-                Text(
-                  'All members filled',
-                  style: TextStyle(
-                    color: isDarkMode ? TColors.grey : TColors.grey,
-                    fontSize: screenWidth * 0.035 * textScaleFactor,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w400,
-                  ),
+              // Status for members needed
+              Text(
+                '$membersNeeded members needed',
+                style: TextStyle(
+                  color: Colors.white, // Make the text small and less prominent
+                  fontSize: screenWidth * 0.035 * textScaleFactor,
+                  fontWeight: FontWeight.w400,
                 ),
+              ),
               SizedBox(height: screenHeight * 0.01),
 
               // Skills section
@@ -209,14 +195,16 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                   width: screenWidth * 0.4,
                   height: screenHeight * 0.05,
                   decoration: BoxDecoration(
-                    color: TColors.primary.withOpacity(0.5), // Reduced opacity for disabled look
+                    color: TColors.primary
+                        .withOpacity(0.5), // Reduced opacity for disabled look
                     borderRadius: BorderRadius.circular(48),
                   ),
                   child: Center(
                     child: Text(
                       'Join',
                       style: TextStyle(
-                        color: TColors.textWhite.withOpacity(0.5), // Lightened text color to indicate it's disabled
+                        color: TColors.textWhite.withOpacity(
+                            0.5), // Lightened text color to indicate it's disabled
                         fontSize: screenWidth * 0.04 * textScaleFactor,
                         fontWeight: FontWeight.bold,
                       ),

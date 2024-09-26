@@ -70,7 +70,6 @@ class _EditCollaboratorProfileScreenState
   List<String> _selectedSkills = [];
 
   @override
-  @override
   void initState() {
     super.initState();
 
@@ -83,9 +82,6 @@ class _EditCollaboratorProfileScreenState
         text: widget.profile.socialMediaLinks?['GitHub'] ?? '');
     _linkedInController = TextEditingController(
         text: widget.profile.socialMediaLinks?['LinkedIn'] ?? '');
-
-    // Initialize _selectedSkills with the profile's current skills
-    _selectedSkills = List<String>.from(widget.profile.skills ?? []);
 
     // Fetch available skills from the BLoC
     context.read<EditCollaboratorProfileBloc>().add(FetchSkills());
