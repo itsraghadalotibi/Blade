@@ -29,8 +29,6 @@ class AuthenticationRepository {
       password: password,
     );
 
-    await signOut();
-
     String? profilePhotoUrl;
 
     if (profileImage != null) {
@@ -50,6 +48,7 @@ class AuthenticationRepository {
         .collection('collaborators')
         .doc(collaborator.uid)
         .set(collaborator.toMap());
+      await signOut();
   }
 
   // Sign up Supporter with optional profile image
