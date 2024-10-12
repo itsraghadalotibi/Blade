@@ -194,6 +194,7 @@ class _PostState extends State<Post> {
       maxMembers: int.parse(_numberController.text),
       members: [creatorId],
       skills: tags,
+      status: 'open',
     );
 
     try {

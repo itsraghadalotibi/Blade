@@ -23,29 +23,29 @@ class AnnouncementRepository {
 
   // Fetch all ideas from the 'ideas' collection
   Future<List<Idea>> fetchIdeas() async {
-    try {
-      final snapshot = await firestore.collection('ideas').get();
-      return snapshot.docs
-          .where((doc) => doc.data() != null)  // Ensure the document data is not null
-          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>))  // Safely cast to Map<String, dynamic>
-          .toList();
-    } catch (e) {
-      throw Exception('Failed to load ideas: $e');
-    }
+  try {
+    final snapshot = await firestore.collection('ideas').get();
+    return snapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return Idea.fromMap(data, doc.id); // Pass doc.id to fromMap
+    }).toList();
+  } catch (e) {
+    throw Exception('Failed to load ideas: $e');
   }
+}
 
   // Fetch an Idea by its ID
   Future<Idea?> getIdeaById(String ideaId) async {
-    try {
-      final doc = await firestore.collection('ideas').doc(ideaId).get();
-      if (doc.exists && doc.data() != null) {
-        return Idea.fromMap(doc.data()! as Map<String, dynamic>);
-      }
-      return null;
-    } catch (e) {
-      throw Exception('Failed to load idea: $e');
+  try {
+    final doc = await firestore.collection('ideas').doc(ideaId).get();
+    if (doc.exists && doc.data() != null) {
+      return Idea.fromMap(doc.data()! as Map<String, dynamic>, doc.id);
     }
+    return null;
+  } catch (e) {
+    throw Exception('Failed to load idea: $e');
   }
+}
 
   // Delete an Idea by its ID
   Future<void> deleteIdea(String ideaId) async {
@@ -66,7 +66,10 @@ class AnnouncementRepository {
   }
 
   // Fetch ideas with pagination (limit the number of results)
-  Future<List<Idea>> fetchIdeasWithPagination({required int limit, DocumentSnapshot? lastDoc}) async {
+  Future<List<Idea>> fetchIdeasWithPagination({
+    required int limit,
+    DocumentSnapshot? lastDoc,
+  }) async {
     try {
       Query query = firestore.collection('ideas').limit(limit);
       if (lastDoc != null) {
@@ -74,8 +77,11 @@ class AnnouncementRepository {
       }
       final snapshot = await query.get();
       return snapshot.docs
-          .where((doc) => doc.data() != null)  // Ensure the document data is not null
-          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>))  // Safely cast to Map<String, dynamic>
+          .where((doc) => doc.data() != null) // Ensure the document data is not null
+          .map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return Idea.fromMap(data, doc.id); // Pass the document ID to fromMap
+          })
           .toList();
     } catch (e) {
       throw Exception('Failed to load paginated ideas: $e');
@@ -90,8 +96,11 @@ class AnnouncementRepository {
           .where('maxMembers', isEqualTo: maxMembers)
           .get();
       return snapshot.docs
-          .where((doc) => doc.data() != null)  // Ensure the document data is not null
-          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>))  // Safely cast to Map<String, dynamic>
+          .where((doc) => doc.data() != null) // Ensure the document data is not null
+          .map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return Idea.fromMap(data, doc.id); // Pass the document ID to fromMap
+          })
           .toList();
     } catch (e) {
       throw Exception('Failed to load ideas: $e');
@@ -106,8 +115,11 @@ class AnnouncementRepository {
           .where('skills', arrayContains: skill)
           .get();
       return snapshot.docs
-          .where((doc) => doc.data() != null)  // Ensure the document data is not null
-          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>))  // Safely cast to Map<String, dynamic>
+          .where((doc) => doc.data() != null) // Ensure the document data is not null
+          .map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return Idea.fromMap(data, doc.id); // Pass the document ID to fromMap
+          })
           .toList();
     } catch (e) {
       throw Exception('Failed to load ideas by skill: $e');
@@ -115,7 +127,7 @@ class AnnouncementRepository {
   }
 
   // Add a member to an existing idea
-  Future<void> addMemberToIdea(String ideaId, String memberId) async {
+  Future<void> addMemberToIdea(String? ideaId, String memberId) async {
     try {
       await firestore.collection('ideas').doc(ideaId).update({
         'members': FieldValue.arrayUnion([memberId])  // Add memberId to the members array
@@ -126,7 +138,7 @@ class AnnouncementRepository {
   }
 
   // Remove a member from an existing idea
-  Future<void> removeMemberFromIdea(String ideaId, String memberId) async {
+  Future<void> removeMemberFromIdea(String? ideaId, String memberId) async {
     try {
       await firestore.collection('ideas').doc(ideaId).update({
         'members': FieldValue.arrayRemove([memberId])  // Remove memberId from the members array
@@ -152,5 +164,16 @@ class AnnouncementRepository {
       throw Exception('Failed to load collaborator: $e');
     }
   }
+
+  Future<void> updateIdeaStatus(String ideaId, String newStatus) async {
+  try {
+    await firestore.collection('ideas').doc(ideaId).update({
+      'status': newStatus,
+    });
+  } catch (e) {
+    print('Error updating idea status: $e');
+    throw Exception('Failed to update idea status');
+  }
+}
 
 }
