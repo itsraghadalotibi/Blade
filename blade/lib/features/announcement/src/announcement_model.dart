@@ -32,6 +32,24 @@ class Idea {
     );
   }
 
+  Idea copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? status,
+    List<String>? members,
+  }) {
+    return Idea(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      members: members ?? this.members,
+      maxMembers: maxMembers,
+      skills: skills,
+    );
+  }
+
   // Convert Idea to map (for saving to Firestore)
   Map<String, dynamic> toMap() {
     return {

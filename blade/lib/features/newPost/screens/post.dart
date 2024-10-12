@@ -18,16 +18,23 @@ final _formKeyStep2 = GlobalKey<FormState>();
 
 class NumberStepper extends StatefulWidget {
   final ValueChanged<int> onNumberChanged;
+  final int initialNumber;
 
-  NumberStepper({required this.onNumberChanged});
+  NumberStepper({required this.onNumberChanged, this.initialNumber = 1});
 
   @override
   _NumberStepperState createState() => _NumberStepperState();
 }
 
 class _NumberStepperState extends State<NumberStepper> {
-  int _numberOfMembers = 1;
+  late int _numberOfMembers;
   bool _showMaxMessage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _numberOfMembers = widget.initialNumber;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +52,7 @@ class _NumberStepperState extends State<NumberStepper> {
                 icon: Icon(
                   Icons.remove,
                   size: 20,
-                  color: isDarkMode
-                      ? const Color.fromARGB(255, 255, 255, 255)
-                      : const Color.fromARGB(255, 0, 0, 0),
+                  color: isDarkMode ? Colors.white : Colors.black,
                 ),
                 onPressed: () {
                   setState(() {
@@ -74,9 +79,7 @@ class _NumberStepperState extends State<NumberStepper> {
                   Icons.add,
                   size: 20,
                   color: (_numberOfMembers < 20)
-                      ? (isDarkMode
-                          ? const Color.fromARGB(255, 255, 255, 255)
-                          : const Color.fromARGB(255, 0, 0, 0))
+                      ? (isDarkMode ? Colors.white : Colors.black)
                       : Colors.grey,
                 ),
                 onPressed: (_numberOfMembers < 20)
@@ -108,6 +111,7 @@ class _NumberStepperState extends State<NumberStepper> {
     );
   }
 }
+
 
 class Post extends StatefulWidget {
   const Post({super.key});
