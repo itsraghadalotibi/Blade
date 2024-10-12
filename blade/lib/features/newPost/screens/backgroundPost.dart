@@ -7,16 +7,17 @@ import 'package:lottie/lottie.dart';
 import '../../../utils/constants/Navigation/navigation.dart';
 import 'post.dart'; // Assuming this is your custom widget for creating a post
 
-class backgroundScreen extends StatefulWidget {
+class BackgroundScreen extends StatefulWidget {
   final bool isSuccess;  // Flag to check if we need to show the success message or form
+  final String? accessToken;  // Access token for GitHub authentication
 
-  const backgroundScreen({Key? key, this.isSuccess = false}) : super(key: key);
+  const BackgroundScreen({Key? key, this.isSuccess = false, this.accessToken}) : super(key: key);
 
   @override
-  _backgroundScreenState createState() => _backgroundScreenState();
+  _BackgroundScreenState createState() => _BackgroundScreenState();
 }
 
-class _backgroundScreenState extends State<backgroundScreen> with TickerProviderStateMixin {
+class _BackgroundScreenState extends State<BackgroundScreen> with TickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -115,7 +116,7 @@ class _backgroundScreenState extends State<backgroundScreen> with TickerProvider
                   ),
                   child: widget.isSuccess
                       ? _buildSuccessMessage(context)
-                      : const Post(), // Conditional rendering
+                      : Post(accessToken: widget.accessToken!), // Pass accessToken to Post
                 ),
               ),
             ),
@@ -127,7 +128,7 @@ class _backgroundScreenState extends State<backgroundScreen> with TickerProvider
 
   Widget _buildSuccessMessage(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -159,4 +160,3 @@ class _backgroundScreenState extends State<backgroundScreen> with TickerProvider
     );
   }
 }
-
