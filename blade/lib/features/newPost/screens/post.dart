@@ -1,8 +1,9 @@
-import 'package:blade_app/features/newPost/screens/backgroundPost.dart';
+import 'dart:convert'; // For JSON encoding/decoding
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../../../utils/constants/colors.dart';
 import '../../../utils/constants/sizes.dart';
@@ -11,6 +12,7 @@ import '../../announcement/src/announcement_repository.dart';
 import '../blocs/bloc/post_bloc.dart';
 import '../blocs/bloc/post_event.dart';
 import '../blocs/bloc/post_state.dart';
+import 'backgroundPost.dart';
 
 final uuid = Uuid();
 final _formKeyStep1 = GlobalKey<FormState>();
@@ -45,9 +47,7 @@ class _NumberStepperState extends State<NumberStepper> {
                 icon: Icon(
                   Icons.remove,
                   size: 20,
-                  color: isDarkMode
-                      ? const Color.fromARGB(255, 255, 255, 255)
-                      : const Color.fromARGB(255, 0, 0, 0),
+                  color: isDarkMode ? Colors.white : Colors.black,
                 ),
                 onPressed: () {
                   setState(() {
@@ -73,11 +73,7 @@ class _NumberStepperState extends State<NumberStepper> {
                 icon: Icon(
                   Icons.add,
                   size: 20,
-                  color: (_numberOfMembers < 20)
-                      ? (isDarkMode
-                          ? const Color.fromARGB(255, 255, 255, 255)
-                          : const Color.fromARGB(255, 0, 0, 0))
-                      : Colors.grey,
+                  color: (_numberOfMembers < 20) ? const Color.fromARGB(255, 0, 0, 0) : Colors.grey,
                 ),
                 onPressed: (_numberOfMembers < 20)
                     ? () {
@@ -110,19 +106,20 @@ class _NumberStepperState extends State<NumberStepper> {
 }
 
 class Post extends StatefulWidget {
-  const Post({super.key});
+  final String accessToken;
+
+  const Post({super.key, required this.accessToken});
 
   @override
   State<Post> createState() => _PostState();
 }
 
 class _PostState extends State<Post> {
-  final _ideanameController = TextEditingController();
-  final _ideadescriptionController = TextEditingController();
-  final _numberController = TextEditingController(text: '1');
-  final AnnouncementRepository _ideaRepository = AnnouncementRepository(
-    firestore: FirebaseFirestore.instance,
-  );
+  final TextEditingController _ideanameController = TextEditingController();
+  final TextEditingController _ideadescriptionController = TextEditingController();
+  final TextEditingController _numberController = TextEditingController(text: '1');
+  final AnnouncementRepository _ideaRepository = AnnouncementRepository(firestore: FirebaseFirestore.instance);
+
   final FocusNode _projectNameFocusNode = FocusNode();
   final FocusNode _descriptionFocusNode = FocusNode();
   final GlobalKey<FormState> _projectNameFormKey = GlobalKey<FormState>();
@@ -175,13 +172,13 @@ class _PostState extends State<Post> {
     }
   }
 
-  void _submitIdea() async {
+  Future<void> _submitIdea() async {
     if (_ideanameController.text.isEmpty ||
         _ideadescriptionController.text.isEmpty ||
         _numberController.text.isEmpty ||
         tags.isEmpty) {
       setState(() {
-        _skillsError = tags.isEmpty ? 'select at least one skill*' : null;
+        _skillsError = tags.isEmpty ? 'Select at least one skill*' : null;
         _messageColor = tags.isEmpty ? Colors.red : Colors.grey;
       });
       return;
@@ -198,16 +195,43 @@ class _PostState extends State<Post> {
 
     try {
       await _ideaRepository.createIdea(newIdea, creatorId);
+      
+      // After the idea is successfully created, create a GitHub repo
+      await _createGithubRepo(_ideanameController.text);
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => backgroundScreen(isSuccess: true)),
+        MaterialPageRoute(builder: (context) => const BackgroundScreen(isSuccess: true)),
       );
     } catch (e) {
-      print('Error creating idea: $e');
+      print('Error creating idea or GitHub repo: $e');
     }
   }
 
-  void onStepContinue(BuildContext context, int currentStep) {
+Future<void> _createGithubRepo(String repoName) async {
+  final url = Uri.parse('https://api.github.com/user/repos');
+  
+  final response = await http.post(
+    url,
+    headers: {
+      'Authorization': 'Bearer ${widget.accessToken}',  // Use the actual access token here
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({
+      'name': repoName,  // GitHub repository name
+      'description': 'Repository for the project "$repoName"',
+      'private': false,  // public repos only 
+    }),
+  );
+
+  if (response.statusCode == 201) {
+    print('GitHub repository created successfully!');
+  } else {
+    print('Failed to create GitHub repository: ${response.body}');
+  }
+}
+
+  void _onStepContinue(BuildContext context, int currentStep) {
     setState(() {
       _isSubmitted = true;
     });
@@ -225,23 +249,15 @@ class _PostState extends State<Post> {
       }
     }
 
-    if (currentStep == 2) {
+    if (currentStep == 2 && tags.isEmpty) {
       setState(() {
-        if (tags.isEmpty) {
-          _skillsError = 'Please select at least one skill';
-          _messageColor = Colors.red;
-        } else {
-          _skillsError = null;
-          _messageColor = Colors.grey;
-        }
+        _skillsError = 'Please select at least one skill';
+        _messageColor = Colors.red;
       });
-
-      if (tags.isEmpty) {
-        return;
-      }
+      return;
     }
 
-    final isLastStep = currentStep == getSteps().length - 1;
+    final isLastStep = currentStep == _getSteps().length - 1;
     if (isLastStep) {
       _submitIdea();
     } else {
@@ -251,14 +267,8 @@ class _PostState extends State<Post> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return BlocProvider(
-      create: (context) => PostBloc(
-        announcementRepository: AnnouncementRepository(
-          firestore: FirebaseFirestore.instance,
-        ),
-      ),
+      create: (context) => PostBloc(announcementRepository: _ideaRepository),
       child: Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(10),
@@ -276,7 +286,7 @@ class _PostState extends State<Post> {
                         ),
                   ),
                   child: Stepper(
-                    steps: getSteps(),
+                    steps: _getSteps(),
                     currentStep: state.currentStep,
                     onStepCancel: () {
                       if (state.currentStep > 0) {
@@ -286,11 +296,11 @@ class _PostState extends State<Post> {
                     onStepContinue: () {
                       final currentState = context.read<PostBloc>().state;
                       if (currentState is PostStepState) {
-                        onStepContinue(context, currentState.currentStep);
+                        _onStepContinue(context, currentState.currentStep);
                       }
                     },
                     controlsBuilder: (BuildContext context, ControlsDetails details) {
-                      final isLastStep = details.currentStep == getSteps().length - 1;
+                      final isLastStep = details.currentStep == _getSteps().length - 1;
                       return Row(
                         children: [
                           if (details.currentStep != 0)
@@ -319,7 +329,7 @@ class _PostState extends State<Post> {
     );
   }
 
-  List<Step> getSteps() {
+  List<Step> _getSteps() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return <Step>[
@@ -399,7 +409,7 @@ class _PostState extends State<Post> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please describe your idea';
-                  } else if (value.length < 50) {
+                  } else if (value.length < 10) {
                     return 'At least 50 characters required';
                   }
                   return null;
@@ -468,46 +478,41 @@ class _PostState extends State<Post> {
                   }
                 });
               },
-fieldViewBuilder: (
-  BuildContext context, 
-  TextEditingController textEditingController, 
-  FocusNode focusNode, 
-  VoidCallback onFieldSubmitted
-) {
-  return TextFormField(
-    controller: textEditingController,
-    focusNode: focusNode,
-    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-    decoration: InputDecoration(
-      hintText: 'Search and add more skills',
-      hintStyle: TextStyle(
-        color: isDarkMode ? Colors.grey : Colors.black54,
-        fontSize: 13,
-        fontWeight: FontWeight.normal,
-      ),
-      suffixIcon: textEditingController.text.isNotEmpty
-          ? IconButton(
-              icon: Icon(Icons.clear),
-              onPressed: () {
-                textEditingController.clear();
-                focusNode.requestFocus(); // Keep the focus on the field after clearing
+              fieldViewBuilder: (BuildContext context, TextEditingController textEditingController,
+                  FocusNode focusNode, VoidCallback onFieldSubmitted) {
+                return TextFormField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                  decoration: InputDecoration(
+                    hintText: 'Search and add more skills',
+                    hintStyle: TextStyle(
+                      color: isDarkMode ? Colors.grey : Colors.black54,
+                      fontSize: 13,
+                      fontWeight: FontWeight.normal,
+                    ),
+                    suffixIcon: textEditingController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              textEditingController.clear();
+                              focusNode.requestFocus(); // Keep the focus on the field after clearing
+                            },
+                          )
+                        : null, // Do not display if text is empty
+                    border: InputBorder.none,
+                    enabledBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFD5336), width: 2),
+                    ),
+                  ),
+                  onChanged: (text) {
+                    setState(() {});
+                  },
+                );
               },
-            )
-          : null, // Do not display if text is empty
-      border: InputBorder.none,
-      enabledBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: isDarkMode ? Colors.white : TColors.grey),
-      ),
-      focusedBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: TColors.borderPrimary, width: 2),
-      ),
-    ),
-    onChanged: (text) {
-      // Force rebuild to show/hide clear icon dynamically
-      setState(() {});
-    },
-  );
-},
               optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<String> onSelected,
                   Iterable<String> options) {
                 return Align(
@@ -584,4 +589,3 @@ fieldViewBuilder: (
     ];
   }
 }
-

@@ -21,6 +21,8 @@ dependencies:
   # get: ^4.6.1
   chips_choice_null_safety: ^2.0.6
   easy_stepper: ^0.8.5+1 # Use the suggested version
+  flutter_spinkit: ^5.1.0
+
 
 
   url_launcher: ^6.3.0
@@ -38,6 +40,8 @@ dependencies:
   fluttertoast: ^8.2.8
   shared_preferences: ^2.3.2
   introduction_screen: ^3.1.14
+  line_icons: ^2.0.3
+
 
 dev_dependencies:
   flutter_test:
@@ -74,3 +78,4 @@ flutter:
     - assets/images/on_boarding_images/welcome-sign.png
     - assets/images/on_boarding_images/developer-team.png
     - assets/images/on_boarding_images/office-workplace.png
+    - assets/images/login/github.png

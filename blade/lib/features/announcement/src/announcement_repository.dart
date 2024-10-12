@@ -152,5 +152,16 @@ class AnnouncementRepository {
       throw Exception('Failed to load collaborator: $e');
     }
   }
+  // Add a real-time listener for fetching a collaborator
+Stream<Collaborator?> streamCollaborator(String userId) {
+  return firestore.collection('collaborators').doc(userId).snapshots().map(
+    (snapshot) {
+      if (snapshot.exists && snapshot.data() != null) {
+        return Collaborator.fromMap(snapshot.data() as Map<String, dynamic>);
+      }
+      return null;
+    },
+  );
+}
 
 }
