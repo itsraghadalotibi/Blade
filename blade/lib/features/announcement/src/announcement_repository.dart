@@ -57,11 +57,12 @@ class AnnouncementRepository {
   }
 
   // Update an existing Idea by its ID
-  Future<void> updateIdea(String ideaId, Idea updatedIdea) async {
+  Future<void> updateIdea(Idea idea) async {
     try {
-      await firestore.collection('ideas').doc(ideaId).update(updatedIdea.toMap());
+      await firestore.collection('ideas').doc(idea.id).update(idea.toMap());
     } catch (e) {
-      throw Exception('Failed to update idea: $e');
+      print('Error updating idea: $e');
+      throw Exception('Failed to update idea');
     }
   }
 
@@ -186,5 +187,6 @@ Stream<Collaborator?> streamCollaborator(String userId) {
     throw Exception('Failed to update idea status');
   }
 }
+
 
 }

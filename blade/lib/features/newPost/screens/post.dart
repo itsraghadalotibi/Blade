@@ -20,16 +20,23 @@ final _formKeyStep2 = GlobalKey<FormState>();
 
 class NumberStepper extends StatefulWidget {
   final ValueChanged<int> onNumberChanged;
+  final int initialNumber;
 
-  NumberStepper({required this.onNumberChanged});
+  NumberStepper({required this.onNumberChanged, this.initialNumber = 1});
 
   @override
   _NumberStepperState createState() => _NumberStepperState();
 }
 
 class _NumberStepperState extends State<NumberStepper> {
-  int _numberOfMembers = 1;
+  late int _numberOfMembers;
   bool _showMaxMessage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _numberOfMembers = widget.initialNumber;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +80,9 @@ class _NumberStepperState extends State<NumberStepper> {
                 icon: Icon(
                   Icons.add,
                   size: 20,
-                  color: (_numberOfMembers < 20) ? const Color.fromARGB(255, 0, 0, 0) : Colors.grey,
+                  color: (_numberOfMembers < 20)
+                      ? (isDarkMode ? Colors.white : Colors.black)
+                      : Colors.grey,
                 ),
                 onPressed: (_numberOfMembers < 20)
                     ? () {
@@ -104,6 +113,7 @@ class _NumberStepperState extends State<NumberStepper> {
     );
   }
 }
+
 
 class Post extends StatefulWidget {
   final String accessToken;
@@ -303,17 +313,32 @@ Future<void> _createGithubRepo(String repoName) async {
                     controlsBuilder: (BuildContext context, ControlsDetails details) {
                       final isLastStep = details.currentStep == _getSteps().length - 1;
                       return Row(
+                        mainAxisAlignment: MainAxisAlignment.start,  
                         children: [
                           if (details.currentStep != 0)
-                            TextButton(
+                            ElevatedButton(
                               onPressed: details.onStepCancel,
-                              style: TextButton.styleFrom(foregroundColor: Colors.grey),
-                              child: const Text('Back'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                                foregroundColor: const Color(0xFFFD5336),  
+                                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), 
+                                minimumSize: const Size(60, 30), 
+                              ),
+                              child: const Text('Back', style: TextStyle(fontSize: 12)), 
                             ),
-                          TextButton(
+                          const SizedBox(width: 8), 
+                          ElevatedButton(
                             onPressed: isLastStep ? _submitIdea : details.onStepContinue,
-                            style: TextButton.styleFrom(foregroundColor: const Color(0xFFFD5336)),
-                            child: Text(isLastStep ? 'Submit' : 'Next'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFD5336),  
+                              foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Small button padding
+                              minimumSize: const Size(60, 30), 
+                            ),
+                            child: Text(
+                              isLastStep ? 'Submit' : 'Next',
+                              style: const TextStyle(fontSize: 12), 
+                            ),
                           ),
                         ],
                       );
