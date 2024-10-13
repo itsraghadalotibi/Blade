@@ -21,18 +21,29 @@ class AnnouncementRepository {
   }
 }
 
-  // Fetch all ideas from the 'ideas' collection
-  Future<List<Idea>> fetchIdeas() async {
-  try {
-    final snapshot = await firestore.collection('ideas').get();
-    return snapshot.docs.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      return Idea.fromMap(data, doc.id); // Pass doc.id to fromMap
-    }).toList();
-  } catch (e) {
-    throw Exception('Failed to load ideas: $e');
+  // Fetch ideas with status='open' and exclude the owner's idea
+  Future<List<Idea>> fetchIdeas(String currentUserId) async {
+    try {
+      final snapshot = await firestore
+          .collection('ideas')
+          .where('status', isEqualTo: 'open') // Filter for status='open'
+          .get();
+
+      // Filter ideas to exclude those owned by the current user
+      return snapshot.docs
+          .where((doc) => doc['members'][0] != currentUserId) // Exclude owner's ideas
+          .map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return Idea.fromMap(data, doc.id); // Pass the document ID to fromMap
+          })
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to load ideas: $e');
+    }
   }
-}
+
+
+
 
   // Fetch an Idea by its ID
   Future<Idea?> getIdeaById(String ideaId) async {

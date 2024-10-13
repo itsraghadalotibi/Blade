@@ -14,7 +14,8 @@ class AnnouncementBloc extends Bloc<AnnouncementEvent, AnnouncementState> {
     on<FetchAnnouncements>((event, emit) async {
       emit(AnnouncementLoading());
       try {
-        final ideas = await repository.fetchIdeas();
+        // Fetch ideas while excluding those owned by the current user
+        final ideas = await repository.fetchIdeas(event.currentUserId);
         emit(AnnouncementLoaded(ideas: ideas));
       } catch (e) {
         emit(AnnouncementError(message: e.toString()));

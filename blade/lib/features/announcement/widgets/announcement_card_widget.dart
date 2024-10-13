@@ -221,14 +221,14 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                   width: screenWidth * 0.4,
                   height: screenHeight * 0.05,
                   decoration: BoxDecoration(
-                    color: TColors.primary.withOpacity(0.5), // Reduced opacity for disabled look
+                    color: TColors.primary, // Reduced opacity for disabled look
                     borderRadius: BorderRadius.circular(48),
                   ),
                   child: Center(
                     child: Text(
                       'Join',
                       style: TextStyle(
-                        color: TColors.textWhite.withOpacity(0.5), // Lightened text color to indicate it's disabled
+                        color: TColors.textWhite, // Lightened text color to indicate it's disabled
                         fontSize: screenWidth * 0.04 * textScaleFactor,
                         fontWeight: FontWeight.bold,
                       ),

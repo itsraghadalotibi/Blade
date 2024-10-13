@@ -8,9 +8,10 @@ import '../../../utils/constants/colors.dart'; // Import the colors file
 
 class AnnouncementScreen extends StatefulWidget {
   final AnnouncementRepository repository;
+  final String currentUserId; 
 
-  const AnnouncementScreen({required this.repository, Key? key})
-      : super(key: key);
+  const AnnouncementScreen({required this.repository, required this.currentUserId, Key? key})
+  : super(key: key);
 
   @override
   State<AnnouncementScreen> createState() =>
@@ -45,12 +46,7 @@ class _AnnouncementAndStatesScreenState
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'Announcements & Projects',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? TColors.textWhite : TColors.textPrimary,
-              ),
+          'Announcements',
         ),
         bottom: TabBar(
           controller: _tabController,
@@ -76,7 +72,7 @@ class _AnnouncementAndStatesScreenState
   Widget _buildAnnouncementTab() {
     return BlocProvider(
       create: (context) => AnnouncementBloc(repository: widget.repository)
-        ..add(FetchAnnouncements()),
+        ..add(FetchAnnouncements(currentUserId: widget.currentUserId)),
       child: BlocBuilder<AnnouncementBloc, AnnouncementState>(
         builder: (context, state) {
           if (state is AnnouncementLoading) {
