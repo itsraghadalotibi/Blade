@@ -20,16 +20,23 @@ final _formKeyStep2 = GlobalKey<FormState>();
 
 class NumberStepper extends StatefulWidget {
   final ValueChanged<int> onNumberChanged;
+  final int initialNumber;
 
-  NumberStepper({required this.onNumberChanged});
+  NumberStepper({required this.onNumberChanged, this.initialNumber = 1});
 
   @override
   _NumberStepperState createState() => _NumberStepperState();
 }
 
 class _NumberStepperState extends State<NumberStepper> {
-  int _numberOfMembers = 1;
+  late int _numberOfMembers;
   bool _showMaxMessage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _numberOfMembers = widget.initialNumber;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +111,7 @@ class _NumberStepperState extends State<NumberStepper> {
     );
   }
 }
+
 
 class Post extends StatefulWidget {
   final String accessToken;
