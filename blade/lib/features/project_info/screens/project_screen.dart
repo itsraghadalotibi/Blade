@@ -1,11 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../announcement/src/announcement_model.dart';
 import '../../announcement/src/announcement_repository.dart';
 import '../../announcement/widgets/skill_tag_widget.dart';
-import 'posts_tab.dart'; // Import your PostsTab widget
-import 'members_tab.dart'; // We'll adjust this widget accordingly
-
+import 'posts_tab.dart';
+import 'members_tab.dart';
+import '../../newPost/screens/github_oauth.dart'; // Import the GitHub OAuth screen
 
 class ProjectScreen extends StatefulWidget {
   final Idea idea;
@@ -25,11 +28,12 @@ class _ProjectScreenState extends State<ProjectScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late bool isMember;
-  late bool isOwner; // Determine ownership based on idea.members[0]
+  late bool isOwner;
   late String currentUserId;
   late Idea idea;
   bool isLoading = true;
-  String? errorMessage; // For handling errors
+  String? errorMessage;
+  String? githubAccessToken;
 
   @override
   void initState() {
@@ -46,23 +50,142 @@ class _ProjectScreenState extends State<ProjectScreen>
         setState(() {
           idea = updatedIdea;
           isMember = idea.members.contains(currentUserId);
-          isOwner = currentUserId == idea.members[0]; // Determine if current user is the owner
+          isOwner = currentUserId == idea.members[0];
           isLoading = false;
         });
       } else {
-        // Handle case where idea is not found
         setState(() {
           isLoading = false;
           errorMessage = 'Project not found.';
         });
       }
     } catch (e) {
-      // Handle errors
       print('Error fetching idea details: $e');
       setState(() {
         isLoading = false;
         errorMessage = 'An error occurred while loading the project.';
       });
+    }
+  }
+
+  Future<void> _checkGithubAuthorization() async {
+    if (githubAccessToken == null) {
+      final result = await Navigator.push<UserCredential?>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const GithubAuthentication(),
+        ),
+      );
+
+      if (result != null && result.credential != null && result.credential?.accessToken != null) {
+        setState(() {
+          githubAccessToken = result.credential!.accessToken!;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('GitHub authorization is required to continue.')),
+        );
+        return;
+      }
+    }
+
+    _updateProjectStatus('ongoing');
+  }
+
+  Future<void> _updateProjectStatus(String newStatus) async {
+    try {
+      await widget.repository.updateIdeaStatus(idea.id!, newStatus);
+      setState(() {
+        idea.status = newStatus;
+      });
+
+      await _inviteMembersToGithubRepo();
+    } catch (e) {
+      print('Error updating status: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update status')),
+      );
+    }
+  }
+
+  Future<void> _inviteMembersToGithubRepo() async {
+    try {
+      final members = idea.members;
+      final collaboratorsSnapshot = await FirebaseFirestore.instance
+          .collection('collaborators')
+          .where('uid', whereIn: members)
+          .get();
+
+      for (var doc in collaboratorsSnapshot.docs) {
+        final email = doc['email'] as String;
+        await _sendGithubInvitation(email);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invitations sent successfully!')),
+      );
+    } catch (e) {
+      print('Error sending invitations: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to send invitations')),
+      );
+    }
+  }
+
+  Future<void> _sendGithubInvitation(String email) async {
+    final url = Uri.parse('https://api.github.com/repos/${idea.title}/collaborators/$email');
+    
+    final response = await http.put(
+      url,
+      headers: {
+        'Authorization': 'Bearer $githubAccessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'permission': 'push',
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      print('Invitation sent to $email');
+    } else {
+      print('Failed to send invitation to $email: ${response.body}');
+    }
+  }
+
+  void _joinProject() async {
+    try {
+      await widget.repository.addMemberToIdea(idea.id!, currentUserId);
+      setState(() {
+        isMember = true;
+        idea.members.add(currentUserId);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You have joined the project!')),
+      );
+    } catch (e) {
+      print('Error joining project: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to join project')),
+      );
+    }
+  }
+
+  void _leaveProject() async {
+    try {
+      await widget.repository.removeMemberFromIdea(idea.id!, currentUserId);
+      setState(() {
+        isMember = false;
+        idea.members.remove(currentUserId);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You have left the project!')),
+      );
+    } catch (e) {
+      print('Error leaving project: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to leave project')),
+      );
     }
   }
 
@@ -72,129 +195,76 @@ class _ProjectScreenState extends State<ProjectScreen>
     super.dispose();
   }
 
-  void _joinProject() async {
-    await widget.repository.addMemberToIdea(idea.id!, currentUserId);
-    setState(() {
-      isMember = true;
-      idea.members.add(currentUserId);
-    });
-  }
-
-  void _leaveProject() async {
-    await widget.repository.removeMemberFromIdea(idea.id!, currentUserId);
-    setState(() {
-      isMember = false;
-      idea.members.remove(currentUserId);
-    });
-  }
-
   void _showStatusOptions() async {
-  await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      String newStatus = idea.status;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String newStatus = idea.status;
+        Brightness brightness = Theme.of(context).brightness;
+        Color backgroundColor = brightness == Brightness.dark ? Colors.grey[850]! : Colors.grey[200]!;
+        Color textColor = brightness == Brightness.dark ? Colors.white : Colors.black;
 
-      // Determine the theme brightness
-      Brightness brightness = Theme.of(context).brightness;
-
-      // Set background colors based on theme
-      Color backgroundColor;
-      Color textColor;
-
-      if (brightness == Brightness.dark) {
-        backgroundColor = Colors.grey[850]!; // Dark grey for dark theme
-        textColor = Colors.white; // Light text for contrast
-      } else {
-        backgroundColor = Colors.grey[200]!; // Light grey for light theme
-        textColor = Colors.black; // Dark text for contrast
-      }
-
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            backgroundColor: backgroundColor,
-            title: Text(
-              'Change Project Status',
-              style: TextStyle(color: textColor),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Current Status: ${idea.status[0].toUpperCase() + idea.status.substring(1)}',
-                  style: TextStyle(color: textColor),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: backgroundColor,
+              title: Text('Change Project Status', style: TextStyle(color: textColor)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Current Status: ${idea.status[0].toUpperCase() + idea.status.substring(1)}',
+                      style: TextStyle(color: textColor)),
+                  const SizedBox(height: 16),
+                  DropdownButton<String>(
+                    value: newStatus,
+                    dropdownColor: backgroundColor,
+                    style: TextStyle(color: textColor),
+                    iconEnabledColor: textColor,
+                    items: <String>['open', 'ongoing', 'completed'].map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value[0].toUpperCase() + value.substring(1), style: TextStyle(color: textColor)),
+                      );
+                    }).toList(),
+                    onChanged: (String? value) {
+                      if (value != null) {
+                        setState(() {
+                          newStatus = value;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancel'),
                 ),
-                const SizedBox(height: 16),
-                DropdownButton<String>(
-                  value: newStatus,
-                  dropdownColor: backgroundColor, // Match dialog background
-                  style: TextStyle(color: textColor), // Text color for selected item
-                  iconEnabledColor: textColor, // Icon color
-                  items: <String>['open', 'ongoing', 'completed'].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        value[0].toUpperCase() + value.substring(1),
-                        style: TextStyle(color: textColor), // Text color for items
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (String? value) {
-                    if (value != null) {
-                      setState(() {
-                        newStatus = value;
-                      });
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    if (newStatus == 'ongoing') {
+                      _checkGithubAuthorization();
+                    } else {
+                      _updateProjectStatus(newStatus);
                     }
                   },
+                  child: const Text('Save Status'),
                 ),
               ],
-            ),
-            actions: [
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-                child: const Text('Cancel'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                  _updateProjectStatus(newStatus);
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                ),
-                child: const Text('Save Status'),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
-
-  void _updateProjectStatus(String newStatus) async {
-    try {
-      await widget.repository.updateIdeaStatus(idea.id!, newStatus);
-      setState(() {
-        idea.status = newStatus;
-      });
-    } catch (e) {
-      print('Error updating status: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to update status')),
-      );
-    }
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      // Show a loading indicator while data is being fetched
       return Scaffold(
         appBar: AppBar(
           title: const Text('Loading...'),
@@ -204,7 +274,6 @@ class _ProjectScreenState extends State<ProjectScreen>
     }
 
     if (errorMessage != null) {
-      // Display the error message
       return Scaffold(
         appBar: AppBar(
           title: const Text('Error'),
@@ -219,8 +288,6 @@ class _ProjectScreenState extends State<ProjectScreen>
     }
 
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    // Determine status colors based on idea.status
     Color statusColor;
     Color statusTextColor;
 
@@ -249,18 +316,15 @@ class _ProjectScreenState extends State<ProjectScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Project Details
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Left Side: Project Details
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Project Title
                         Text(
                           idea.title,
                           style: const TextStyle(
@@ -269,7 +333,6 @@ class _ProjectScreenState extends State<ProjectScreen>
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Project Description
                         Text(
                           idea.description,
                           style: const TextStyle(
@@ -281,7 +344,6 @@ class _ProjectScreenState extends State<ProjectScreen>
                       ],
                     ),
                   ),
-                  // Right Side: Project Status
                   GestureDetector(
                     onTap: isOwner ? _showStatusOptions : null,
                     child: Container(
@@ -312,7 +374,6 @@ class _ProjectScreenState extends State<ProjectScreen>
                 ],
               ),
             ),
-            // Skills Tags
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Center(
@@ -325,7 +386,6 @@ class _ProjectScreenState extends State<ProjectScreen>
               ),
             ),
             const SizedBox(height: 16),
-            // Join/Leave Button
             Center(
               child: ElevatedButton(
                 onPressed: isMember ? _leaveProject : _joinProject,
@@ -336,9 +396,8 @@ class _ProjectScreenState extends State<ProjectScreen>
               ),
             ),
             const SizedBox(height: 16),
-            // Tabs for Posts and Members
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.6, // Adjust as needed
+              height: MediaQuery.of(context).size.height * 0.6,
               child: Column(
                 children: [
                   TabBar(
@@ -354,9 +413,7 @@ class _ProjectScreenState extends State<ProjectScreen>
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        // Posts Tab
                         PostsTab(ideaId: idea.id!, repository: widget.repository),
-                        // Members Tab
                         MembersTab(idea: idea, repository: widget.repository),
                       ],
                     ),

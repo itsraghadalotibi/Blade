@@ -128,56 +128,65 @@ class _EditCollaboratorProfileScreenState
   }
 
   // Save button functionality
-  // Save button functionality
-  void _onSaveButtonPressed() async {
-    if (_formKey.currentState!.validate()) {
-      String? profileImageUrl =
-          widget.profile.profilePhotoUrl; // Use existing profile image URL
+// Save button functionality
+void _onSaveButtonPressed() async {
+  if (_formKey.currentState!.validate()) {
+    String? profileImageUrl =
+        widget.profile.profilePhotoUrl; // Use existing profile image URL
 
-      if (_newProfileImage != null) {
-        // If the user has selected a new profile image, upload it
-        try {
-          final fileName = '${widget.profile.uid}_profile_image.png';
-          final storageRef =
-              FirebaseStorage.instance.ref().child('profile_images/$fileName');
+    if (_newProfileImage != null) {
+      // If the user has selected a new profile image, upload it
+      try {
+        final fileName = '${widget.profile.uid}_profile_image.png';
+        final storageRef =
+            FirebaseStorage.instance.ref().child('profile_images/$fileName');
 
-          // Upload the file to Firebase Storage
-          await storageRef.putFile(_newProfileImage!);
-
+        // Upload the file to Firebase Storage
+        final uploadTask = await storageRef.putFile(_newProfileImage!);
+        
+        // Ensure the upload was successful
+        if (uploadTask.state == TaskState.success) {
           // Get the downloadable URL for the uploaded image
           profileImageUrl = await storageRef.getDownloadURL();
-        } catch (e) {
-          // Handle any errors during the upload
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to upload profile image: $e'),
-            ),
-          );
-          return; // Stop further execution if upload fails
+        } else {
+          throw Exception("Upload failed");
         }
+      } catch (e) {
+        // Handle any errors during the upload
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload profile image: $e'),
+          ),
+        );
+        return; // Stop further execution if upload fails
       }
-
-      // Now, save the updated profile information along with the new image URL
-      final updatedProfile = CollaboratorProfileModel(
-        uid: widget.profile.uid,
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        bio: _bioController.text.trim(),
-        skills: _selectedSkills,
-        profilePhotoUrl: profileImageUrl, // Use the new image URL if it exists
-        socialMediaLinks: {
-          'GitHub': _githubController.text.trim(),
-          'LinkedIn': _linkedInController.text.trim(),
-        },
-      );
-
-      context
-          .read<EditCollaboratorProfileBloc>()
-          .add(SaveCollaboratorProfile(updatedProfile));
-    } else {
-      // Handle validation failure
     }
+
+    // Now, save the updated profile information along with the new image URL
+    final updatedProfile = CollaboratorProfileModel(
+      uid: widget.profile.uid,
+      firstName: _firstNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+      bio: _bioController.text.trim(),
+      skills: _selectedSkills,
+      profilePhotoUrl: profileImageUrl, // Use the new image URL if it exists
+      socialMediaLinks: {
+        'GitHub': _githubController.text.trim(),
+        'LinkedIn': _linkedInController.text.trim(),
+      },
+    );
+
+    context
+        .read<EditCollaboratorProfileBloc>()
+        .add(SaveCollaboratorProfile(updatedProfile));
+  } else {
+    // Handle validation failure
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please fix the errors in the form')),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
