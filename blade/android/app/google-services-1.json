@@ -12,7 +12,12 @@
           "package_name": "com.example.blade"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "Ov23liiQU8G3a4W1bEoY",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCyJjv7oScBSeafBZGk6mSVv3U6sPYYmnU"
