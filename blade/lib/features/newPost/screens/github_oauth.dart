@@ -36,7 +36,7 @@ class _GithubAuthenticationState extends State<GithubAuthentication> {
             const Spacer(), // Space between text and image
             Center(
               child: Image.asset(
-                'assets/images/login/github.png', // Make sure this path is correct
+                'assets/images/login/github.png', 
                 height: 200,
               ),
             ),
