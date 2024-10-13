@@ -1,8 +1,8 @@
 import 'package:blade_app/features/newPost/screens/backgroundPost.dart';
-import 'package:blade_app/features/newPost/screens/post.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class GithubAuthentication extends StatefulWidget {
   const GithubAuthentication({super.key});
@@ -14,6 +14,9 @@ class GithubAuthentication extends StatefulWidget {
 class _GithubAuthenticationState extends State<GithubAuthentication> {
   @override
   Widget build(BuildContext context) {
+    // Detect whether the theme is dark or light
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('GitHub Authentication'),
@@ -23,33 +26,57 @@ class _GithubAuthenticationState extends State<GithubAuthentication> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 10), // Similar to YMargin(10)
+            Align(
+              alignment: Alignment.centerLeft,  // Align icon and text to the left
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    FontAwesomeIcons.githubAlt,
+                    color: isDarkMode ? Colors.white : Colors.black,  // Set color based on mode
+                    size: 44,
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Sign in with Github',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isDarkMode ? Colors.white : Colors.black,  // Set color based on mode
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),  // Similar to YMargin(10)
             Text(
-              'Please sign in with your GitHub account to create your idea.',
+              'Sign in with GitHub to create a team repo and start collaborating!',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: Colors.black.withOpacity(0.4),
+                color: isDarkMode
+                    ? Colors.white.withOpacity(0.7) 
+                    : Colors.black.withOpacity(0.4), 
                 height: 1.5,
                 fontSize: 12,
               ),
             ),
-            const Spacer(), // Space between text and image
+            const Spacer(),  // Space between text and image
             Center(
               child: Image.asset(
-                'assets/images/login/github.png', 
+                'assets/images/login/github.png',
                 height: 200,
               ),
             ),
-            const Spacer(), // Space between image and the button
+            const Spacer(),  // Space between image and the button
             Center(
               child: SizedBox(
                 width: 350,
                 height: 56,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF24292E), // GitHub black color
+                    backgroundColor: const Color(0xFF24292E),  // GitHub black color
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero, // No rounded corners
+                      borderRadius: BorderRadius.zero,  
                     ),
                   ),
                   icon: const Icon(
@@ -59,7 +86,7 @@ class _GithubAuthenticationState extends State<GithubAuthentication> {
                   label: const Text(
                     'Sign in with GitHub',
                     style: TextStyle(
-                      color: Colors.white, // White text color
+                      color: Colors.white,  // White text color
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -95,7 +122,7 @@ class _GithubAuthenticationState extends State<GithubAuthentication> {
                       }
                     } catch (e) {
                       _showErrorSnackBar("Error during GitHub sign-in.");
-                      print(e); // Print the error for debugging
+                      print(e);  // Print the error for debugging
                     }
                   },
                 ),
@@ -106,7 +133,6 @@ class _GithubAuthenticationState extends State<GithubAuthentication> {
       ),
     );
   }
-
 
   Future<UserCredential> signInWithGithub() async {
     GithubAuthProvider githubAuthProvider = GithubAuthProvider();

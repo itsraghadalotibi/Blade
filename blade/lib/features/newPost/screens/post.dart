@@ -80,7 +80,9 @@ class _NumberStepperState extends State<NumberStepper> {
                 icon: Icon(
                   Icons.add,
                   size: 20,
-                  color: (_numberOfMembers < 20) ? const Color.fromARGB(255, 0, 0, 0) : Colors.grey,
+                  color: (_numberOfMembers < 20)
+                      ? (isDarkMode ? Colors.white : Colors.black)
+                      : Colors.grey,
                 ),
                 onPressed: (_numberOfMembers < 20)
                     ? () {
@@ -311,17 +313,32 @@ Future<void> _createGithubRepo(String repoName) async {
                     controlsBuilder: (BuildContext context, ControlsDetails details) {
                       final isLastStep = details.currentStep == _getSteps().length - 1;
                       return Row(
+                        mainAxisAlignment: MainAxisAlignment.start,  
                         children: [
                           if (details.currentStep != 0)
-                            TextButton(
+                            ElevatedButton(
                               onPressed: details.onStepCancel,
-                              style: TextButton.styleFrom(foregroundColor: Colors.grey),
-                              child: const Text('Back'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                                foregroundColor: const Color(0xFFFD5336),  
+                                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), 
+                                minimumSize: const Size(60, 30), 
+                              ),
+                              child: const Text('Back', style: TextStyle(fontSize: 12)), 
                             ),
-                          TextButton(
+                          const SizedBox(width: 8), 
+                          ElevatedButton(
                             onPressed: isLastStep ? _submitIdea : details.onStepContinue,
-                            style: TextButton.styleFrom(foregroundColor: const Color(0xFFFD5336)),
-                            child: Text(isLastStep ? 'Submit' : 'Next'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFD5336),  
+                              foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Small button padding
+                              minimumSize: const Size(60, 30), 
+                            ),
+                            child: Text(
+                              isLastStep ? 'Submit' : 'Next',
+                              style: const TextStyle(fontSize: 12), 
+                            ),
                           ),
                         ],
                       );
