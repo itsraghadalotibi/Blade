@@ -1,3 +1,4 @@
+import 'package:blade_app/features/project_info/screens/offers_tab.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,32 +16,21 @@ import 'members_tab.dart'; // We'll adjust this widget accordingly
 class ProjectScreen extends StatefulWidget {
   final Idea idea;
   final AnnouncementRepository repository;
+  final bool canJoin;
 
   const ProjectScreen({
-    Key? key,
+    super.key,
     required this.idea,
     required this.repository,
-  }) : super(key: key);
+    required this.canJoin,
+  });
 
   @override
   _ProjectScreenState createState() => _ProjectScreenState();
 }
 
-class _ProjectScreenState extends State<ProjectScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _ProjectScreenState extends State<ProjectScreen>{
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
 @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -182,7 +172,7 @@ class _ProjectScreenState extends State<ProjectScreen>
                     ),
                     const SizedBox(height: 16),
                     // Join/Leave Button
-                    if (!isOwner && idea.status=='open') ...[
+                    if (!isOwner && idea.status=='open' && (isMember || widget.canJoin)) ...[
                       Center(
                         child: ElevatedButton(
                           onPressed: isMember
@@ -200,29 +190,37 @@ class _ProjectScreenState extends State<ProjectScreen>
                     // Tabs for Posts and Members
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,
-                      child: Column(
-                        children: [
-                          TabBar(
-                            controller: _tabController,
-                            labelColor: isDarkMode ? Colors.white : Colors.black,
-                            indicatorColor: isDarkMode ? Colors.white : Colors.black,
-                            tabs: const [
-                              Tab(text: 'Posts'),
-                              Tab(text: 'Members'),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
-                              controller: _tabController,
-                              children: [
-                                // Posts Tab
-                                PostsTab(ideaId: idea.id!, repository: widget.repository),
-                                // Members Tab
-                                MembersTab(idea: idea, repository: widget.repository),
+                      child: DefaultTabController(
+                        length: 2 + (isOwner?1:0),
+                        child: Column(
+                          children: [
+                            TabBar(
+                              labelColor: isDarkMode ? Colors.white : Colors.black,
+                              indicatorColor: isDarkMode ? Colors.white : Colors.black,
+                              tabs: [
+                                Tab(text: 'Posts'),
+                                Tab(text: 'Members'),
+                                if(isOwner)
+                                Tab(text: 'Join Requests'),
                               ],
                             ),
-                          ),
-                        ],
+                            Expanded(
+                              child: TabBarView(
+                                children: [
+                                  // Posts Tab
+                                  PostsTab(ideaId: idea.id!, repository: widget.repository),
+                                  // Members Tab
+                                  MembersTab(idea: idea, repository: widget.repository,),
+                                  if(isOwner)
+                                  OffersTab(idea: idea, repository: widget.repository,forOwner: isOwner,addNewMember: (id){
+                                    idea.members.add(id);
+                                    setState(() {});
+                                  },),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

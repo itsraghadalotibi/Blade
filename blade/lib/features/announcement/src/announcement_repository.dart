@@ -2,9 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'announcement_model.dart';
 
 class AnnouncementRepository {
-  final FirebaseFirestore firestore;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  AnnouncementRepository({required this.firestore});
+
+  AnnouncementRepository();
 
   // Method to create a new Idea in Firestore with the creator as the first member
   Future<void> createIdea(Idea idea, String creatorId) async {
@@ -29,12 +30,22 @@ class AnnouncementRepository {
           .where('status', isEqualTo: 'open') // Filter for status='open'
           .get();
 
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('join_requests')
+          .where('userId', isEqualTo: currentUserId)
+          .get();
+
       // Filter ideas to exclude those owned by the current user
       return snapshot.docs
           .where((doc) => doc['members'][0] != currentUserId) // Exclude owner's ideas
           .map((doc) {
             final data = doc.data() as Map<String, dynamic>;
-            return Idea.fromMap(data, doc.id); // Pass the document ID to fromMap
+            return Idea.fromMap(data, doc.id)
+            // Pass the document ID to fromMap
+            ..isJoined = querySnapshot.docs.where((d) {
+              return d['ideaId'] == doc.id;
+            }).isNotEmpty; 
+            // set isJoined value
           })
           .toList();
     } catch (e) {
@@ -71,6 +82,22 @@ class AnnouncementRepository {
   Future<void> updateIdea(Idea idea) async {
     try {
       await firestore.collection('ideas').doc(idea.id).update(idea.toMap());
+    } catch (e) {
+      print('Error updating idea: $e');
+      throw Exception('Failed to update idea');
+    }
+  }
+
+
+  // Join to Idea
+  Future<void> sendJoinRequest(Idea idea,String cureentUser) async {
+    try {
+      await firestore.collection('join_requests').add({
+        "ideaId":idea.id,
+        "userId":cureentUser,
+        'status': 'pending',
+        'timestamp': Timestamp.now(), // Convert timestamp to DateTime.
+        });
     } catch (e) {
       print('Error updating idea: $e');
       throw Exception('Failed to update idea');
@@ -176,6 +203,24 @@ class AnnouncementRepository {
       throw Exception('Failed to load collaborator: $e');
     }
   }
+
+
+    // Fetch a specific collaborator by userId
+  Future<Collaborator?> fetchCollaboratorOffers(String userId) async {
+    try {
+      final snapshot = await firestore
+          .collection('collaborators')
+          .where('uid', isEqualTo: userId)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        return Collaborator.fromMap(snapshot.docs.first.data());
+      }
+      return null;
+    } catch (e) {
+      throw Exception('Failed to load collaborator: $e');
+    }
+  }
   // Add a real-time listener for fetching a collaborator
 Stream<Collaborator?> streamCollaborator(String userId) {
   return firestore.collection('collaborators').doc(userId).snapshots().map(
@@ -198,6 +243,61 @@ Stream<Collaborator?> streamCollaborator(String userId) {
     throw Exception('Failed to update idea status');
   }
 }
+
+
+ Future<void> acceptJoinRequest(Idea idea, String userId) async {
+    try {
+      // Update the join request status to "accepted" in Firestore
+      final requestRef = await firestore
+          .collection('join_requests')
+          .where('ideaId', isEqualTo: idea.id)
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      if (requestRef.docs.isNotEmpty) {
+        await requestRef.docs.first.reference.update({'status': 'accepted'});
+        // Add the requester as a member of the idea
+        await firestore.collection('ideas').doc(idea.id).update({
+          'members': FieldValue.arrayUnion([userId])
+        });
+        // Is Full Code
+        final int maxMembers = idea.maxMembers;
+        final int currentMembers = idea.members.length + 1;
+        final bool isFull = currentMembers == maxMembers;
+        if(isFull){
+          final requestRef = await firestore
+            .collection('join_requests')
+            .where('ideaId', isEqualTo: idea.id).get();
+            for (var i = 0; i < requestRef.docs.length; i++) {
+              await firestore.collection('join_requests').doc(requestRef.docs[i].id).update({
+                'status': "rejected",
+              });
+            }
+        }
+        // To Here
+      }
+    } catch (e) {
+      throw Exception('Failed to accept join request.');
+    }
+  }
+
+  Future<void> rejectJoinRequest(String ideaId, String userId) async {
+    try {
+      // Update the join request status to "rejected" in Firestore
+      final requestRef = await firestore
+          .collection('join_requests')
+          .where('ideaId', isEqualTo: ideaId)
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      if (requestRef.docs.isNotEmpty) {
+        await requestRef.docs.first.reference.update({'status': 'rejected'});
+      }
+    } catch (e) {
+      throw Exception('Failed to reject join request.');
+    }
+  }
+
 
 
 }

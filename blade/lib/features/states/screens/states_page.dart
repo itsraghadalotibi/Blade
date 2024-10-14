@@ -32,8 +32,8 @@ class StatesPage extends StatelessWidget {
 
           return {
             'ideaTitle': ideaTitle,
-            'status': data['status'],
-            'timestamp': data['timestamp'].toDate(), // Convert timestamp to DateTime.
+            'status': data['status'] ?? "pending",
+            'timestamp': ((data['timestamp'] ?? Timestamp.now()) as Timestamp).toDate(), // Convert timestamp to DateTime.
           };
         }).toList(),
       );
