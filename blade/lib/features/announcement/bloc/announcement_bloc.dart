@@ -20,4 +20,3 @@ class AnnouncementBloc extends Bloc<AnnouncementEvent, AnnouncementState> {
     });
   }
 }
-
