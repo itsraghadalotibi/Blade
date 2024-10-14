@@ -131,7 +131,7 @@ class _PostState extends State<Post> {
   final TextEditingController _ideanameController = TextEditingController();
   final TextEditingController _ideadescriptionController = TextEditingController();
   final TextEditingController _numberController = TextEditingController(text: '1');
-  final AnnouncementRepository _ideaRepository = AnnouncementRepository(firestore: FirebaseFirestore.instance);
+  final AnnouncementRepository _ideaRepository = AnnouncementRepository();
 
   final FocusNode _projectNameFocusNode = FocusNode();
   final FocusNode _descriptionFocusNode = FocusNode();
@@ -203,6 +203,7 @@ class _PostState extends State<Post> {
       description: _ideadescriptionController.text,
       maxMembers: int.parse(_numberController.text),
       members: [creatorId],
+      isJoined: true,
       skills: tags,
       status: 'open',
     );

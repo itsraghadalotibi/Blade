@@ -36,6 +36,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     try {
       // Create an Idea using the data from SubmitStep event
       final idea = Idea(
+        isJoined: true,
         title: event.ideaName,
         description: event.ideaDescription,
         maxMembers: int.parse(event.number),

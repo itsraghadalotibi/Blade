@@ -1,4 +1,5 @@
 //theaming
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../project_info/screens/project_screen.dart';
 import '../src/announcement_model.dart';
@@ -13,10 +14,10 @@ class AnnouncementCardWidget extends StatefulWidget {
   final AnnouncementRepository repository;
 
   const AnnouncementCardWidget({
-    Key? key,
+    super.key,
     required this.idea,
     required this.repository,
-  }) : super(key: key);
+  });
 
   @override
   _AnnouncementCardWidgetState createState() => _AnnouncementCardWidgetState();
@@ -25,10 +26,13 @@ class AnnouncementCardWidget extends StatefulWidget {
 class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
   bool isExpanded = false;
   bool exceedsMaxLines = false;
+  String? currentUserId;
+  bool isJoinPending = false;
 
   @override
   void initState() {
     super.initState();
+    currentUserId = FirebaseAuth.instance.currentUser?.uid;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkTextOverflow();
     });
@@ -61,6 +65,22 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     });
   }
 
+  void _handleJoinRequest() async {
+
+    setState(() {
+      isJoinPending = true;
+    });
+
+    
+    await widget.repository.sendJoinRequest(widget.idea,currentUserId!);
+    widget.idea.isJoined = true;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Join request sent. Awaiting approval.')),
+    );
+
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -79,12 +99,20 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final int membersNeeded =
         maxMembers > currentMembers ? maxMembers - currentMembers : 0;
 
+
+    bool canJoin = currentUserId != null &&
+        !widget.idea.isJoined! &&
+        !widget.idea.members.contains(currentUserId) &&
+        currentMembers < maxMembers && // Team is not full
+        !isJoinPending ;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => ProjectScreen(
+              canJoin: canJoin,
               idea: widget.idea,
               repository: widget.repository,
             ),
@@ -217,25 +245,26 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                 ),
               ),
               SizedBox(height: screenHeight * 0.005),
-
               // Join button
+              if (canJoin)
               Center(
                 child: Container(
                   width: screenWidth * 0.4,
                   height: screenHeight * 0.05,
                   decoration: BoxDecoration(
-                    color: TColors.primary.withOpacity(0.5), // Reduced opacity for disabled look
+                    color: TColors.primary, // Reduced opacity for disabled look
                     borderRadius: BorderRadius.circular(48),
                   ),
-                  child: Center(
-                    child: Text(
-                      'Join',
-                      style: TextStyle(
-                        color: TColors.textWhite.withOpacity(0.5), // Lightened text color to indicate it's disabled
-                        fontSize: screenWidth * 0.04 * textScaleFactor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  child: ElevatedButton(
+                    onPressed: _handleJoinRequest,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isJoinPending
+                          ? Colors.grey // Grey color for waiting status
+                          : TColors.primary,
+                      // Regular color for join button
+                      padding: const EdgeInsets.symmetric(horizontal: 18.0),
                     ),
+                    child: Text(isJoinPending ? 'Waiting' : 'Join'),
                   ),
                 ),
               ),

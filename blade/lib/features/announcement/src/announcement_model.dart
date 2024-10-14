@@ -5,6 +5,7 @@ class Idea {
   final int maxMembers;
   final List<String> members; // Will store user IDs
   final List<String> skills;
+  bool? isJoined;
   String status;
 
   Idea({
@@ -14,7 +15,8 @@ class Idea {
     required this.maxMembers,
     required this.members,
     required this.skills,
-    required this.status
+    required this.status,
+    this.isJoined
   });
 
   // Factory constructor to create an Idea from Firestore data
@@ -29,6 +31,7 @@ class Idea {
           ? List<String>.from(data['skills'])
           : [],
       status: data['status'] ?? 'open',
+      isJoined: false
     );
   }
 
@@ -37,6 +40,7 @@ class Idea {
     String? title,
     String? description,
     String? status,
+    bool? isJoined,
     List<String>? members,
   }) {
     return Idea(
@@ -45,6 +49,7 @@ class Idea {
       description: description ?? this.description,
       status: status ?? this.status,
       members: members ?? this.members,
+      isJoined: isJoined ?? this.isJoined,
       maxMembers: maxMembers,
       skills: skills,
     );

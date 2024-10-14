@@ -43,8 +43,8 @@ class StatesBloc extends Bloc<StatesEvent, StatesPageState> {
         // Add the request along with the idea title to the list
         requests.add({
           'ideaTitle': ideaTitle,
-          'status': requestData['status'],
-          'timestamp': (requestData['timestamp'] as Timestamp).toDate(),
+          'status': requestData['status'] ?? "pending",
+          'timestamp': ((requestData['timestamp'] ?? Timestamp.now()) as Timestamp).toDate(),
         });
       }
 

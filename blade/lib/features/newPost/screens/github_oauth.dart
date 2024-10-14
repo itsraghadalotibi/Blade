@@ -67,8 +67,10 @@ class _GithubAuthenticationState extends State<GithubAuthentication> {
                 height: 200,
               ),
             ),
-            const Spacer(),  // Space between image and the button
+            const Spacer(),
+            // const SizedBox(height: 50),  // Space between image and the button
             Center(
+              // heightFactor: 8,
               child: SizedBox(
                 width: 350,
                 height: 56,
@@ -78,6 +80,7 @@ class _GithubAuthenticationState extends State<GithubAuthentication> {
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.zero,  
                     ),
+                      side: BorderSide.none,  // No border
                   ),
                   icon: const Icon(
                     LineIcons.github,
