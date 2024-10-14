@@ -4,22 +4,23 @@ import 'package:blade_app/features/states/screens/states_page.dart';
 import '../bloc/announcement_bloc.dart';
 import '../src/announcement_repository.dart';
 import '../widgets/announcement_card_widget.dart';
-import '../../../utils/constants/colors.dart'; // Import the colors file
+import '../../../utils/constants/colors.dart'; // Import your custom colors
 
 class AnnouncementScreen extends StatefulWidget {
   final AnnouncementRepository repository;
-  final String currentUserId; 
+  final String currentUserId;
 
-  const AnnouncementScreen({required this.repository, required this.currentUserId, Key? key})
-  : super(key: key);
+  const AnnouncementScreen({
+    required this.repository,
+    required this.currentUserId,
+    Key? key,
+  }) : super(key: key);
 
   @override
-  State<AnnouncementScreen> createState() =>
-      _AnnouncementAndStatesScreenState();
+  State<AnnouncementScreen> createState() => _AnnouncementAndStatesScreenState();
 }
 
-class _AnnouncementAndStatesScreenState
-    extends State<AnnouncementScreen>
+class _AnnouncementAndStatesScreenState extends State<AnnouncementScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -37,7 +38,6 @@ class _AnnouncementAndStatesScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Determine if the system is in dark mode
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -45,25 +45,26 @@ class _AnnouncementAndStatesScreenState
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: Text(
-          'Announcements',
-        ),
+        title: const Text('Announcements'),
         bottom: TabBar(
           controller: _tabController,
+          indicatorColor: Theme.of(context).primaryColor, // Matches the primary theme color
+          labelColor: Theme.of(context).primaryColor, // Label color for selected tab
+          unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color, // Color for unselected tabs
           tabs: const [
             Tab(text: 'Announcements'),
             Tab(text: 'Project Status'),
           ],
-          indicatorColor: isDarkMode ? TColors.textWhite : TColors.textPrimary,
         ),
       ),
-      backgroundColor:
-          isDarkMode ? TColors.dark : TColors.primaryBackground, // Background
+      backgroundColor: isDarkMode
+          ? TColors.dark
+          : TColors.primaryBackground, // Background based on theme
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildAnnouncementTab(), // Announcement tab content
-          const StatesPage(), // StatesPage as the second tab
+          _buildAnnouncementTab(), // Content for the Announcement tab
+          const StatesPage(), // Content for the Project Status tab
         ],
       ),
     );
@@ -113,5 +114,6 @@ class _AnnouncementAndStatesScreenState
     );
   }
 }
+
 
 
