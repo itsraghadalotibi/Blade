@@ -21,7 +21,6 @@ class AnnouncementRepository {
   }
 }
 
-  // Fetch ideas with status='open' and exclude the owner's idea
   Future<List<Idea>> fetchIdeas(String currentUserId) async {
     try {
       final snapshot = await firestore
@@ -31,7 +30,12 @@ class AnnouncementRepository {
 
       // Filter ideas to exclude those owned by the current user
       return snapshot.docs
-          .where((doc) => doc['members'][0] != currentUserId) // Exclude owner's ideas
+          .where((doc) {
+            final members = List<String>.from(doc['members'] ?? []);
+            return members.isEmpty || 
+                  members[0] != currentUserId && 
+                  !members.contains(currentUserId); // Exclude owner's ideas and those where the user is a member
+          })
           .map((doc) {
             final data = doc.data() as Map<String, dynamic>;
             return Idea.fromMap(data, doc.id); // Pass the document ID to fromMap
@@ -41,6 +45,7 @@ class AnnouncementRepository {
       throw Exception('Failed to load ideas: $e');
     }
   }
+
 
 
 
@@ -199,5 +204,30 @@ Stream<Collaborator?> streamCollaborator(String userId) {
   }
 }
 
+  Stream<List<Idea>> streamIdeas(String currentUserId) {
+    return firestore.collection('ideas')
+        .where('status', isEqualTo: 'open')
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.where((doc) {
+            final members = List<String>.from(doc['members'] ?? []);
+            return members.isEmpty ||
+                members[0] != currentUserId &&
+                !members.contains(currentUserId); // Filter logic
+          }).map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return Idea.fromMap(data, doc.id); // Pass the document ID to fromMap
+          }).toList();
+        });
+  }
 
+  Future<void> updateProjectStatus(String projectId, String newStatus) async {
+    try {
+      await firestore.collection('ideas').doc(projectId).update({
+        'status': newStatus,
+      });
+    } catch (e) {
+      throw Exception('Failed to update project status: $e');
+    }
+  }
 }
