@@ -1,14 +1,17 @@
-// Path: features/profile/bloc/edit_supporter_profile_state.dart
+import '../src/supporter_profile_model.dart';
 
-import 'package:equatable/equatable.dart';
-
-abstract class EditSupporterProfileState extends Equatable {
-  @override
-  List<Object?> get props => [];
-}
+abstract class EditSupporterProfileState {}
 
 class EditSupporterProfileInitial extends EditSupporterProfileState {}
 
-class SupporterProfileUpdateSuccess extends EditSupporterProfileState {}
+class SupporterProfileUpdateSuccess extends EditSupporterProfileState {
+  final SupporterProfileModel profile;
 
-class SupporterProfileUpdateFailure extends EditSupporterProfileState {}
+  SupporterProfileUpdateSuccess(this.profile);
+}
+
+class SupporterProfileUpdateFailure extends EditSupporterProfileState {
+  final String error;
+
+  SupporterProfileUpdateFailure(this.error);
+}

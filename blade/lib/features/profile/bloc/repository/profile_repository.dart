@@ -1,5 +1,3 @@
-// Path: lib/features/profile/repository/profile_repository.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../src/collaborator_profile_model.dart';
 import '../src/supporter_profile_model.dart';
@@ -28,21 +26,20 @@ class ProfileRepository {
   }
 
   // Fetch supporter profile
-  Future<SupporterProfileModel?> getSupporterProfile(String userId) async {
-    try {
-      DocumentSnapshot doc =
-          await _firestore.collection('supporters').doc(userId).get();
-      if (doc.exists) {
-        return SupporterProfileModel.fromMap(
-            doc.data() as Map<String, dynamic>);
-      } else {
-        throw Exception('Supporter profile not found');
-      }
-    } catch (error) {
-      throw Exception('Failed to load supporter profile: $error');
+Future<SupporterProfileModel?> getSupporterProfile(String userId) async {
+  try {
+    DocumentSnapshot doc =
+        await _firestore.collection('supporters').doc(userId).get();
+    if (doc.exists) {
+      return SupporterProfileModel.fromMap(
+          doc.data() as Map<String, dynamic>);
+    } else {
+      throw Exception('Supporter profile not found');
     }
+  } catch (error) {
+    throw Exception('Failed to load supporter profile: $error');
   }
-
+}
   // Update collaborator profile
   Future<void> updateCollaboratorProfile(
       CollaboratorProfileModel profile) async {
@@ -52,13 +49,14 @@ class ProfileRepository {
         .update(profile.toMap());
   }
 
-  // Update supporter profile
-  Future<void> updateSupporterProfile(SupporterProfileModel profile) async {
-    await _firestore
-        .collection('supporters')
-        .doc(profile.uid)
-        .update(profile.toMap());
-  }
+  
+// Update supporter profile
+Future<void> updateSupporterProfile(SupporterProfileModel profile) async {
+  await _firestore
+      .collection('supporters')
+      .doc(profile.uid)
+      .update(profile.toMap());
+}
 
   // Fetch skills from Firebase
   Future<List<String>> fetchSkillsFromFirebase() async {

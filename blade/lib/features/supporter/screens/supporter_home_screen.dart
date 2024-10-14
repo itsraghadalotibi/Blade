@@ -16,45 +16,46 @@ class SupporterHomeScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-      title: const Text(
-        "Logout Confirmation",
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      content: const Text(
-        "Are you sure you want to log out from Blade?",
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(dialogContext).pop(); // Close the dialog
-          },
-          style: TextButton.styleFrom(
-            foregroundColor: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black,
-          ),
-          child: const Text("Cancel"),
-        ),
-        const SizedBox(width: 2),
-        TextButton(
-          onPressed: () {
-            Navigator.of(dialogContext).pop(); // Close the dialog
-            _onLogoutButtonPressed(context); // Perform logout
-          },
-          style: TextButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.error, // Red background
-          ),
-          child: Text(
-            "Logout",
+          title: const Text(
+            "Logout Confirmation",
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onError, // White text
+              fontWeight: FontWeight.bold,
             ),
           ),
-        ),
-      ],
-    );
+          content: const Text(
+            "Are you sure you want to log out from Blade?",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+              ),
+              child: const Text("Cancel"),
+            ),
+            const SizedBox(width: 2),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+                _onLogoutButtonPressed(context); // Perform logout
+              },
+              style: TextButton.styleFrom(
+                backgroundColor:
+                    Theme.of(context).colorScheme.error, // Red background
+              ),
+              child: Text(
+                "Logout",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onError, // White text
+                ),
+              ),
+            ),
+          ],
+        );
       },
     );
   }
@@ -63,7 +64,6 @@ class SupporterHomeScreen extends StatelessWidget {
   void _onLogoutButtonPressed(BuildContext context) {
     context.read<AuthenticationBloc>().add(LoggedOut());
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +94,7 @@ class SupporterHomeScreen extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Supporter Home'),
+          title: const Text('Home'),
           centerTitle: true,
           automaticallyImplyLeading: false,
           actions: [
@@ -114,7 +114,7 @@ class SupporterHomeScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Welcome Supporter ${user.firstName} ${user.lastName}!',
+                      'Welcome  ${user.firstName} ${user.lastName}!',
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 16),
