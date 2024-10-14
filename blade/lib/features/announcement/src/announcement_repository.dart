@@ -126,17 +126,30 @@ class AnnouncementRepository {
       throw Exception('Failed to load ideas by skill: $e');
     }
   }
-
+  
   // Add a member to an existing idea
-  Future<void> addMemberToIdea(String? ideaId, String memberId) async {
-    try {
-      await firestore.collection('ideas').doc(ideaId).update({
-        'members': FieldValue.arrayUnion([memberId])  // Add memberId to the members array
-      });
-    } catch (e) {
-      throw Exception('Failed to add member: $e');
+  Future<void> addMemberToIdea(String ideaId, String memberId) async {
+  final ideaRef = firestore.collection('ideas').doc(ideaId);
+
+  await firestore.runTransaction((transaction) async {
+    final snapshot = await transaction.get(ideaRef);
+    if (!snapshot.exists) {
+      throw Exception('Idea does not exist!');
     }
-  }
+
+    List<dynamic> members = snapshot.get('members') ?? [];
+    if (!members.contains(memberId)) {
+      members.add(memberId);
+      transaction.update(ideaRef, {'members': members});
+      print('Added member $memberId to Idea ID: $ideaId');
+    } else {
+      print('Member $memberId is already part of Idea ID: $ideaId');
+    }
+  }).catchError((e) {
+    print('Transaction failed: $e');
+    throw Exception('Failed to add member: $e');
+  });
+}
 
   // Remove a member from an existing idea
   Future<void> removeMemberFromIdea(String? ideaId, String memberId) async {

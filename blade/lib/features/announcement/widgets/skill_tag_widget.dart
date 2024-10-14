@@ -27,13 +27,13 @@ class SkillTagWidget extends StatelessWidget {
         vertical: 4,
       ),
       decoration: BoxDecoration(
-        color: isDarkMode ? TColors.tag : TColors.tag, // Dynamic color based on theme
+        color: isDarkMode ? TColors.tag : TColors.grey, // Dynamic color based on theme
         borderRadius: BorderRadius.circular(100),
       ),
       child: Text(
         skill,
         style: TextStyle(
-          color: isDarkMode ? TColors.textWhite : TColors.textWhite, // Dynamic text color based on theme
+          color: isDarkMode ? TColors.textWhite : TColors.black, // Dynamic text color based on theme
           fontSize: screenWidth * 0.03,
           fontWeight: FontWeight.w400,
         ),

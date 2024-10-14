@@ -68,19 +68,27 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     }
   }
 
-  Future<void> _onUpdateProjectStatus(UpdateProjectStatus event, Emitter<ProjectState> emit) async {
+  Future<void> _onUpdateProjectStatus(
+      UpdateProjectStatus event, Emitter<ProjectState> emit) async {
+    emit(ProjectLoading());
     try {
       await repository.updateIdeaStatus(event.ideaId, event.newStatus);
-      final currentState = state;
-      if (currentState is ProjectLoaded) {
+      final updatedIdea = await repository.getIdeaById(event.ideaId);
+      if (updatedIdea != null) {
+        final isOwner = updatedIdea.members.isNotEmpty && updatedIdea.members[0] == currentUserId;
+        final isMember = updatedIdea.members.contains(currentUserId);
+        emit(ProjectStatusUpdated(updatedIdea));
         emit(ProjectLoaded(
-          idea: currentState.idea.copyWith(status: event.newStatus),
-          isMember: currentState.isMember,
-          isOwner: currentState.isOwner,
+          idea: updatedIdea,
+          isOwner: isOwner,
+          isMember: isMember,
         ));
+      } else {
+        emit(ProjectError('Project not found after status update.'));
       }
     } catch (e) {
-      emit(const ProjectError('Error updating project status.'));
+      emit(ProjectError('Failed to update project status: $e'));
     }
   }
+  
 }

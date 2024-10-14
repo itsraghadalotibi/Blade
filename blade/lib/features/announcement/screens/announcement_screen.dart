@@ -61,8 +61,7 @@ class _AnnouncementAndStatesScreenState
           indicatorColor: isDarkMode ? TColors.textWhite : TColors.textPrimary,
         ),
       ),
-      backgroundColor:
-          isDarkMode ? TColors.dark : TColors.primaryBackground, // Background
+      
       body: TabBarView(
         controller: _tabController,
         children: [

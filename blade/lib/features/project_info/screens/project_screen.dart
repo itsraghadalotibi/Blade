@@ -8,9 +8,9 @@ import '../../announcement/widgets/skill_tag_widget.dart';
 import '../bloc/project_bloc.dart';
 import '../bloc/project_event.dart';
 import '../bloc/project_state.dart';
-import 'edit_project_screen.dart';
 import 'posts_tab.dart'; // Import your PostsTab widget
-import 'members_tab.dart'; // We'll adjust this widget accordingly
+import 'members_tab.dart';
+import 'project_settings_screen.dart'; // We'll adjust this widget accordingly
 
 class ProjectScreen extends StatefulWidget {
   final Idea idea;
@@ -55,6 +55,12 @@ class _ProjectScreenState extends State<ProjectScreen>
               ),
               body: const Center(child: CircularProgressIndicator()),
             );
+          }else if (state is ProjectStatusUpdated) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Project status updated successfully.'),
+              ),
+            );
           } else if (state is ProjectError) {
             return Scaffold(
               appBar: AppBar(
@@ -78,21 +84,21 @@ class _ProjectScreenState extends State<ProjectScreen>
                 title: const Text('Project details'),
                 centerTitle: true,
                 actions: [
-                  if (isOwner && idea.status == 'open')
+                  if (isOwner && idea.status == 'open' || idea.status == 'ongoing')
                     IconButton(
-                      icon: const Icon(Icons.edit),
+                      icon: const Icon(Icons.settings),
                       onPressed: () {
-                        // Navigate to the EditProjectScreen
+                        // Navigate to the ProjectSettingsScreen
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => EditProjectScreen(
+                            builder: (context) => ProjectSettingsScreen(
                               idea: idea,
                               repository: widget.repository,
                             ),
                           ),
                         ).then((_) {
-                          // Refresh project details after returning from edit screen
+                          // Refresh project details after returning from settings screen
                           context.read<ProjectBloc>().add(FetchProjectDetails(idea.id!));
                         });
                       },
@@ -136,11 +142,7 @@ class _ProjectScreenState extends State<ProjectScreen>
                             ),
                           ),
                           // Project Status Button with Padding Adjustments
-                          GestureDetector(
-                            onTap: isOwner && idea.status != 'completed'
-                                ? () => _showStatusOptions(context, idea)
-                                : null,
-                            child: Container(
+                            Container(
                               margin: const EdgeInsets.only(left: 10),
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
@@ -150,14 +152,6 @@ class _ProjectScreenState extends State<ProjectScreen>
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  if (isOwner && idea.status != 'completed')
-                                    const Icon(
-                                      Icons.edit,
-                                      size: 16,
-                                      color: Colors.grey,
-                                    ),
-                                  if (isOwner && idea.status != 'completed')
-                                    const SizedBox(width: 4),
                                   Text(
                                     idea.status[0].toUpperCase() + idea.status.substring(1),
                                     style: TextStyle(color: _getStatusTextColor(idea.status)),
@@ -165,7 +159,6 @@ class _ProjectScreenState extends State<ProjectScreen>
                                 ],
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ),
