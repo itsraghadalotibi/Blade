@@ -63,7 +63,7 @@ class _NavigationState extends State<Navigation> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => backgroundScreen()),
+                              builder: (context) => const backgroundScreen()),
                         );
                       },
                       child: const ListTile(
@@ -113,7 +113,7 @@ class _NavigationState extends State<Navigation> {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         bottomNavigationBar: BottomAppBar(
-          color: isDarkMode? TColors.light: TColors.dark,
+          color: isDarkMode ? TColors.light : TColors.dark,
           shape: const CircularNotchedRectangle(),
           notchMargin: 6,
           height: 50,
@@ -244,7 +244,8 @@ class _NavigationState extends State<Navigation> {
                           } else {
                             // If the user is not authenticated, you can handle that case
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("User not authenticated")),
+                              const SnackBar(
+                                  content: Text("User not authenticated")),
                             );
                           }
                         },

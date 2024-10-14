@@ -1,5 +1,6 @@
 // gonna contain the material app ( colors, bloc builder, authentication bloc builder to redirect the user either to the auth screen or to the app itself)
 import 'package:blade_app/intro_screen.dart';
+import 'package:blade_app/utils/constants/Navigation/supporterNav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:blade_app/features/authentication/screens/forgetPassword_screen.dart';
@@ -11,14 +12,14 @@ import 'features/authentication/screens/welcome_screen.dart';
 import 'features/authentication/src/authentication_repository.dart';
 import 'features/authentication/src/collaborator_model.dart';
 import 'features/authentication/src/supporter_model.dart';
-import 'features/collaborator/screens/collaborator_home_screen.dart';
 import 'features/supporter/screens/supporter_home_screen.dart';
 import 'utils/constants/Navigation/navigation.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 
 import 'utils/theme/theme.dart';
+
 class AppView extends StatelessWidget {
-  const AppView({Key? key}) : super(key: key);
+  const AppView({super.key});
 
   Future<Widget> _checkInitialScreen(BuildContext context) async {
     final authRepo = context.read<AuthenticationRepository>();
@@ -34,7 +35,7 @@ class AppView extends StatelessWidget {
       if (user is CollaboratorModel) {
         return const Navigation();
       } else if (user is SupporterModel) {
-        return const SupporterHomeScreen();
+        return const SupporterNavigation();
       } else {
         return const WelcomeScreen(); // Unknown user type
       }
@@ -42,10 +43,11 @@ class AppView extends StatelessWidget {
       return const WelcomeScreen(); // Unauthenticated user
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-       debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false,
       title: 'Blade App',
       themeMode: ThemeMode.system,
       theme: TAppTheme.lightTheme,
@@ -90,11 +92,8 @@ class AppView extends StatelessWidget {
             );
           default:
             return MaterialPageRoute(builder: (_) => const WelcomeScreen());
-            
         }
       },
     );
   }
 }
-
-
