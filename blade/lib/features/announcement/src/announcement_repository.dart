@@ -328,7 +328,4 @@ class AnnouncementRepository {
       throw Exception('Failed to reject join request.');
     }
   }
-
-
-
 }
