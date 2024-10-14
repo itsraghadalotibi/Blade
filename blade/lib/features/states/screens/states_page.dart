@@ -58,7 +58,7 @@ class StatesPage extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'Your Join Requests',
+          '',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontSize: screenWidth * 0.05,
                 fontWeight: FontWeight.bold,
