@@ -8,26 +8,36 @@ class AnnouncementRepository {
 
   // Method to create a new Idea in Firestore with the creator as the first member
   Future<void> createIdea(Idea idea, String creatorId) async {
-  try {
-    // Check if the creatorId is already present in the members list
-    if (idea.members.isEmpty || idea.members[0] != creatorId) {
-      // Ensure the creator is the first member of the idea
-      idea.members.insert(0, creatorId);
-    }
-    
-    await firestore.collection('ideas').add(idea.toMap());
-  } catch (e) {
-    throw Exception('Failed to create idea: $e');
-  }
-}
-
-  // Fetch all ideas from the 'ideas' collection
-  Future<List<Idea>> fetchIdeas() async {
     try {
-      final snapshot = await firestore.collection('ideas').get();
+      // Ensure the creator is the first member of the idea
+      if (idea.members.isEmpty || idea.members[0] != creatorId) {
+        idea.members.insert(0, creatorId);
+      }
+      
+      await firestore.collection('ideas').add(idea.toMap());
+    } catch (e) {
+      throw Exception('Failed to create idea: $e');
+    }
+  }
+
+  // Fetch ideas where status='open' and not owned or already a member by the current user
+  Future<List<Idea>> fetchIdeas(String currentUserId) async {
+    try {
+      final snapshot = await firestore
+          .collection('ideas')
+          .where('status', isEqualTo: 'open')
+          .get();
+
       return snapshot.docs
-          .where((doc) => doc.data() != null)  // Ensure the document data is not null
-          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>))  // Safely cast to Map<String, dynamic>
+          .where((doc) {
+            final members = List<String>.from(doc['members'] ?? []);
+            return members.isEmpty || 
+                  (members[0] != currentUserId && !members.contains(currentUserId));
+          })
+          .map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return Idea.fromMap(data, doc.id);
+          })
           .toList();
     } catch (e) {
       throw Exception('Failed to load ideas: $e');
@@ -39,7 +49,7 @@ class AnnouncementRepository {
     try {
       final doc = await firestore.collection('ideas').doc(ideaId).get();
       if (doc.exists && doc.data() != null) {
-        return Idea.fromMap(doc.data()! as Map<String, dynamic>);
+        return Idea.fromMap(doc.data()! as Map<String, dynamic>, doc.id);
       }
       return null;
     } catch (e) {
@@ -57,16 +67,20 @@ class AnnouncementRepository {
   }
 
   // Update an existing Idea by its ID
-  Future<void> updateIdea(String ideaId, Idea updatedIdea) async {
+  Future<void> updateIdea(Idea idea) async {
     try {
-      await firestore.collection('ideas').doc(ideaId).update(updatedIdea.toMap());
+      await firestore.collection('ideas').doc(idea.id).update(idea.toMap());
     } catch (e) {
-      throw Exception('Failed to update idea: $e');
+      print('Error updating idea: $e');
+      throw Exception('Failed to update idea');
     }
   }
 
-  // Fetch ideas with pagination (limit the number of results)
-  Future<List<Idea>> fetchIdeasWithPagination({required int limit, DocumentSnapshot? lastDoc}) async {
+  // Fetch ideas with pagination
+  Future<List<Idea>> fetchIdeasWithPagination({
+    required int limit,
+    DocumentSnapshot? lastDoc,
+  }) async {
     try {
       Query query = firestore.collection('ideas').limit(limit);
       if (lastDoc != null) {
@@ -74,8 +88,7 @@ class AnnouncementRepository {
       }
       final snapshot = await query.get();
       return snapshot.docs
-          .where((doc) => doc.data() != null)  // Ensure the document data is not null
-          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>))  // Safely cast to Map<String, dynamic>
+          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
       throw Exception('Failed to load paginated ideas: $e');
@@ -90,8 +103,7 @@ class AnnouncementRepository {
           .where('maxMembers', isEqualTo: maxMembers)
           .get();
       return snapshot.docs
-          .where((doc) => doc.data() != null)  // Ensure the document data is not null
-          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>))  // Safely cast to Map<String, dynamic>
+          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
       throw Exception('Failed to load ideas: $e');
@@ -106,8 +118,7 @@ class AnnouncementRepository {
           .where('skills', arrayContains: skill)
           .get();
       return snapshot.docs
-          .where((doc) => doc.data() != null)  // Ensure the document data is not null
-          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>))  // Safely cast to Map<String, dynamic>
+          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
       throw Exception('Failed to load ideas by skill: $e');
@@ -115,10 +126,10 @@ class AnnouncementRepository {
   }
 
   // Add a member to an existing idea
-  Future<void> addMemberToIdea(String ideaId, String memberId) async {
+  Future<void> addMemberToIdea(String? ideaId, String memberId) async {
     try {
       await firestore.collection('ideas').doc(ideaId).update({
-        'members': FieldValue.arrayUnion([memberId])  // Add memberId to the members array
+        'members': FieldValue.arrayUnion([memberId])
       });
     } catch (e) {
       throw Exception('Failed to add member: $e');
@@ -126,17 +137,17 @@ class AnnouncementRepository {
   }
 
   // Remove a member from an existing idea
-  Future<void> removeMemberFromIdea(String ideaId, String memberId) async {
+  Future<void> removeMemberFromIdea(String? ideaId, String memberId) async {
     try {
       await firestore.collection('ideas').doc(ideaId).update({
-        'members': FieldValue.arrayRemove([memberId])  // Remove memberId from the members array
+        'members': FieldValue.arrayRemove([memberId])
       });
     } catch (e) {
       throw Exception('Failed to remove member: $e');
     }
   }
 
-    // Fetch a specific collaborator by userId
+  // Fetch a specific collaborator by userId
   Future<Collaborator?> fetchCollaborator(String userId) async {
     try {
       final snapshot = await firestore
@@ -153,4 +164,55 @@ class AnnouncementRepository {
     }
   }
 
+  // Add a real-time listener for fetching a collaborator
+  Stream<Collaborator?> streamCollaborator(String userId) {
+    return firestore.collection('collaborators').doc(userId).snapshots().map(
+      (snapshot) {
+        if (snapshot.exists && snapshot.data() != null) {
+          return Collaborator.fromMap(snapshot.data() as Map<String, dynamic>);
+        }
+        return null;
+      },
+    );
+  }
+
+  // Update idea status
+  Future<void> updateIdeaStatus(String ideaId, String newStatus) async {
+    try {
+      await firestore.collection('ideas').doc(ideaId).update({
+        'status': newStatus,
+      });
+    } catch (e) {
+      print('Error updating idea status: $e');
+      throw Exception('Failed to update idea status');
+    }
+  }
+
+  // Stream ideas based on the current user
+  Stream<List<Idea>> streamIdeas(String currentUserId) {
+    return firestore.collection('ideas')
+        .where('status', isEqualTo: 'open')
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.where((doc) {
+            final members = List<String>.from(doc['members'] ?? []);
+            return members.isEmpty ||
+                (members[0] != currentUserId && !members.contains(currentUserId));
+          }).map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return Idea.fromMap(data, doc.id);
+          }).toList();
+        });
+  }
+
+  // Update project status
+  Future<void> updateProjectStatus(String projectId, String newStatus) async {
+    try {
+      await firestore.collection('ideas').doc(projectId).update({
+        'status': newStatus,
+      });
+    } catch (e) {
+      throw Exception('Failed to update project status: $e');
+    }
+  }
 }

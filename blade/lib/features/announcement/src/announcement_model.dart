@@ -1,21 +1,26 @@
 class Idea {
+  String? id; // Add the id field
   final String title;
   final String description;
   final int maxMembers;
-  final List<String> members;  // Will store user IDs
+  final List<String> members; // Will store user IDs
   final List<String> skills;
+  String status;
 
   Idea({
+    this.id, // Include id in the constructor
     required this.title,
     required this.description,
     required this.maxMembers,
     required this.members,
     required this.skills,
+    required this.status
   });
 
   // Factory constructor to create an Idea from Firestore data
-  factory Idea.fromMap(Map<String, dynamic> data) {
+  factory Idea.fromMap(Map<String, dynamic> data, String documentId) {
     return Idea(
+      id: documentId, // Assign the document ID from Firestore
       title: data['title'] ?? '',
       description: data['description'] ?? '',
       maxMembers: data['maxMembers'] ?? 0,
@@ -23,10 +28,29 @@ class Idea {
       skills: data['skills'] != null && data['skills'] is List
           ? List<String>.from(data['skills'])
           : [],
+      status: data['status'] ?? 'open',
     );
   }
 
-  // Convert Idea to map
+  Idea copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? status,
+    List<String>? members,
+  }) {
+    return Idea(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      members: members ?? this.members,
+      maxMembers: maxMembers,
+      skills: skills,
+    );
+  }
+
+  // Convert Idea to map (for saving to Firestore)
   Map<String, dynamic> toMap() {
     return {
       'title': title,
@@ -34,10 +58,10 @@ class Idea {
       'maxMembers': maxMembers,
       'members': members,
       'skills': skills,
+      'status': status,
     };
   }
 }
-
 class Collaborator {
   final String uid;
   final String firstName;

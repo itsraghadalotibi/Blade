@@ -28,9 +28,7 @@ class AuthenticationRepository {
       email: collaborator.email,
       password: password,
     );
-
     await signOut();
-
     String? profilePhotoUrl;
 
     if (profileImage != null) {

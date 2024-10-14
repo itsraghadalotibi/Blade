@@ -1,5 +1,6 @@
 //theaming
 import 'package:flutter/material.dart';
+import '../../project_info/screens/project_screen.dart';
 import '../src/announcement_model.dart';
 import '../src/announcement_repository.dart';
 import 'avatar_stack_widget.dart';
@@ -12,10 +13,10 @@ class AnnouncementCardWidget extends StatefulWidget {
   final AnnouncementRepository repository;
 
   const AnnouncementCardWidget({
-    super.key,
+    Key? key,
     required this.idea,
     required this.repository,
-  });
+  }) : super(key: key);
 
   @override
   _AnnouncementCardWidgetState createState() => _AnnouncementCardWidgetState();
@@ -23,7 +24,7 @@ class AnnouncementCardWidget extends StatefulWidget {
 
 class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
   bool isExpanded = false;
-  bool exceedsMaxLines = false; // Cache whether the text exceeds max lines
+  bool exceedsMaxLines = false;
 
   @override
   void initState() {
@@ -33,7 +34,6 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     });
   }
 
-  // Check if the description exceeds the max lines and update the state
   void _checkTextOverflow() {
     final textStyle = TextStyle(
       color: Theme.of(context).textTheme.bodyLarge?.color ?? TColors.textPrimary,
@@ -67,35 +67,47 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final screenHeight = MediaQuery.of(context).size.height;
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     final textStyle = TextStyle(
       color: isDarkMode ? TColors.textWhite : TColors.textWhite,
       fontSize: screenWidth * 0.04 * textScaleFactor,
       fontWeight: FontWeight.w400,
     );
 
-    // Dynamically calculate the number of members needed
-    final int maxMembers = widget.idea.maxMembers; // Assuming maxMembers is a field in the idea model
+    final int maxMembers = widget.idea.maxMembers;
     final int currentMembers = widget.idea.members.length;
-    final int membersNeeded = maxMembers > currentMembers ? maxMembers - currentMembers : 0;
+    final int membersNeeded =
+        maxMembers > currentMembers ? maxMembers - currentMembers : 0;
 
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: screenHeight * 0.02,
-        horizontal: screenWidth * 0.05,
-      ),
-      child: Container(
-        width: screenWidth * 0.9,
-        decoration: BoxDecoration(
-          color: isDarkMode ? TColors.container : TColors.container,
-          borderRadius: BorderRadius.circular(23),
-          border: Border.all(color: Colors.transparent),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProjectScreen(
+              idea: widget.idea,
+              repository: widget.repository,
+            ),
+          ),
+        );
+      },
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          vertical: screenHeight * 0.02,
+          horizontal: screenWidth * 0.05,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: Container(
+          width: screenWidth * 0.9,
+          decoration: BoxDecoration(
+            color: isDarkMode ? TColors.container : TColors.container,
+            borderRadius: BorderRadius.circular(23),
+            border: Border.all(color: Colors.transparent),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               Row(
                 children: [
                   Expanded(
@@ -209,14 +221,14 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                   width: screenWidth * 0.4,
                   height: screenHeight * 0.05,
                   decoration: BoxDecoration(
-                    color: TColors.primary.withOpacity(0.5), // Reduced opacity for disabled look
+                    color: TColors.primary, // Reduced opacity for disabled look
                     borderRadius: BorderRadius.circular(48),
                   ),
                   child: Center(
                     child: Text(
                       'Join',
                       style: TextStyle(
-                        color: TColors.textWhite.withOpacity(0.5), // Lightened text color to indicate it's disabled
+                        color: TColors.textWhite, // Lightened text color to indicate it's disabled
                         fontSize: screenWidth * 0.04 * textScaleFactor,
                         fontWeight: FontWeight.bold,
                       ),
@@ -225,6 +237,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                 ),
               ),
             ],
+            ),
           ),
         ),
       ),

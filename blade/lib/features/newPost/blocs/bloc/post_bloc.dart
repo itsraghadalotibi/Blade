@@ -41,6 +41,7 @@ class PostBloc extends Bloc<PostEvent, PostState> {
         maxMembers: int.parse(event.number),
         members: [event.userId],  // Add the creator's user ID as the first member
         skills: event.tags,  // Pass the selected skills
+        status: 'open',
       );
 
       // Call repository to submit the idea
