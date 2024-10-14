@@ -12,6 +12,7 @@ import '../bloc/project_state.dart';
 import 'edit_project_screen.dart';
 import 'posts_tab.dart'; // Import your PostsTab widget
 import 'members_tab.dart'; // We'll adjust this widget accordingly
+import '../../newPost/screens/github_oauth.dart'; // Updated import for GitHub OAuth screen
 
 class ProjectScreen extends StatefulWidget {
   final Idea idea;
@@ -175,9 +176,19 @@ class _ProjectScreenState extends State<ProjectScreen>{
                     if (!isOwner && idea.status=='open' && (isMember || widget.canJoin)) ...[
                       Center(
                         child: ElevatedButton(
-                          onPressed: isMember
-                              ? () => context.read<ProjectBloc>().add(LeaveProject(idea.id!))
-                              : () => context.read<ProjectBloc>().add(JoinProject(idea.id!)),
+                          onPressed: () async {
+                            if (isMember) {
+                              // Call the repository method to remove the user from the project
+                              await widget.repository.removeMemberFromIdea(idea.id!, FirebaseAuth.instance.currentUser!.uid);
+                              // Dispatch the LeaveProject event to the Bloc
+                              context.read<ProjectBloc>().add(LeaveProject(idea.id!));
+                            } else {
+                              // Call the repository method to add the user to the project
+                              await widget.repository.addMemberToIdea(idea.id!, FirebaseAuth.instance.currentUser!.uid);
+                              // Dispatch the JoinProject event to the Bloc
+                              context.read<ProjectBloc>().add(JoinProject(idea.id!));
+                            }
+                          },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 18.0),
                           ),
@@ -235,7 +246,6 @@ class _ProjectScreenState extends State<ProjectScreen>{
     );
   }
 
-  // Method to show status options (unchanged from your original UI)
   void _showStatusOptions(BuildContext context, Idea idea) {
     List<String> availableStatusOptions = _getAvailableStatusOptions(idea.status);
     if (availableStatusOptions.isEmpty) {
@@ -254,14 +264,9 @@ class _ProjectScreenState extends State<ProjectScreen>{
         Brightness brightness = Theme.of(context).brightness;
 
         // Set background colors based on theme
-        Color backgroundColor;
-
-        if (brightness == Brightness.dark) {
-          backgroundColor = Colors.grey[850]!; // Dark grey for dark theme
-        } else {
-          backgroundColor = Colors.grey[200]!; // Light grey for light theme
-        }
-
+        Color backgroundColor = brightness == Brightness.dark
+            ? Colors.grey[850]!
+            : Colors.grey[200]!;
 
         return StatefulBuilder(
           builder: (context, setState) {
@@ -296,21 +301,17 @@ class _ProjectScreenState extends State<ProjectScreen>{
                 OutlinedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    context.read<ProjectBloc>().add(UpdateProjectStatus(idea.id!, newStatus));
+                  onPressed: () async {
+                    await widget.repository.updateProjectStatus(idea.id!, newStatus);
+                    context.read<ProjectBloc>().add(FetchProjectDetails(idea.id!));
                     Navigator.of(context).pop();
                   },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    backgroundColor: Colors.green,
-                    side: const BorderSide(color:  Colors.green),
-                  ),
-                  child: const Text('Save Status'),
+                  child: const Text('Update Status'),
                 ),
               ],
             );
@@ -320,7 +321,6 @@ class _ProjectScreenState extends State<ProjectScreen>{
     );
   }
 
-  // Helper methods (Unchanged)
   List<String> _getAvailableStatusOptions(String currentStatus) {
     switch (currentStatus) {
       case 'open':
@@ -334,23 +334,18 @@ class _ProjectScreenState extends State<ProjectScreen>{
 
   Color _getStatusColor(String status) {
     switch (status) {
+      case 'open':
+        return Colors.green;
       case 'ongoing':
-        return Colors.blue[100]!;
+        return Colors.blue;
       case 'completed':
-        return Colors.grey[300]!;
+        return Colors.grey;
       default:
-        return Colors.green[100]!;
+        return Colors.black;
     }
   }
 
   Color _getStatusTextColor(String status) {
-    switch (status) {
-      case 'ongoing':
-        return Colors.blue[900]!;
-      case 'completed':
-        return Colors.grey[800]!;
-      default:
-        return Colors.green[900]!;
-    }
+    return status == 'completed' ? Colors.black : Colors.white;
   }
 }
