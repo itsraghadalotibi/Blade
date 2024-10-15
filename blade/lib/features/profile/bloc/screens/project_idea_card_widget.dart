@@ -12,9 +12,10 @@ class ProjectIdeaCardWidget extends StatefulWidget {
   final Idea idea;
   final ProjectIdeaRepository repository;
   final AnnouncementRepository announcementRepository;
+  final Function()? refershIdeasInProfile;
 
   const ProjectIdeaCardWidget(
-      {super.key, required this.idea, required this.repository, required this.announcementRepository});
+      {super.key, required this.idea, required this.repository, required this.announcementRepository, required this.refershIdeasInProfile});
 
   @override
   _ProjectIdeaCardWidgetState createState() => _ProjectIdeaCardWidgetState();

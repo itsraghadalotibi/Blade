@@ -19,13 +19,14 @@ class ProjectScreen extends StatefulWidget {
   final Idea idea;
   final AnnouncementRepository repository;
   final bool canJoin;
+  final Function()? refershIdeasInProfile;
   
 
   const ProjectScreen({
     super.key,
     required this.idea,
     required this.repository,
-    required this.canJoin, required onJoinRequestSent,
+    required this.canJoin, required onJoinRequestSent, this.refershIdeasInProfile,
   });
 
   @override
@@ -289,6 +290,10 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                       forOwner: isOwner,
                                       addNewMember: (id) {
                                         idea.members.add(id);
+                                        final bool isFull = (idea.members.length - 1) >= idea.maxMembers;
+                                        if (isFull && widget.refershIdeasInProfile != null) {
+                                          widget.refershIdeasInProfile!();
+                                        }
                                         setState(() {});
                                       },
                                     ),

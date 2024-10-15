@@ -394,7 +394,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
             children: [
               buildProjectIdeasTab("open"),
               buildProjectIdeasTab("ongoing"),
-              const Center(child: Text('Completed Projects content here...')),
+              buildProjectIdeasTab("completed"),
             ],
           ),
         ),
@@ -432,6 +432,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
             final idea = ideas[index];
             if(idea.status == "ongoing" && status != "ongoing")return const SizedBox();
             return ProjectIdeaCardWidget(
+              refershIdeasInProfile: ()=>setState(() {}),
               idea: idea,
               announcementRepository: _announcementRepository,
               repository: _projectIdeaRepository,
