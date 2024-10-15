@@ -27,8 +27,8 @@ class StatesPage extends StatelessWidget {
         return {
           'id': doc.id, // Document ID for cancellation.
           'ideaTitle': ideaTitle,
-          'status': data['status'] ?? 'pending',
-          'timestamp': (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          'status': data['status'] ?? "pending",
+          'timestamp': ((data['timestamp'] ?? Timestamp.now()) as Timestamp).toDate(), // Convert timestamp to DateTime.
         };
       }).toList());
     });

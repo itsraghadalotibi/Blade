@@ -76,6 +76,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         id: widget.idea.id,
         title: _ideanameController.text,
         description: _ideadescriptionController.text,
+        isJoined: widget.idea.isJoined,
         maxMembers: int.parse(_numberController.text),
         members: widget.idea.members,
         skills: tags,

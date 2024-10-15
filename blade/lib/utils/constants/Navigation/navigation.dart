@@ -8,16 +8,14 @@ import 'package:blade_app/features/profile/bloc/bloc/profile_view_event.dart';
 import 'package:blade_app/features/profile/bloc/repository/profile_repository.dart';
 import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
 import 'package:blade_app/features/profile/bloc/screens/supporter_profile_screen.dart';
-import 'package:blade_app/utils/constants/Navigation/dashboard.dart';
 import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 import 'package:flutter/material.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart'; // Import the repository
-import 'package:cloud_firestore/cloud_firestore.dart'; // Firebase import
+// Firebase import
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import '../../../features/announcement/screens/announcement_screen.dart';
 
-import '../../../features/newPost/screens/backgroundPost.dart';
 import '../colors.dart';
 import 'profile.dart';
 
@@ -29,9 +27,7 @@ class Navigation extends StatefulWidget {
 }
 
 class _NavigationState extends State<Navigation> {
-  final announcementRepository = AnnouncementRepository(
-    firestore: FirebaseFirestore.instance,
-  );
+  final announcementRepository = AnnouncementRepository();
 
   int currentTap = 0;
   final List<Widget> screen = [
