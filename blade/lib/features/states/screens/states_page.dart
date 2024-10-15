@@ -6,41 +6,44 @@ import '../../../utils/constants/colors.dart';
 class StatesPage extends StatelessWidget {
   const StatesPage({Key? key}) : super(key: key);
 
-  Future<List<Map<String, dynamic>>> fetchJoinRequests(String userId) async {
+  // Stream to fetch join requests in real-time.
+  Stream<List<Map<String, dynamic>>> streamJoinRequests(String userId) {
+    return FirebaseFirestore.instance
+        .collection('join_requests')
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      return Future.wait(snapshot.docs.map((doc) async {
+        final data = doc.data();
+        final ideaId = data['ideaId'];
+
+        // Fetch the title from the 'ideas' collection.
+        final ideaSnapshot = await FirebaseFirestore.instance
+            .collection('ideas')
+            .doc(ideaId)
+            .get();
+        final ideaTitle = ideaSnapshot.data()?['title'] ?? 'Unknown Idea';
+
+        return {
+          'id': doc.id, // Document ID for cancellation.
+          'ideaTitle': ideaTitle,
+          'status': data['status'] ?? 'pending',
+          'timestamp': (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+        };
+      }).toList());
+    });
+  }
+
+  // Function to cancel a join request.
+  Future<void> cancelJoinRequest(String requestId) async {
     try {
-      // Query the join_requests collection filtered by the current user ID.
-      final querySnapshot = await FirebaseFirestore.instance
+      await FirebaseFirestore.instance
           .collection('join_requests')
-          .where('userId', isEqualTo: userId)
-          .get();
-
-      print('Fetched ${querySnapshot.docs.length} join requests'); // Debug log
-
-      // Use Future.wait to fetch all ideas titles in parallel.
-      final joinRequests = await Future.wait(
-        querySnapshot.docs.map((doc) async {
-          final data = doc.data();
-          final ideaId = data['ideaId'];
-
-          // Fetch the idea's title from the 'ideas' collection.
-          final ideaSnapshot = await FirebaseFirestore.instance
-              .collection('ideas')
-              .doc(ideaId)
-              .get();
-
-          final ideaTitle = ideaSnapshot.data()?['title'] ?? 'Unknown Idea';
-
-          return {
-            'ideaTitle': ideaTitle,
-            'status': data['status'],
-            'timestamp': data['timestamp'].toDate(), // Convert timestamp to DateTime.
-          };
-        }).toList(),
-      );
-
-      return joinRequests;
+          .doc(requestId)
+          .delete();
+      print('Join request $requestId cancelled successfully');
     } catch (e) {
-      throw Exception('Error fetching join requests: $e');
+      print('Error cancelling join request: $e');
     }
   }
 
@@ -51,23 +54,17 @@ class StatesPage extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
+    // Define the same style used for the idea title in the card.
+    final TextStyle ideaTitleStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
+          fontSize: screenWidth * 0.05 * textScaleFactor,
+          fontWeight: FontWeight.bold,
+          color: TColors.textWhite,
+        ) ?? const TextStyle();
+
     return Scaffold(
       backgroundColor: isDarkMode ? TColors.dark : TColors.primaryBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          '',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontSize: screenWidth * 0.05,
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? TColors.textWhite : TColors.textPrimary,
-              ),
-        ),
-      ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: fetchJoinRequests(FirebaseAuth.instance.currentUser!.uid),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: streamJoinRequests(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -75,10 +72,10 @@ class StatesPage extends StatelessWidget {
             return Center(
               child: Text(
                 'Error: ${snapshot.error}',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                  fontSize: screenWidth * 0.045,
-                ),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                      fontSize: screenWidth * 0.045,
+                    ),
               ),
             );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -100,28 +97,17 @@ class StatesPage extends StatelessWidget {
             itemCount: joinRequests.length,
             itemBuilder: (context, index) {
               final request = joinRequests[index];
+              final requestId = request['id'];
               final ideaTitle = request['ideaTitle'];
               final status = request['status'];
               final timestamp = request['timestamp'];
 
-              // Define status icons and colors.
-              IconData statusIcon;
-              Color statusColor;
-              String statusMessage;
-
-              if (status == 'accepted') {
-                statusIcon = Icons.check_circle;
-                statusColor = Colors.green;
-                statusMessage = 'Accepted';
-              } else if (status == 'rejected') {
-                statusIcon = Icons.cancel;
-                statusColor = Colors.red;
-                statusMessage = 'Rejected';
-              } else {
-                statusIcon = Icons.hourglass_top;
-                statusColor = Colors.amber;
-                statusMessage = 'Pending';
-              }
+              // Adjust the color of the status dynamically.
+              final Color statusColor = status == 'pending'
+                  ? Colors.amber
+                  : status == 'accepted'
+                      ? Colors.green
+                      : Colors.red;
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
@@ -145,44 +131,42 @@ class StatesPage extends StatelessWidget {
                                 ideaTitle,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: screenWidth *
-                                      0.05 *
-                                      textScaleFactor,
-                                  fontWeight: FontWeight.bold,
-                                  color: TColors.textWhite,
-                                ),
+                                style: ideaTitleStyle, // Use idea title style
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'Requested On: $timestamp',
-                                style: TextStyle(
-                                  fontSize: screenWidth *
-                                      0.035 *
-                                      textScaleFactor,
-                                  color: TColors.textSecondary,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontSize: screenWidth * 0.035 * textScaleFactor,
+                                      color: TColors.textSecondary,
+                                    ),
                               ),
                             ],
                           ),
                         ),
-                        // Right: Status Icon and Message
+                        // Right: Status Text and Cancel Button for Pending Requests
                         Row(
                           children: [
-                            Icon(
-                              statusIcon,
-                              color: statusColor,
-                              size: screenWidth * 0.08,
-                            ),
-                            const SizedBox(width: 8),
+                            // Status text using the same style as idea title, with dynamic color
                             Text(
-                              statusMessage,
-                              style: TextStyle(
+                              status.toUpperCase(), // Display status in uppercase
+                              style: ideaTitleStyle.copyWith(
                                 color: statusColor,
-                                fontSize: screenWidth * 0.04 * textScaleFactor,
-                                fontWeight: FontWeight.w500,
+                                fontSize: screenWidth * 0.045 * textScaleFactor, // Slightly smaller size
                               ),
                             ),
+                            // Cancel button only for pending requests
+                            if (status == 'pending') ...[
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.cancel,
+                                  color: Colors.red,
+                                  size: screenWidth * 0.07,
+                                ),
+                                onPressed: () => cancelJoinRequest(requestId),
+                              ),
+                            ],
                           ],
                         ),
                       ],
@@ -197,3 +181,7 @@ class StatesPage extends StatelessWidget {
     );
   }
 }
+
+
+
+
