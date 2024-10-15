@@ -1,4 +1,3 @@
-// states_page_state.dart
 import 'package:equatable/equatable.dart';
 
 abstract class StatesPageState extends Equatable {
@@ -6,20 +5,17 @@ abstract class StatesPageState extends Equatable {
   List<Object?> get props => [];
 }
 
-// State when the join requests are loading
 class StatesLoading extends StatesPageState {}
 
-// State when join requests are successfully loaded
-class StatesLoaded extends StatesPageState {
-  final List<Map<String, dynamic>> joinRequests;
+class ProjectsLoaded extends StatesPageState {
+  final List<Map<String, dynamic>> projectRequests;
 
-  StatesLoaded(this.joinRequests);
+  ProjectsLoaded(this.projectRequests);
 
   @override
-  List<Object?> get props => [joinRequests];
+  List<Object?> get props => [projectRequests];
 }
 
-// State when there is an error loading join requests
 class StatesError extends StatesPageState {
   final String error;
 
@@ -28,3 +24,4 @@ class StatesError extends StatesPageState {
   @override
   List<Object?> get props => [error];
 }
+

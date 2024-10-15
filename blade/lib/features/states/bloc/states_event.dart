@@ -1,4 +1,3 @@
-// states_event.dart
 import 'package:equatable/equatable.dart';
 
 abstract class StatesEvent extends Equatable {
@@ -6,12 +5,12 @@ abstract class StatesEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-// Event to load all join requests for a specific user
-class LoadStates extends StatesEvent {
+class LoadAllProjectsRequests extends StatesEvent {
   final String requesterId;
 
-  LoadStates(this.requesterId);
+  LoadAllProjectsRequests(this.requesterId);
 
   @override
   List<Object?> get props => [requesterId];
 }
+
