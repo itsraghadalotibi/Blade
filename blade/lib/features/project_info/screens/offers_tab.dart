@@ -45,7 +45,7 @@ class _OffersTabState extends State<OffersTab> {
         }
         final int maxMembers = widget.idea.maxMembers;
         final int currentMembers = widget.idea.members.length;
-        final bool isFull = currentMembers == maxMembers;
+        final bool isFull = (currentMembers - 1) >= maxMembers;
         if (isFull) {
           return const Center(child: Text('This Project Is Full'));
         }
@@ -130,9 +130,9 @@ class _OffersTabState extends State<OffersTab> {
                         children: [
                           OutlinedButton(
                             onPressed: () async{
-                              setState(() {
-                                isPress = true;
-                              });
+                              // setState(() {
+                              //   isPress = true;
+                              // });
                               // Reject join request
                               await widget.repository.rejectJoinRequest(widget.idea.id!, collaborator.uid);
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -156,9 +156,9 @@ class _OffersTabState extends State<OffersTab> {
                           const SizedBox(width: 8),
                           ElevatedButton(
                             onPressed: () async{
-                              setState(() {
-                                isPress = true;
-                              });
+                              // setState(() {
+                              //   isPress = true;
+                              // });
                               // Accept join request
                               await widget.repository.acceptJoinRequest(widget.idea, collaborator.uid);
                               ScaffoldMessenger.of(context).showSnackBar(

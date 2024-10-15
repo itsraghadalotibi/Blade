@@ -1,4 +1,5 @@
 //theaming
+import 'package:blade_app/features/announcement/bloc/announcement_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../project_info/screens/project_screen.dart';
@@ -12,11 +13,13 @@ import '../../../utils/constants/colors.dart';
 class AnnouncementCardWidget extends StatefulWidget {
   final Idea idea;
   final AnnouncementRepository repository;
+  final Function() fetchAll;
 
   const AnnouncementCardWidget({
     super.key,
     required this.idea,
-    required this.repository,
+    required this.repository, 
+    required this.fetchAll,
   });
 
   @override
@@ -69,11 +72,11 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
 
     setState(() {
       isJoinPending = true;
+      widget.idea.isJoined = true;
     });
 
-    
     await widget.repository.sendJoinRequest(widget.idea,currentUserId!);
-    widget.idea.isJoined = true;
+    widget.fetchAll();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Join request sent. Awaiting approval.')),
