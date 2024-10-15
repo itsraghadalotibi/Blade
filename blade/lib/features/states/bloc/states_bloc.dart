@@ -7,52 +7,53 @@ class StatesBloc extends Bloc<StatesEvent, StatesPageState> {
   final FirebaseFirestore _firestore;
 
   StatesBloc(this._firestore) : super(StatesLoading()) {
-    on<LoadStates>(_onLoadStates);
+    on<LoadAllProjectsRequests>(_onLoadAllProjectsRequests);
   }
 
-  Future<void> _onLoadStates(
-      LoadStates event, Emitter<StatesPageState> emit) async {
+  Future<void> _onLoadAllProjectsRequests(
+      LoadAllProjectsRequests event, Emitter<StatesPageState> emit) async {
     try {
       emit(StatesLoading());
 
-      // Query join_requests for the logged-in user
       final joinRequestsSnapshot = await _firestore
           .collection('join_requests')
           .where('userId', isEqualTo: event.requesterId)
           .get();
 
       if (joinRequestsSnapshot.docs.isEmpty) {
-        emit(StatesLoaded([])); // No requests found
+        emit(ProjectsLoaded([]));
         return;
       }
 
-      List<Map<String, dynamic>> requests = [];
+      Map<String, List<Map<String, dynamic>>> projectRequests = {};
 
       for (var doc in joinRequestsSnapshot.docs) {
         final requestData = doc.data();
+        final ideaId = requestData['ideaId'] as String?;
 
-        // Fetch the idea title from the 'ideas' collection
-        final ideaSnapshot = await _firestore
-            .collection('ideas')
-            .doc(requestData['ideaId'])
-            .get();
+        if (ideaId == null) continue;
 
-        final ideaData = ideaSnapshot.data();
-        final ideaTitle = ideaData?['title'] ?? 'Unknown Idea'; // Handle missing title
-
-        // Add the request along with the idea title to the list
-        requests.add({
-          'ideaTitle': ideaTitle,
-          'status': requestData['status'] ?? "pending",
-          'timestamp': ((requestData['timestamp'] ?? Timestamp.now()) as Timestamp).toDate(),
+        projectRequests.putIfAbsent(ideaId, () => []).add({
+          'ideaTitle': requestData['ideaTitle'] ?? 'No Title',
+          'status': requestData['status'] ?? 'Pending',
+          'timestamp': (requestData['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
         });
       }
 
-      emit(StatesLoaded(requests));
+      final ideaIds = projectRequests.keys.toList();
+      final ideasSnapshot = await _firestore
+          .collection('ideas')
+          .where(FieldPath.documentId, whereIn: ideaIds)
+          .get();
+
+      List<Map<String, dynamic>> projects = ideasSnapshot.docs.map((doc) {
+        final title = doc.data()['title'] as String? ?? 'Unknown Project';
+        return {'title': title, 'requests': projectRequests[doc.id] ?? []};
+      }).toList();
+
+      emit(ProjectsLoaded(projects));
     } catch (e) {
-      print('Error fetching join requests: $e');
       emit(StatesError(e.toString()));
     }
   }
 }
-
