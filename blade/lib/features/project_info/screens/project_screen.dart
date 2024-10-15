@@ -191,6 +191,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Column(
@@ -223,7 +224,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             ),
                             child: Text(
                               idea.status[0].toUpperCase() + idea.status.substring(1),
-                              style: TextStyle(color: _getStatusTextColor(idea.status)),
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                             ),
                           ),
                         ],
@@ -318,13 +319,10 @@ class _ProjectScreenState extends State<ProjectScreen> {
       case 'ongoing':
         return Colors.blue;
       case 'completed':
-        return Colors.grey;
+        return Colors.grey[600]!;
       default:
         return Colors.black;
     }
   }
 
-  Color _getStatusTextColor(String status) {
-    return status == 'completed' ? Colors.black : Colors.white;
-  }
 }
