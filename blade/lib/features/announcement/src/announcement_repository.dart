@@ -224,15 +224,15 @@ class AnnouncementRepository {
 
   // Update idea status
   Future<void> updateIdeaStatus(String ideaId, String newStatus) async {
-    try {
-      await firestore.collection('ideas').doc(ideaId).update({
-        'status': newStatus,
-      });
-    } catch (e) {
-      print('Error updating idea status: $e');
-      throw Exception('Failed to update idea status');
-    }
+  try {
+    await firestore.collection('ideas').doc(ideaId).update({
+      'status': newStatus,
+    });
+  } catch (e) {
+    print('Error updating idea status: $e');
+    throw Exception('Failed to update idea status');
   }
+}
 
   // Stream ideas based on the current user
   Stream<List<Idea>> streamIdeas(String currentUserId) {

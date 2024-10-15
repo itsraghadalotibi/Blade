@@ -309,6 +309,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
     );
   }
 
+ 
+
   Color _getStatusColor(String status) {
     switch (status) {
       case 'open':
