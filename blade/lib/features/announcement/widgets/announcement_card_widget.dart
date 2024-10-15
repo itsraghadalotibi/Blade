@@ -115,6 +115,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
               canJoin: canJoin,
               idea: widget.idea,
               repository: widget.repository,
+               onJoinRequestSent: null,
             ),
           ),
         );
