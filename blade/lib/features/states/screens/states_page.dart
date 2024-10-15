@@ -1,7 +1,13 @@
+import 'package:blade_app/features/announcement/src/announcement_model.dart';
+import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../project_info/screens/project_screen.dart';
 import '../../../utils/constants/colors.dart';
+
+import 'package:blade_app/features/announcement/screens/announcement_screen.dart';
+
 
 class StatesPage extends StatelessWidget {
   const StatesPage({Key? key}) : super(key: key);
@@ -17,16 +23,17 @@ class StatesPage extends StatelessWidget {
         final data = doc.data();
         final ideaId = data['ideaId'];
 
-        // Fetch the title from the 'ideas' collection.
+        // Fetch the full idea object from Firestore.
         final ideaSnapshot = await FirebaseFirestore.instance
             .collection('ideas')
             .doc(ideaId)
             .get();
-        final ideaTitle = ideaSnapshot.data()?['title'] ?? 'Unknown Idea';
+
+        final idea = Idea.fromMap(ideaSnapshot.data()!, ideaId);
 
         return {
-          'id': doc.id, // Document ID for cancellation.
-          'ideaTitle': ideaTitle,
+          'id': doc.id,  // Document ID for cancellation.
+          'idea': idea,  // Full idea object.
           'status': data['status'] ?? 'pending',
           'timestamp': (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
         };
@@ -54,12 +61,13 @@ class StatesPage extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    // Define the same style used for the idea title in the card.
+    // Text style for the idea title.
     final TextStyle ideaTitleStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
           fontSize: screenWidth * 0.05 * textScaleFactor,
           fontWeight: FontWeight.bold,
           color: TColors.textWhite,
-        ) ?? const TextStyle();
+        ) ??
+        const TextStyle();
 
     return Scaffold(
       backgroundColor: isDarkMode ? TColors.dark : TColors.primaryBackground,
@@ -98,78 +106,87 @@ class StatesPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final request = joinRequests[index];
               final requestId = request['id'];
-              final ideaTitle = request['ideaTitle'];
+              final idea = request['idea'] as Idea;
               final status = request['status'];
               final timestamp = request['timestamp'];
 
-              // Adjust the color of the status dynamically.
-              final Color statusColor = status == 'pending'
-                  ? Colors.amber
-                  : status == 'accepted'
-                      ? Colors.green
-                      : Colors.red;
+              // Adjust the status color dynamically.
+              final Color statusColor = _getStatusColor(status);
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isDarkMode ? TColors.container : TColors.container,
-                    borderRadius: BorderRadius.circular(23),
-                    border: Border.all(color: Colors.transparent),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Left: Idea Title and Timestamp
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+              return GestureDetector(
+                onTap: () {
+                  // Navigate to ProjectScreen on tap.
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProjectScreen(
+                        idea: idea,
+                        repository: AnnouncementRepository(), // Replace with actual repository instance.
+                        canJoin: !idea.isJoined!, // Check if the user can join the project.
+                      ),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? TColors.container : TColors.container,
+                      borderRadius: BorderRadius.circular(23),
+                      border: Border.all(color: Colors.transparent),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Left: Idea title and timestamp.
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  idea.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: ideaTitleStyle,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Requested On: $timestamp',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        fontSize: screenWidth * 0.035 * textScaleFactor,
+                                        color: TColors.textSecondary,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Right: Status text and cancel button for pending requests.
+                          Row(
                             children: [
                               Text(
-                                ideaTitle,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: ideaTitleStyle, // Use idea title style
+                                status.toUpperCase(),
+                                style: ideaTitleStyle.copyWith(
+                                  color: statusColor,
+                                  fontSize: screenWidth * 0.045 * textScaleFactor,
+                                ),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Requested On: $timestamp',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontSize: screenWidth * 0.035 * textScaleFactor,
-                                      color: TColors.textSecondary,
-                                    ),
-                              ),
+                              if (status == 'pending') ...[
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.cancel,
+                                    color: Colors.red,
+                                    size: screenWidth * 0.07,
+                                  ),
+                                  onPressed: () => cancelJoinRequest(requestId),
+                                ),
+                              ],
                             ],
                           ),
-                        ),
-                        // Right: Status Text and Cancel Button for Pending Requests
-                        Row(
-                          children: [
-                            // Status text using the same style as idea title, with dynamic color
-                            Text(
-                              status.toUpperCase(), // Display status in uppercase
-                              style: ideaTitleStyle.copyWith(
-                                color: statusColor,
-                                fontSize: screenWidth * 0.045 * textScaleFactor, // Slightly smaller size
-                              ),
-                            ),
-                            // Cancel button only for pending requests
-                            if (status == 'pending') ...[
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.cancel,
-                                  color: Colors.red,
-                                  size: screenWidth * 0.07,
-                                ),
-                                onPressed: () => cancelJoinRequest(requestId),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -180,8 +197,19 @@ class StatesPage extends StatelessWidget {
       ),
     );
   }
+
+  // Helper to get color based on status.
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'pending':
+        return Colors.amber;
+      case 'accepted':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
 }
-
-
-
 
