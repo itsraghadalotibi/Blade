@@ -8,10 +8,11 @@ class ProjectIdeaRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Fetch ideas where the user is the owner (i.e., userId is the first member in the 'members' array)
-  Future<List<Idea>> fetchIdeasByOwner(String userId) async {
+  Future<List<Idea>> fetchIdeasByOwner(String userId,String status) async {
     try {
       QuerySnapshot snapshot = await _firestore
           .collection('ideas')
+          .where('status',isEqualTo: status)
           .where('members',
               arrayContains: userId) // Check if the user is in the members list
           .get();

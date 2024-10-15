@@ -101,13 +101,16 @@ class _AnnouncementAndStatesScreenState extends State<AnnouncementScreen>
               ),
             );
           }
-
           return ListView.builder(
             itemCount: state.ideas.length,
             itemBuilder: (context, index) {
               final idea = state.ideas[index];
+              if(idea.isJoined!)return const SizedBox();
               return AnnouncementCardWidget(
                 idea: idea,
+                fetchAll: (){
+                  context.read<AnnouncementBloc>().add(FetchAnnouncements(currentUserId: widget.currentUserId));
+                },
                 repository: widget.repository,
               );
             },

@@ -21,12 +21,13 @@ class AnnouncementRepository {
     }
   }
 
+  
   // Fetch ideas where status='open' and not owned or already a member by the current user
   Future<List<Idea>> fetchIdeas(String currentUserId) async {
     try {
       final snapshot = await firestore
           .collection('ideas')
-          .where('status', isEqualTo: 'open')
+          .where('status', isEqualTo: 'open') // Filter for status='open'
           .get();
 
       final querySnapshot = await FirebaseFirestore.instance
@@ -39,7 +40,8 @@ class AnnouncementRepository {
           .where((doc) {
             final members = List<String>.from(doc['members'] ?? []);
             return members.isEmpty || 
-                  (members[0] != currentUserId && !members.contains(currentUserId));
+                  (members[0] != currentUserId && !members.contains(currentUserId)) && 
+                  members.length < doc["maxMembers"];
           })
           .map((doc) {
             final data = doc.data() as Map<String, dynamic>;
@@ -243,7 +245,8 @@ class AnnouncementRepository {
           return snapshot.docs.where((doc) {
             final members = List<String>.from(doc['members'] ?? []);
             return members.isEmpty ||
-                (members[0] != currentUserId && !members.contains(currentUserId));
+                (members[0] != currentUserId && !members.contains(currentUserId)) && 
+                members.length < doc["maxMembers"];
           }).map((doc) {
             final data = doc.data() as Map<String, dynamic>;
             return Idea.fromMap(data, doc.id);
@@ -280,17 +283,19 @@ class AnnouncementRepository {
         });
         // Is Full Code
         final int maxMembers = idea.maxMembers;
-        final int currentMembers = idea.members.length + 1;
+        final int currentMembers = idea.members.length;
         final bool isFull = currentMembers == maxMembers;
         if(isFull){
-          final requestRef = await firestore
-            .collection('join_requests')
-            .where('ideaId', isEqualTo: idea.id).get();
-            for (var i = 0; i < requestRef.docs.length; i++) {
-              await firestore.collection('join_requests').doc(requestRef.docs[i].id).update({
-                'status': "rejected",
-              });
-            }
+          await updateProjectStatus(idea.id!, "ongoing");
+          idea.status = "ongoing";
+          // final requestRef = await firestore
+          //   .collection('join_requests')
+          //   .where('ideaId', isEqualTo: idea.id).get();
+          //   for (var i = 0; i < requestRef.docs.length; i++) {
+          //     await firestore.collection('join_requests').doc(requestRef.docs[i].id).update({
+          //       'status': "rejected",
+          //     });
+          //   }
         }
         // To Here
       }

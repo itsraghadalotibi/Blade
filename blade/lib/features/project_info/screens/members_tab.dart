@@ -5,23 +5,33 @@ import '../../announcement/src/announcement_model.dart';
 import '../../announcement/widgets/skill_tag_widget.dart';
 import '../../profile/bloc/screens/collaborator_profile_screen.dart';
 
-class MembersTab extends StatelessWidget {
+class MembersTab extends StatefulWidget {
   final Idea idea;
   final AnnouncementRepository repository;
 
   const MembersTab({
-    Key? key,
+    super.key,
     required this.idea,
     required this.repository,
-  }) : super(key: key);
+  });
 
+  @override
+  State<MembersTab> createState() => _MembersTabState();
+}
 
+class _MembersTabState extends State<MembersTab> {
+  Future<List<Collaborator>>? futrueMembers;
+  @override
+  void initState() {
+    super.initState();
+    futrueMembers = _fetchCollaborators();
+  } 
   @override
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return FutureBuilder<List<Collaborator>>(
-      future: _fetchCollaborators(),
+      future: futrueMembers,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -44,7 +54,7 @@ class MembersTab extends StatelessWidget {
             final matchingSkills = isProjectOwner
                 ? ["Project Owner"]
                 : collaborator.skills
-                    .where((skill) => idea.skills.contains(skill))
+                    .where((skill) => widget.idea.skills.contains(skill))
                     .toList();
 
             return GestureDetector(
@@ -124,8 +134,8 @@ class MembersTab extends StatelessWidget {
   // Fetch collaborators based on memberIds
   Future<List<Collaborator>> _fetchCollaborators() async {
     List<Collaborator> collaborators = [];
-    for (String memberId in idea.members) {
-      final collaborator = await repository.fetchCollaborator(memberId);
+    for (String memberId in widget.idea.members) {
+      final collaborator = await widget.repository.fetchCollaborator(memberId);
       if (collaborator != null) {
         collaborators.add(collaborator);
       }

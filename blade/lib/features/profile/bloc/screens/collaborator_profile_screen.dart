@@ -36,7 +36,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   CollaboratorProfileModel? _updatedProfile;
   late ProjectIdeaRepository _projectIdeaRepository;
   late AnnouncementRepository _announcementRepository;
-  Future<List<Idea>>? _futureIdeas;
   late TabController _tabController;
 
   // Variables for bio expansion
@@ -50,7 +49,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     _tabController = TabController(length: 3, vsync: this);
     _projectIdeaRepository = ProjectIdeaRepository();
     _announcementRepository = AnnouncementRepository();
-    _futureIdeas = _projectIdeaRepository.fetchIdeasByOwner(widget.userId);
 
     // Fetch the authenticated user's ID from Firebase
     _currentUserId = FirebaseAuth.instance.currentUser?.uid;
@@ -394,8 +392,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           child: TabBarView(
             controller: _tabController,
             children: [
-              buildProjectIdeasTab(),
-              const Center(child: Text('Ongoing Projects content here...')),
+              buildProjectIdeasTab("open"),
+              buildProjectIdeasTab("ongoing"),
               const Center(child: Text('Completed Projects content here...')),
             ],
           ),
@@ -404,9 +402,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     );
   }
 
-  Widget buildProjectIdeasTab() {
+  Widget buildProjectIdeasTab(String status) {
     return FutureBuilder<List<Idea>>(
-      future: _futureIdeas,
+      future: _projectIdeaRepository.fetchIdeasByOwner(widget.userId,status),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -426,11 +424,13 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
         }
 
         final ideas = snapshot.data!;
+        
 
         return ListView.builder(
           itemCount: ideas.length,
           itemBuilder: (context, index) {
             final idea = ideas[index];
+            if(idea.status == "ongoing" && status != "ongoing")return const SizedBox();
             return ProjectIdeaCardWidget(
               idea: idea,
               announcementRepository: _announcementRepository,
