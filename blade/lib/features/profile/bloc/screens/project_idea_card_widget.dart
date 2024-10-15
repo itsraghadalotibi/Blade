@@ -44,6 +44,7 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
               canJoin: false,
               idea: widget.idea,
               repository: widget.announcementRepository,
+              onJoinRequestSent: null,
             ),
           ),
         );

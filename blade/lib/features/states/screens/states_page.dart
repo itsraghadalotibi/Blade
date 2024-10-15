@@ -122,7 +122,7 @@ class StatesPage extends StatelessWidget {
                       builder: (_) => ProjectScreen(
                         idea: idea,
                         repository: AnnouncementRepository(), // Replace with actual repository instance.
-                        canJoin: !idea.isJoined!, // Check if the user can join the project.
+                        canJoin: !idea.isJoined!, onJoinRequestSent: null, // Check if the user can join the project.
                       ),
                     ),
                   );

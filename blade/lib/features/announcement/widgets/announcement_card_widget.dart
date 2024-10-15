@@ -91,11 +91,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    final textStyle = TextStyle(
-      color: isDarkMode ? TColors.textWhite : TColors.textWhite,
-      fontSize: screenWidth * 0.04 * textScaleFactor,
-      fontWeight: FontWeight.w400,
-    );
+    
 
     final int maxMembers = widget.idea.maxMembers;
     final int currentMembers = widget.idea.members.length;
@@ -106,7 +102,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     bool canJoin = currentUserId != null &&
         !widget.idea.isJoined! &&
         !widget.idea.members.contains(currentUserId) &&
-        currentMembers < maxMembers && // Team is not full
+        currentMembers < maxMembers &&
         !isJoinPending ;
 
     return GestureDetector(
@@ -118,6 +114,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
               canJoin: canJoin,
               idea: widget.idea,
               repository: widget.repository,
+               onJoinRequestSent: null,
             ),
           ),
         );
@@ -132,7 +129,9 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
           decoration: BoxDecoration(
             color: isDarkMode ? TColors.container : TColors.white,
             borderRadius: BorderRadius.circular(23),
-            border: Border.all(color: Colors.transparent),
+            border: isDarkMode
+                        ? null // No border in dark mode
+                        : Border.all(color: TColors.borderPrimary), // Light mode border
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),

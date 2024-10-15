@@ -2,6 +2,7 @@ import 'package:blade_app/features/project_info/screens/offers_tab.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../widgets/expandable_text.dart';
 import '../../announcement/src/announcement_model.dart';
 import '../../announcement/src/announcement_repository.dart';
@@ -9,31 +10,130 @@ import '../../announcement/widgets/skill_tag_widget.dart';
 import '../bloc/project_bloc.dart';
 import '../bloc/project_event.dart';
 import '../bloc/project_state.dart';
-import 'posts_tab.dart'; // Import your PostsTab widget
+import 'posts_tab.dart';
 import 'members_tab.dart';
-import 'project_settings_screen.dart'; // We'll adjust this widget accordingly
-import 'members_tab.dart'; // We'll adjust this widget accordingly
-import '../../newPost/screens/github_oauth.dart'; // Updated import for GitHub OAuth screen
+import 'project_settings_screen.dart';
+import '../../newPost/screens/github_oauth.dart';
 
 class ProjectScreen extends StatefulWidget {
   final Idea idea;
   final AnnouncementRepository repository;
   final bool canJoin;
+  
 
   const ProjectScreen({
     super.key,
     required this.idea,
     required this.repository,
-    required this.canJoin,
+    required this.canJoin, required onJoinRequestSent,
   });
 
   @override
   _ProjectScreenState createState() => _ProjectScreenState();
 }
 
-class _ProjectScreenState extends State<ProjectScreen>{
+class _ProjectScreenState extends State<ProjectScreen> {
+  bool _isRequestPending = false;
+  bool _isMember = false;
+  String? _joinRequestId;
+  String _buttonText = 'Join Project';
 
-@override
+  @override
+  void initState() {
+    super.initState();
+    _checkJoinRequestStatus();
+  }
+
+  Future<void> _checkJoinRequestStatus() async {
+    final String userId = FirebaseAuth.instance.currentUser!.uid;
+    final String ideaId = widget.idea.id!;
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('join_requests')
+        .where('ideaId', isEqualTo: ideaId)
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      final status = snapshot.docs.first['status'];
+      _joinRequestId = snapshot.docs.first.id;
+
+      setState(() {
+        if (status == 'pending') {
+          _buttonText = 'Pending...';
+          _isRequestPending = true;
+        } else if (status == 'accepted') {
+          _buttonText = 'Leave Project';
+          _isMember = true;
+        }
+      });
+    }
+  }
+
+  Future<void> _sendJoinRequest() async {
+    final String userId = FirebaseAuth.instance.currentUser!.uid;
+    final String ideaId = widget.idea.id!;
+
+    setState(() {
+      _buttonText = 'Pending...';
+      _isRequestPending = true;
+    });
+
+    try {
+      final docRef = await FirebaseFirestore.instance.collection('join_requests').add({
+        'ideaId': ideaId,
+        'userId': userId,
+        'status': 'pending',
+        'timestamp': Timestamp.now(),
+      });
+
+      _joinRequestId = docRef.id;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+      setState(() {
+        _buttonText = 'Join Project';
+        _isRequestPending = false;
+      });
+    }
+  }
+
+  Future<void> _leaveProject() async {
+    final String userId = FirebaseAuth.instance.currentUser!.uid;
+    final String ideaId = widget.idea.id!;
+
+    try {
+      // Remove the user from the project.
+      await widget.repository.removeMemberFromIdea(ideaId, userId);
+
+      // Remove the join request if it exists.
+      if (_joinRequestId != null) {
+        await FirebaseFirestore.instance
+            .collection('join_requests')
+            .doc(_joinRequestId)
+            .delete();
+        _joinRequestId = null;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You have left the project.')),
+      );
+
+      setState(() {
+        _isMember = false;
+        _buttonText = 'Join Project';
+      });
+
+      context.read<ProjectBloc>().add(LeaveProject(ideaId));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => ProjectBloc(widget.repository, FirebaseAuth.instance.currentUser?.uid ?? '')
@@ -42,22 +142,12 @@ class _ProjectScreenState extends State<ProjectScreen>{
         builder: (context, state) {
           if (state is ProjectLoading) {
             return Scaffold(
-              appBar: AppBar(
-                title: const Text('Loading...'),
-              ),
+              appBar: AppBar(title: const Text('Loading...')),
               body: const Center(child: CircularProgressIndicator()),
-            );
-          }else if (state is ProjectStatusUpdated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Project status updated successfully.'),
-              ),
             );
           } else if (state is ProjectError) {
             return Scaffold(
-              appBar: AppBar(
-                title: const Text('Error'),
-              ),
+              appBar: AppBar(title: const Text('Error')),
               body: Center(
                 child: Text(
                   state.message,
@@ -68,7 +158,6 @@ class _ProjectScreenState extends State<ProjectScreen>{
           } else if (state is ProjectLoaded) {
             final idea = state.idea;
             final bool isOwner = state.isOwner;
-            final bool isMember = state.isMember;
             final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
             return Scaffold(
@@ -76,11 +165,10 @@ class _ProjectScreenState extends State<ProjectScreen>{
                 title: const Text('Project details'),
                 centerTitle: true,
                 actions: [
-                  if (isOwner && idea.status == 'open' || idea.status == 'ongoing')
+                  if (isOwner && (idea.status == 'open' || idea.status == 'ongoing'))
                     IconButton(
                       icon: const Icon(Icons.settings),
                       onPressed: () {
-                        // Navigate to the ProjectSettingsScreen
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -90,7 +178,6 @@ class _ProjectScreenState extends State<ProjectScreen>{
                             ),
                           ),
                         ).then((_) {
-                          // Refresh project details after returning from settings screen
                           context.read<ProjectBloc>().add(FetchProjectDetails(idea.id!));
                         });
                       },
@@ -104,14 +191,11 @@ class _ProjectScreenState extends State<ProjectScreen>{
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Left Side: Project Details
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Project Title
                                 Text(
                                   idea.title,
                                   style: const TextStyle(
@@ -120,7 +204,6 @@ class _ProjectScreenState extends State<ProjectScreen>{
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                // Project Description
                                 ExpandableTextWidget(
                                   text: idea.description,
                                   style: TextStyle(
@@ -129,98 +212,85 @@ class _ProjectScreenState extends State<ProjectScreen>{
                                   ),
                                   maxLines: 4,
                                 ),
-                                const SizedBox(height: 16),
                               ],
                             ),
                           ),
-                          // Project Status Button with Padding Adjustments
-                            Container(
-                              margin: const EdgeInsets.only(left: 10),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: _getStatusColor(idea.status),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    idea.status[0].toUpperCase() + idea.status.substring(1),
-                                    style: TextStyle(color: _getStatusTextColor(idea.status)),
-                                  ),
-                                ],
-                              ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(idea.status),
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            child: Text(
+                              idea.status[0].toUpperCase() + idea.status.substring(1),
+                              style: TextStyle(color: _getStatusTextColor(idea.status)),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Center(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: SkillTagWidget(
-                            skills: idea.skills,
-                          ),
-                        ),
+                    Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SkillTagWidget(skills: idea.skills),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    // Join/Leave Button
-                    if (!isOwner && idea.status=='open' && (isMember || widget.canJoin)) ...[
+                    if (!isOwner && idea.status == 'open') ...[
+                      const SizedBox(height: 16),
                       Center(
                         child: ElevatedButton(
-                          onPressed: () async {
-                            if (isMember) {
-                              // Call the repository method to remove the user from the project
-                              await widget.repository.removeMemberFromIdea(idea.id!, FirebaseAuth.instance.currentUser!.uid);
-                              // Dispatch the LeaveProject event to the Bloc
-                              context.read<ProjectBloc>().add(LeaveProject(idea.id!));
-                            } else {
-                              // Call the repository method to add the user to the project
-                              await widget.repository.addMemberToIdea(idea.id!, FirebaseAuth.instance.currentUser!.uid);
-                              // Dispatch the JoinProject event to the Bloc
-                              context.read<ProjectBloc>().add(JoinProject(idea.id!));
-                            }
-                          },
                           style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                            backgroundColor: Colors.red, // Red button background
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                          child: Text(isMember ? 'Leave Project' : 'Join Project'),
+                          onPressed: _isRequestPending
+                              ? null
+                              : (_isMember ? _leaveProject : _sendJoinRequest),
+                          child: Text(
+                            _buttonText,
+                            style: const TextStyle(
+                              color: Colors.black, // Black text for contrast
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 16),
                     ],
                     const SizedBox(height: 16),
-                    // Tabs for Posts and Members
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,
                       child: DefaultTabController(
-                        length: 2 + (isOwner?1:0),
+                        length: 2 + (isOwner ? 1 : 0),
                         child: Column(
                           children: [
                             TabBar(
                               labelColor: isDarkMode ? Colors.white : Colors.black,
                               indicatorColor: isDarkMode ? Colors.white : Colors.black,
                               tabs: [
-                                Tab(text: 'Posts'),
-                                Tab(text: 'Members'),
-                                if(isOwner)
-                                Tab(text: 'Join Requests'),
+                                const Tab(text: 'Posts'),
+                                const Tab(text: 'Members'),
+                                if (isOwner) const Tab(text: 'Join Requests'),
                               ],
                             ),
                             Expanded(
                               child: TabBarView(
                                 children: [
-                                  // Posts Tab
                                   PostsTab(ideaId: idea.id!, repository: widget.repository),
-                                  // Members Tab
-                                  MembersTab(idea: idea, repository: widget.repository,),
-                                  if(isOwner)
-                                  OffersTab(idea: idea, repository: widget.repository,forOwner: isOwner,addNewMember: (id){
-                                    idea.members.add(id);
-                                    setState(() {});
-                                  },),
+                                  MembersTab(idea: idea, repository: widget.repository),
+                                  if (isOwner)
+                                    OffersTab(
+                                      idea: idea,
+                                      repository: widget.repository,
+                                      forOwner: isOwner,
+                                      addNewMember: (id) {
+                                        idea.members.add(id);
+                                        setState(() {});
+                                      },
+                                    ),
                                 ],
                               ),
                             ),
@@ -233,98 +303,13 @@ class _ProjectScreenState extends State<ProjectScreen>{
               ),
             );
           }
-
-          return Container(); // Fallback
+          return Container();
         },
       ),
     );
   }
 
-  void _showStatusOptions(BuildContext context, Idea idea) {
-    List<String> availableStatusOptions = _getAvailableStatusOptions(idea.status);
-    if (availableStatusOptions.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('The project status is already completed and cannot be changed.')),
-      );
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        String newStatus = availableStatusOptions[0];
-
-        // Determine the theme brightness
-        Brightness brightness = Theme.of(context).brightness;
-
-        // Set background colors based on theme
-        Color backgroundColor = brightness == Brightness.dark
-            ? Colors.grey[850]!
-            : Colors.grey[200]!;
-
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: backgroundColor,
-              title: const Text('Change Project Status'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Current Status: ${idea.status[0].toUpperCase() + idea.status.substring(1)}'),
-                  DropdownButton<String>(
-                    value: newStatus,
-                    dropdownColor: backgroundColor,
-                    items: availableStatusOptions.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value[0].toUpperCase() + value.substring(1)),
-                      );
-                    }).toList(),
-                    onChanged: (String? value) {
-                      if (value != null) {
-                        setState(() {
-                          newStatus = value;
-                        });
-                      }
-                    },
-                  ),
-                  const Text('Note: You will not be able to change back to the previous status.'),
-                ],
-              ),
-              actions: [
-                OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await widget.repository.updateProjectStatus(idea.id!, newStatus);
-                    context.read<ProjectBloc>().add(FetchProjectDetails(idea.id!));
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Update Status'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  List<String> _getAvailableStatusOptions(String currentStatus) {
-    switch (currentStatus) {
-      case 'open':
-        return ['ongoing', 'completed'];
-      case 'ongoing':
-        return ['completed'];
-      default:
-        return [];
-    }
-  }
+ 
 
   Color _getStatusColor(String status) {
     switch (status) {

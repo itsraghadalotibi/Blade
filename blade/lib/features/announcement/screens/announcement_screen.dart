@@ -32,13 +32,13 @@ class _AnnouncementAndStatesScreenState extends State<AnnouncementScreen>
     _focusNode = FocusNode();
 
     // Fetch announcements when the screen is focused
-    _focusNode.addListener(() {
-      if (_focusNode.hasFocus) {
-        BlocProvider.of<AnnouncementBloc>(context).add(
-          FetchAnnouncements(currentUserId: widget.currentUserId),
-        );
-      }
-    });
+    // _focusNode.addListener(() {
+    //   if (_focusNode.hasFocus) {
+    //     BlocProvider.of<AnnouncementBloc>(context).add(
+    //       FetchAnnouncements(currentUserId: widget.currentUserId),
+    //     );
+    //   }
+    // });
   }
 
   @override
@@ -57,7 +57,6 @@ class _AnnouncementAndStatesScreenState extends State<AnnouncementScreen>
         ..add(FetchAnnouncements(currentUserId: widget.currentUserId)),
       child: Scaffold(
           appBar: AppBar(
-        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         title: const Text('Announcements'),
@@ -72,7 +71,6 @@ class _AnnouncementAndStatesScreenState extends State<AnnouncementScreen>
           ],
         ),
       ),
-        backgroundColor: isDarkMode ? TColors.dark : TColors.primaryBackground,
         body: Focus(
           focusNode: _focusNode, // Wrap the TabBarView with a Focus widget
           child: TabBarView(
