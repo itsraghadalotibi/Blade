@@ -29,8 +29,6 @@ class _ChangeProjectStatusScreenState extends State<ChangeProjectStatusScreen> {
   @override
   void initState() {
     super.initState();
-    // Do not set _selectedStatus to the current status if it's not in available options
-    // Instead, set it to null or the first available option
     final availableOptions = _getAvailableStatusOptions(widget.idea.status);
     if (availableOptions.isNotEmpty) {
       _selectedStatus = availableOptions[0];

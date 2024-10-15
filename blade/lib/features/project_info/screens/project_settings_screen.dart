@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../announcement/src/announcement_model.dart';
 import '../../announcement/src/announcement_repository.dart';
+import '../bloc/project_bloc.dart';
 import 'edit_project_screen.dart';
 import 'change_project_status_screen.dart';
 
@@ -26,16 +28,20 @@ class ProjectSettingsScreen extends StatelessWidget {
       ),
       body: ListView(
         children: [
-         // Edit Project Details ListTile
+          // Edit Project Details ListTile
           ListTile(
             leading: Icon(
               Icons.edit,
-              color: isEditDisabled ? Colors.grey : (isDarkMode ? Colors.white : Colors.black),
+              color: isEditDisabled
+                  ? Colors.grey
+                  : (isDarkMode ? Colors.white : Colors.black),
             ),
             title: Text(
               'Edit Project Details',
               style: TextStyle(
-                color: isEditDisabled ? Colors.grey : (isDarkMode ? Colors.white : Colors.black),
+                color: isEditDisabled
+                    ? Colors.grey
+                    : (isDarkMode ? Colors.white : Colors.black),
               ),
             ),
             onTap: isEditDisabled
@@ -43,7 +49,8 @@ class ProjectSettingsScreen extends StatelessWidget {
                     // SnackBar explaining why editing is disabled
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Cannot edit project while it is ongoing.'),
+                        content:
+                            Text('Cannot edit project while it is ongoing.'),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -75,19 +82,23 @@ class ProjectSettingsScreen extends StatelessWidget {
             leading: const Icon(Icons.change_circle),
             title: const Text('Change Project Status'),
             onTap: () async {
-              final bool? result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChangeProjectStatusScreen(
-                    idea: idea,
-                    repository: repository,
-                  ),
-                ),
-              );
-              if (result == true) {
-                      Navigator.pop(context);
-                    }
-            },
+  final projectBloc = BlocProvider.of<ProjectBloc>(context);
+  final bool? result = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => BlocProvider.value(
+        value: projectBloc, // Pass the existing bloc
+        child: ChangeProjectStatusScreen(
+          idea: idea,
+          repository: repository,
+        ),
+      ),
+    ),
+  );
+  if (result == true) {
+    Navigator.pop(context);
+  }
+},
           ),
         ],
       ),

@@ -84,7 +84,7 @@ class _EditSupporterProfileFormState extends State<EditSupporterProfileForm> {
                 uid: widget.profile.uid,
                 firstName: _firstNameController.text,
                 lastName: _lastNameController.text,
-                email: widget.profile.email,
+                //email: widget.profile.email,
                 bio: _bioController.text,
                 profilePhotoUrl: widget.profile.profilePhotoUrl,
               );

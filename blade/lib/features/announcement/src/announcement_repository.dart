@@ -162,20 +162,7 @@ class AnnouncementRepository {
     } catch (e) {
       throw Exception('Failed to add member: $e');
     }
-
-    List<dynamic> members = snapshot.get('members') ?? [];
-    if (!members.contains(memberId)) {
-      members.add(memberId);
-      transaction.update(ideaRef, {'members': members});
-      print('Added member $memberId to Idea ID: $ideaId');
-    } else {
-      print('Member $memberId is already part of Idea ID: $ideaId');
-    }
-  }).catchError((e) {
-    print('Transaction failed: $e');
-    throw Exception('Failed to add member: $e');
-  });
-}
+  }
 
   // Remove a member from an existing idea
   Future<void> removeMemberFromIdea(String? ideaId, String memberId) async {

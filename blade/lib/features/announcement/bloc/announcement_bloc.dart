@@ -10,9 +10,9 @@ class AnnouncementBloc extends Bloc<AnnouncementEvent, AnnouncementState> {
   final AnnouncementRepository repository;
 
   AnnouncementBloc({required this.repository}) : super(AnnouncementInitial()) {
-    on<FetchAnnouncements>((event, emit) {
+    on<FetchAnnouncements>((event, emit) async {
       // Listen to the stream of ideas
-      emit.onEach<List<Idea>>(
+      await emit.onEach<List<Idea>>(
         repository.streamIdeas(event.currentUserId),
         onData: (ideas) => emit(AnnouncementLoaded(ideas: ideas)),
         onError: (error, stackTrace) => emit(AnnouncementError(message: error.toString())),
