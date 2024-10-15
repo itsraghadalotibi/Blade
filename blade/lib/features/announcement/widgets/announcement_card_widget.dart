@@ -38,7 +38,6 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     });
   }
 
-
   void _checkTextOverflow() {
     final textStyle = TextStyle(
       color: Theme.of(context).textTheme.bodyLarge?.color ?? TColors.textPrimary,
@@ -100,12 +99,12 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final int membersNeeded =
         maxMembers > currentMembers ? maxMembers - currentMembers : 0;
 
+
     bool canJoin = currentUserId != null &&
         !widget.idea.isJoined! &&
         !widget.idea.members.contains(currentUserId) &&
         currentMembers < maxMembers && // Team is not full
         !isJoinPending ;
-
 
     return GestureDetector(
       onTap: () {
@@ -128,7 +127,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
         child: Container(
           width: screenWidth * 0.9,
           decoration: BoxDecoration(
-            color: isDarkMode ? TColors.container : TColors.container,
+            color: isDarkMode ? TColors.container : TColors.white,
             borderRadius: BorderRadius.circular(23),
             border: Border.all(color: Colors.transparent),
           ),
@@ -143,7 +142,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                     child: Text(
                       widget.idea.title,
                       style: TextStyle(
-                        color: isDarkMode ? TColors.textWhite : TColors.textWhite,
+                        color: isDarkMode ? TColors.textWhite : TColors.black,
                         fontSize: screenWidth * 0.055 * textScaleFactor,
                         fontWeight: FontWeight.bold,
                       ),
@@ -183,7 +182,10 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
               // Description and "Show more" logic
               Text(
                 widget.idea.description,
-                style: textStyle,
+                style: TextStyle(
+                  color: isDarkMode ? TColors.textWhite : TColors.black,
+                ),
+                
                 maxLines: isExpanded ? null : 4,
                 overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
               ),
@@ -210,7 +212,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                 Text(
                   '$membersNeeded members needed',
                   style: TextStyle(
-                    color: isDarkMode ? TColors.grey : TColors.grey,
+                    color: isDarkMode ? TColors.grey : TColors.darkerGrey,
                     fontSize: screenWidth * 0.035 * textScaleFactor, // Small font size
                     fontStyle: FontStyle.italic, // Italic for subtle emphasis
                     fontWeight: FontWeight.w400,
@@ -220,7 +222,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                 Text(
                   'All members filled',
                   style: TextStyle(
-                    color: isDarkMode ? TColors.grey : TColors.grey,
+                    color: isDarkMode ? TColors.grey : TColors.darkerGrey,
                     fontSize: screenWidth * 0.035 * textScaleFactor,
                     fontStyle: FontStyle.italic,
                     fontWeight: FontWeight.w400,
@@ -243,8 +245,8 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                 ),
               ),
               SizedBox(height: screenHeight * 0.005),
-              if (canJoin)
               // Join button
+              if (canJoin)
               Center(
                 child: Container(
                   width: screenWidth * 0.4,

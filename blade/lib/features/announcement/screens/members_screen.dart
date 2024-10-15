@@ -22,9 +22,6 @@ class MembersScreen extends StatelessWidget {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDarkMode
-          ?  TColors.dark // Dark mode background color
-          : TColors.primaryBackground, // Light mode background color
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -89,7 +86,7 @@ class MembersScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isDarkMode
                         ?  TColors.container // Dark mode container color
-                        : TColors.lightContainer, // Light mode container color
+                        : TColors.white, // Light mode container color
                     borderRadius: BorderRadius.circular(10),
                     border: isDarkMode
                         ? null // No border in dark mode

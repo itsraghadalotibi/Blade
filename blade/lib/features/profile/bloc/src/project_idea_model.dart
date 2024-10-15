@@ -1,4 +1,4 @@
-// // Path: lib/features/profile/src/project_idea_model.dart
+// Path: lib/features/profile/src/project_idea_model.dart
 
 // class Idea {
 //   final String title;

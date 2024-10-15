@@ -1,11 +1,9 @@
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:flutter/material.dart';
+import '../../../utils/constants/colors.dart';
 import '../../announcement/src/announcement_model.dart';
 import '../../announcement/widgets/skill_tag_widget.dart';
 import '../../profile/bloc/screens/collaborator_profile_screen.dart';
-
-
-
 
 class MembersTab extends StatelessWidget {
   final Idea idea;
@@ -16,6 +14,7 @@ class MembersTab extends StatelessWidget {
     required this.idea,
     required this.repository,
   }) : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {
@@ -66,11 +65,11 @@ class MembersTab extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDarkMode
                       ? Colors.grey[850]
-                      : Colors.grey[200],
+                      : TColors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: isDarkMode
                       ? null
-                      : Border.all(color: Colors.grey),
+                      : Border.all(color: const Color.fromARGB(255, 238, 238, 238)),
                 ),
                 child: Column(
                   children: [

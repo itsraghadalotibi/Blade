@@ -59,7 +59,6 @@ class _AnnouncementAndStatesScreenState extends State<AnnouncementScreen>
           appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text('Announcements'),
         bottom: TabBar(

@@ -21,8 +21,9 @@ final _formKeyStep2 = GlobalKey<FormState>();
 class NumberStepper extends StatefulWidget {
   final ValueChanged<int> onNumberChanged;
   final int initialNumber;
+  final int minValue;
 
-  NumberStepper({required this.onNumberChanged, this.initialNumber = 1});
+  NumberStepper({required this.onNumberChanged, this.initialNumber = 1, this.minValue = 1});
 
   @override
   _NumberStepperState createState() => _NumberStepperState();
@@ -35,7 +36,9 @@ class _NumberStepperState extends State<NumberStepper> {
   @override
   void initState() {
     super.initState();
-    _numberOfMembers = widget.initialNumber;
+    _numberOfMembers = widget.initialNumber < widget.minValue
+        ? widget.minValue
+        : widget.initialNumber;
   }
 
   @override
@@ -58,7 +61,7 @@ class _NumberStepperState extends State<NumberStepper> {
                 ),
                 onPressed: () {
                   setState(() {
-                    if (_numberOfMembers > 1) {
+                    if (_numberOfMembers > widget.minValue) {
                       _numberOfMembers--;
                       _showMaxMessage = false;
                     }
