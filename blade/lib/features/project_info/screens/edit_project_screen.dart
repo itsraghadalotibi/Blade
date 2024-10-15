@@ -39,7 +39,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     // Pre-fill controllers with existing idea data
     _ideanameController.text = widget.idea.title;
     _ideadescriptionController.text = widget.idea.description;
-    _numberController.text = widget.idea.maxMembers.toString();
+    _numberController.text = (widget.idea.maxMembers-1).toString();
     tags = List<String>.from(widget.idea.skills);
 
     fetchSkills();
@@ -91,7 +91,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         id: widget.idea.id,
         title: _ideanameController.text,
         description: _ideadescriptionController.text,
-        maxMembers: newMaxMembers,
+        maxMembers: newMaxMembers+1,
         members: widget.idea.members,
         isJoined: widget.idea.isJoined,
         skills: tags,
@@ -248,7 +248,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                   const SizedBox(width: 10),
                   NumberStepper(
                     initialNumber: int.parse(_numberController.text),
-                    minValue: currentMembers, // Set minimum to current number of members
+                    minValue: currentMembers-1, // Set minimum to current number of members
                     onNumberChanged: (newNumber) {
                       setState(() {
                         _numberController.text = newNumber.toString();
