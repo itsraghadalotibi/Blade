@@ -53,45 +53,25 @@ class _EditSupporterProfileScreenState
   }
 
   // Save button functionality
-  void _onSaveButtonPressed() async {
+  void _onSaveButtonPressed() {
     if (_formKey.currentState!.validate()) {
-      String? profileImageUrl = widget.profile.profilePhotoUrl;
-
-      if (_newProfileImage != null) {
-        try {
-          final fileName = '${widget.profile.uid}_profile_image.png';
-          final storageRef =
-              FirebaseStorage.instance.ref().child('profile_images/$fileName');
-          final uploadTask = await storageRef.putFile(_newProfileImage!);
-
-          if (uploadTask.state == TaskState.success) {
-            profileImageUrl = await storageRef.getDownloadURL();
-          } else {
-            throw Exception("Upload failed");
-          }
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to upload profile image: $e')),
-          );
-          return;
-        }
-      }
-
-      // Dispatch the SaveSupporterProfile event to update the profile
       final updatedProfile = SupporterProfileModel(
         uid: widget.profile.uid,
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         bio: _bioController.text.trim(),
-        profilePhotoUrl: profileImageUrl,
+        profilePhotoUrl: widget
+            .profile.profilePhotoUrl, // Keep the existing image URL for now
       );
 
+      // Dispatch the SaveSupporterProfile event
       context
           .read<EditSupporterProfileBloc>()
           .add(SaveSupporterProfile(updatedProfile));
-
-      // Pass the updated profile back to the previous screen
-      Navigator.pop(context, updatedProfile);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill out all required fields.')),
+      );
     }
   }
 
@@ -104,7 +84,9 @@ class _EditSupporterProfileScreenState
       ),
       body: BlocListener<EditSupporterProfileBloc, EditSupporterProfileState>(
         listener: (context, state) {
-          if (state is SupporterProfileUpdateFailure) {
+          if (state is SupporterProfileUpdateSuccess) {
+            Navigator.pop(context, state.updatedProfile);
+          } else if (state is SupporterProfileUpdateFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Failed to update profile')),
             );
@@ -123,16 +105,19 @@ class _EditSupporterProfileScreenState
                     alignment: Alignment.bottomRight,
                     children: [
                       CircleAvatar(
-                        radius: 70,
-                        backgroundImage: _newProfileImage != null
-                            ? FileImage(_newProfileImage!)
-                                as ImageProvider<Object>
-                            : (widget.profile.profilePhotoUrl != null &&
-                                    widget.profile.profilePhotoUrl!.isNotEmpty)
-                                ? NetworkImage(widget.profile.profilePhotoUrl!)
-                                    as ImageProvider<Object>
-                                : const AssetImage('assets/images/user.png')
-                                    as ImageProvider<Object>,
+                        radius: 75,
+                        backgroundColor: Colors.greenAccent,
+                        child: CircleAvatar(
+                          radius: 70,
+                          backgroundImage: _newProfileImage != null
+                              ? FileImage(_newProfileImage!)
+                              : (widget.profile.profilePhotoUrl != null)
+                                  ? NetworkImage(
+                                          widget.profile.profilePhotoUrl!)
+                                      as ImageProvider<Object>
+                                  : const AssetImage('assets/images/user.png')
+                                      as ImageProvider<Object>,
+                        ),
                       ),
                       IconButton(
                         icon:
