@@ -15,6 +15,7 @@ class StatesBloc extends Bloc<StatesEvent, StatesPageState> {
     try {
       emit(StatesLoading());
 
+      // Fetch all join requests for the given user.
       final joinRequestsSnapshot = await _firestore
           .collection('join_requests')
           .where('userId', isEqualTo: event.requesterId)
@@ -25,33 +26,35 @@ class StatesBloc extends Bloc<StatesEvent, StatesPageState> {
         return;
       }
 
-      Map<String, List<Map<String, dynamic>>> projectRequests = {};
+      // Collect the ideaIds from the join requests.
+      List<String> ideaIds = joinRequestsSnapshot.docs
+          .map((doc) => doc['ideaId'] as String)
+          .toList();
 
-      for (var doc in joinRequestsSnapshot.docs) {
-        final requestData = doc.data();
-        final ideaId = requestData['ideaId'] as String?;
-
-        if (ideaId == null) continue;
-
-        projectRequests.putIfAbsent(ideaId, () => []).add({
-          'ideaTitle': requestData['ideaTitle'] ?? 'No Title',
-          'status': requestData['status'] ?? 'Pending',
-          'timestamp': (requestData['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
-        });
-      }
-
-      final ideaIds = projectRequests.keys.toList();
+      // Fetch idea data for the collected ideaIds.
       final ideasSnapshot = await _firestore
           .collection('ideas')
           .where(FieldPath.documentId, whereIn: ideaIds)
           .get();
 
-      List<Map<String, dynamic>> projects = ideasSnapshot.docs.map((doc) {
-        final title = doc.data()['title'] as String? ?? 'Unknown Project';
-        return {'title': title, 'requests': projectRequests[doc.id] ?? []};
+      // Map ideaIds to their respective titles.
+      Map<String, String> ideaTitles = {
+        for (var doc in ideasSnapshot.docs) doc.id: doc.data()['title'] ?? 'Unknown Project'
+      };
+
+      // Build the list of project requests.
+      List<Map<String, dynamic>> requests = joinRequestsSnapshot.docs.map((doc) {
+        final data = doc.data();
+        final ideaId = data['ideaId'] as String;
+        return {
+          'ideaTitle': ideaTitles[ideaId] ?? 'Unknown Idea',
+          'status': data['status'] ?? 'pending',
+          'timestamp': (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+        };
       }).toList();
 
-      emit(ProjectsLoaded(projects));
+      // Emit the loaded projects with their respective requests.
+      emit(ProjectsLoaded(requests));
     } catch (e) {
       emit(StatesError(e.toString()));
     }
