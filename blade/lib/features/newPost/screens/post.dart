@@ -21,8 +21,9 @@ final _formKeyStep2 = GlobalKey<FormState>();
 class NumberStepper extends StatefulWidget {
   final ValueChanged<int> onNumberChanged;
   final int initialNumber;
+  final int minValue;
 
-  NumberStepper({required this.onNumberChanged, this.initialNumber = 1});
+  NumberStepper({required this.onNumberChanged, this.initialNumber = 1, this.minValue = 1});
 
   @override
   _NumberStepperState createState() => _NumberStepperState();
@@ -35,7 +36,9 @@ class _NumberStepperState extends State<NumberStepper> {
   @override
   void initState() {
     super.initState();
-    _numberOfMembers = widget.initialNumber;
+    _numberOfMembers = widget.initialNumber < widget.minValue
+        ? widget.minValue
+        : widget.initialNumber;
   }
 
   @override
@@ -58,7 +61,7 @@ class _NumberStepperState extends State<NumberStepper> {
                 ),
                 onPressed: () {
                   setState(() {
-                    if (_numberOfMembers > 1) {
+                    if (_numberOfMembers > widget.minValue) {
                       _numberOfMembers--;
                       _showMaxMessage = false;
                     }
@@ -128,7 +131,7 @@ class _PostState extends State<Post> {
   final TextEditingController _ideanameController = TextEditingController();
   final TextEditingController _ideadescriptionController = TextEditingController();
   final TextEditingController _numberController = TextEditingController(text: '1');
-  final AnnouncementRepository _ideaRepository = AnnouncementRepository(firestore: FirebaseFirestore.instance);
+  final AnnouncementRepository _ideaRepository = AnnouncementRepository();
 
   final FocusNode _projectNameFocusNode = FocusNode();
   final FocusNode _descriptionFocusNode = FocusNode();
@@ -200,6 +203,7 @@ class _PostState extends State<Post> {
       description: _ideadescriptionController.text,
       maxMembers: int.parse(_numberController.text),
       members: [creatorId],
+      isJoined: true,
       skills: tags,
       status: 'open',
     );

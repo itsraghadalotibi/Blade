@@ -89,9 +89,6 @@ class _EditSupporterProfileScreenState
       context
           .read<EditSupporterProfileBloc>()
           .add(SaveSupporterProfile(updatedProfile));
-
-      // Pass the updated profile back to the previous screen
-      Navigator.pop(context, updatedProfile);
     }
   }
 
@@ -104,7 +101,9 @@ class _EditSupporterProfileScreenState
       ),
       body: BlocListener<EditSupporterProfileBloc, EditSupporterProfileState>(
         listener: (context, state) {
-          if (state is SupporterProfileUpdateFailure) {
+          if (state is SupporterProfileUpdateSuccess) {
+            Navigator.pop(context, state.updatedProfile);
+          } else if (state is SupporterProfileUpdateFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Failed to update profile')),
             );
@@ -123,16 +122,19 @@ class _EditSupporterProfileScreenState
                     alignment: Alignment.bottomRight,
                     children: [
                       CircleAvatar(
-                        radius: 70,
-                        backgroundImage: _newProfileImage != null
-                            ? FileImage(_newProfileImage!)
-                                as ImageProvider<Object>
-                            : (widget.profile.profilePhotoUrl != null &&
-                                    widget.profile.profilePhotoUrl!.isNotEmpty)
-                                ? NetworkImage(widget.profile.profilePhotoUrl!)
-                                    as ImageProvider<Object>
-                                : const AssetImage('assets/images/user.png')
-                                    as ImageProvider<Object>,
+                        radius: 75,
+                        backgroundColor: Colors.greenAccent,
+                        child: CircleAvatar(
+                          radius: 70,
+                          backgroundImage: _newProfileImage != null
+                              ? FileImage(_newProfileImage!)
+                              : (widget.profile.profilePhotoUrl != null)
+                                  ? NetworkImage(
+                                          widget.profile.profilePhotoUrl!)
+                                      as ImageProvider<Object>
+                                  : const AssetImage('assets/images/user.png')
+                                      as ImageProvider<Object>,
+                        ),
                       ),
                       IconButton(
                         icon:

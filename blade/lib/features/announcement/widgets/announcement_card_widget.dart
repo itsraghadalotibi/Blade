@@ -1,4 +1,6 @@
 //theaming
+import 'package:blade_app/features/announcement/bloc/announcement_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../project_info/screens/project_screen.dart';
 import '../src/announcement_model.dart';
@@ -11,12 +13,14 @@ import '../../../utils/constants/colors.dart';
 class AnnouncementCardWidget extends StatefulWidget {
   final Idea idea;
   final AnnouncementRepository repository;
+  final Function() fetchAll;
 
   const AnnouncementCardWidget({
-    Key? key,
+    super.key,
     required this.idea,
-    required this.repository,
-  }) : super(key: key);
+    required this.repository, 
+    required this.fetchAll,
+  });
 
   @override
   _AnnouncementCardWidgetState createState() => _AnnouncementCardWidgetState();
@@ -25,10 +29,13 @@ class AnnouncementCardWidget extends StatefulWidget {
 class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
   bool isExpanded = false;
   bool exceedsMaxLines = false;
+  String? currentUserId;
+  bool isJoinPending = false;
 
   @override
   void initState() {
     super.initState();
+    currentUserId = FirebaseAuth.instance.currentUser?.uid;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkTextOverflow();
     });
@@ -61,6 +68,22 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     });
   }
 
+  void _handleJoinRequest() async {
+
+    setState(() {
+      isJoinPending = true;
+      widget.idea.isJoined = true;
+    });
+
+    await widget.repository.sendJoinRequest(widget.idea,currentUserId!);
+    widget.fetchAll();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Join request sent. Awaiting approval.')),
+    );
+
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -68,16 +91,19 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    final textStyle = TextStyle(
-      color: isDarkMode ? TColors.textWhite : TColors.textWhite,
-      fontSize: screenWidth * 0.04 * textScaleFactor,
-      fontWeight: FontWeight.w400,
-    );
+    
 
     final int maxMembers = widget.idea.maxMembers;
     final int currentMembers = widget.idea.members.length;
     final int membersNeeded =
         maxMembers > currentMembers ? maxMembers - currentMembers : 0;
+
+
+    bool canJoin = currentUserId != null &&
+        !widget.idea.isJoined! &&
+        !widget.idea.members.contains(currentUserId) &&
+        currentMembers < maxMembers &&
+        !isJoinPending ;
 
     return GestureDetector(
       onTap: () {
@@ -85,8 +111,10 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
           context,
           MaterialPageRoute(
             builder: (_) => ProjectScreen(
+              canJoin: canJoin,
               idea: widget.idea,
               repository: widget.repository,
+               onJoinRequestSent: null,
             ),
           ),
         );
@@ -99,9 +127,11 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
         child: Container(
           width: screenWidth * 0.9,
           decoration: BoxDecoration(
-            color: isDarkMode ? TColors.container : TColors.container,
+            color: isDarkMode ? TColors.container : TColors.white,
             borderRadius: BorderRadius.circular(23),
-            border: Border.all(color: Colors.transparent),
+            border: isDarkMode
+                        ? null // No border in dark mode
+                        : Border.all(color: TColors.borderPrimary), // Light mode border
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -114,7 +144,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                     child: Text(
                       widget.idea.title,
                       style: TextStyle(
-                        color: isDarkMode ? TColors.textWhite : TColors.textWhite,
+                        color: isDarkMode ? TColors.textWhite : TColors.black,
                         fontSize: screenWidth * 0.055 * textScaleFactor,
                         fontWeight: FontWeight.bold,
                       ),
@@ -154,7 +184,10 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
               // Description and "Show more" logic
               Text(
                 widget.idea.description,
-                style: textStyle,
+                style: TextStyle(
+                  color: isDarkMode ? TColors.textWhite : TColors.black,
+                ),
+                
                 maxLines: isExpanded ? null : 4,
                 overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
               ),
@@ -181,7 +214,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                 Text(
                   '$membersNeeded members needed',
                   style: TextStyle(
-                    color: isDarkMode ? TColors.grey : TColors.grey,
+                    color: isDarkMode ? TColors.grey : TColors.darkerGrey,
                     fontSize: screenWidth * 0.035 * textScaleFactor, // Small font size
                     fontStyle: FontStyle.italic, // Italic for subtle emphasis
                     fontWeight: FontWeight.w400,
@@ -191,7 +224,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                 Text(
                   'All members filled',
                   style: TextStyle(
-                    color: isDarkMode ? TColors.grey : TColors.grey,
+                    color: isDarkMode ? TColors.grey : TColors.darkerGrey,
                     fontSize: screenWidth * 0.035 * textScaleFactor,
                     fontStyle: FontStyle.italic,
                     fontWeight: FontWeight.w400,
@@ -214,25 +247,26 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                 ),
               ),
               SizedBox(height: screenHeight * 0.005),
-
               // Join button
+              if (canJoin)
               Center(
                 child: Container(
                   width: screenWidth * 0.4,
                   height: screenHeight * 0.05,
                   decoration: BoxDecoration(
-                    color: TColors.primary.withOpacity(0.5), // Reduced opacity for disabled look
+                    color: TColors.primary, // Reduced opacity for disabled look
                     borderRadius: BorderRadius.circular(48),
                   ),
-                  child: Center(
-                    child: Text(
-                      'Join',
-                      style: TextStyle(
-                        color: TColors.textWhite.withOpacity(0.5), // Lightened text color to indicate it's disabled
-                        fontSize: screenWidth * 0.04 * textScaleFactor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  child: ElevatedButton(
+                    onPressed: _handleJoinRequest,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isJoinPending
+                          ? Colors.grey // Grey color for waiting status
+                          : TColors.primary,
+                      // Regular color for join button
+                      padding: const EdgeInsets.symmetric(horizontal: 18.0),
                     ),
+                    child: Text(isJoinPending ? 'Waiting' : 'Join'),
                   ),
                 ),
               ),

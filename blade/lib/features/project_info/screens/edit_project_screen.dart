@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../utils/constants/colors.dart';
 import '../../announcement/src/announcement_model.dart';
 import '../../announcement/src/announcement_repository.dart';
 import '../../newPost/screens/post.dart';
@@ -37,7 +39,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     // Pre-fill controllers with existing idea data
     _ideanameController.text = widget.idea.title;
     _ideadescriptionController.text = widget.idea.description;
-    _numberController.text = widget.idea.maxMembers.toString();
+    _numberController.text = (widget.idea.maxMembers-1).toString();
     tags = List<String>.from(widget.idea.skills);
 
     fetchSkills();
@@ -66,6 +68,19 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         });
         return;
       }
+
+      // Validate that maxMembers is not less than current members
+      int newMaxMembers = int.parse(_numberController.text);
+      int currentMembers = widget.idea.members.length;
+
+      if (newMaxMembers < currentMembers) {
+        setState(() {
+          _skillsError = 'Maximum members cannot be less than current members ($currentMembers)';
+          _messageColor = Colors.red;
+        });
+        return;
+      }
+
       setState(() {
         _skillsError = null;
         _messageColor = Colors.grey;
@@ -76,15 +91,37 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
         id: widget.idea.id,
         title: _ideanameController.text,
         description: _ideadescriptionController.text,
-        maxMembers: int.parse(_numberController.text),
+        maxMembers: newMaxMembers+1,
         members: widget.idea.members,
+        isJoined: widget.idea.isJoined,
         skills: tags,
         status: widget.idea.status,
       );
 
       try {
         await widget.repository.updateIdea(updatedIdea);
-        Navigator.pop(context); // Go back to the project screen
+        ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  backgroundColor: TColors.success,
+                  behavior: SnackBarBehavior.floating,
+                  content: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const Icon(CupertinoIcons.check_mark_circled_solid,
+                          color:
+                              Colors.white), // Change icon and color as needed
+                      const SizedBox(width: 8), // Space between icon and text
+                      const Expanded(
+                        child: Text(
+                          'Project edited Successfully!',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                  showCloseIcon: true),
+            );
+            Navigator.pop(context, true);
       } catch (e) {
         print('Error updating idea: $e');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -96,22 +133,20 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
 
   void _deleteProject() async {
     final confirm = await showDialog<bool>(
-      
       context: context,
       builder: (context) {
         // Determine the theme brightness
-      Brightness brightness = Theme.of(context).brightness;
+        Brightness brightness = Theme.of(context).brightness;
 
-      // Set background and text colors based on theme
-      Color backgroundColor;
+        // Set background and text colors based on theme
+        Color backgroundColor;
 
-      if (brightness == Brightness.dark) {
-        backgroundColor = Colors.grey[850]!; // Dark grey for dark theme
-// Light text for contrast
-      } else {
-        backgroundColor = Colors.grey[200]!; // Light grey for light theme
-// Dark text for contrast
-      }
+        if (brightness == Brightness.dark) {
+          backgroundColor = Colors.grey[850]!; // Dark grey for dark theme
+        } else {
+          backgroundColor = Colors.grey[200]!; // Light grey for light theme
+        }
+
         return AlertDialog(
           backgroundColor: backgroundColor,
           title: const Text('Delete Project'),
@@ -120,13 +155,12 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
             OutlinedButton(
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Cancel'),
-              
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
-                side: const BorderSide(color:  Colors.red),
+                side: const BorderSide(color: Colors.red),
               ),
               child: const Text('Delete'),
             ),
@@ -152,12 +186,13 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
+    // Determine the minimum number of members
+    int currentMembers = widget.idea.members.length;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Project'),
-        backgroundColor: isDarkMode ? Colors.black : Colors.white,
-        elevation: 0,
-        foregroundColor: isDarkMode ? Colors.white : Colors.black,
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -213,6 +248,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                   const SizedBox(width: 10),
                   NumberStepper(
                     initialNumber: int.parse(_numberController.text),
+                    minValue: currentMembers-1, // Set minimum to current number of members
                     onNumberChanged: (newNumber) {
                       setState(() {
                         _numberController.text = newNumber.toString();
@@ -258,6 +294,40 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                       hintText: 'Search and add more skills',
                       hintStyle: TextStyle(color: isDarkMode ? Colors.grey : Colors.black54),
                       border: const OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.transparent, // Custom background color for the text field
+                    ),
+                  );
+                },
+                optionsViewBuilder: (BuildContext context, AutocompleteOnSelected<String> onSelected,
+                    Iterable<String> options) {
+                  return Align(
+                    alignment: Alignment.topLeft,
+                    child: Material(
+                      elevation: 4.0,
+                      child: Container(
+                        width: MediaQuery.of(context).size.width - 32,
+                        color: isDarkMode ? Colors.grey[850] : Colors.white,
+                        child: ListView.builder(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          itemCount: options.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final String option = options.elementAt(index);
+                            return ListTile(
+                              title: Text(
+                                option,
+                                style: TextStyle(
+                                  color: isDarkMode ? Colors.white : Colors.black,
+                                ),
+                              ),
+                              onTap: () {
+                                onSelected(option);
+                              },
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   );
                 },
@@ -280,7 +350,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                         }
                       });
                     },
-                    backgroundColor: isDarkMode ? Colors.grey[500] : Colors.white70,
+                    backgroundColor: TColors.light,
                     selectedColor: const Color(0xFFFD5336),
                     showCheckmark: true,
                     checkmarkColor: Colors.white,
@@ -296,46 +366,60 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
               const SizedBox(height: 24),
               // Buttons
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Cancel Button
-                  OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    
-                    child: const Text('Cancel'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Cancel'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+                        side: BorderSide(color: isDarkMode ? Colors.white : Colors.black),
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 16.0),
                   // Save Changes Button
-                  ElevatedButton(
-                    onPressed: _saveChanges,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      side: const BorderSide(color:  Colors.green),
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _saveChanges,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        side: const BorderSide(color: Colors.green),
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+                      ),
+                      child: const Text('Save Changes'),
                     ),
-                    child: const Text('Save Changes'),
                   ),
                   // Delete Project Button
                 ],
               ),
               const SizedBox(height: 24.0),
-              
-                Center(
-                  child: OutlinedButton(
-                        onPressed: _deleteProject,
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color:  Colors.red),
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
-                        ),
-                        child: const Text('Delete Project'),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: _deleteProject,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center, // Centers the content
+                    children: [
+                      Icon(
+                        Icons.delete, // You can choose a different icon if preferred
+                        color: Colors.red, // Ensures the icon matches the text color
                       ),
+                      SizedBox(width: 8.0), // Provides space between icon and text
+                      Text('Delete Project'),
+                    ],
+                  ),
                 ),
-              
+              ),
             ],
           ),
         ),

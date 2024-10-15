@@ -26,7 +26,6 @@ class SupporterProfileScreen extends StatefulWidget {
 class _SupporterProfileScreenState extends State<SupporterProfileScreen>
     with SingleTickerProviderStateMixin {
   String? _currentUserId;
-  SupporterProfileModel? _updatedProfile;
   late TabController _tabController;
 
   @override
@@ -34,7 +33,13 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
     super.initState();
     _currentUserId = FirebaseAuth.instance.currentUser?.uid;
     _tabController = TabController(
-        length: 2, vsync: this); // 2 tabs for investments and completed
+        length: 2, vsync: this); // Two tabs for Investments and Completed
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -53,15 +58,15 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
               ? [
                   IconButton(
                     icon: const Icon(Icons.edit),
-                    onPressed: () async {
+                    onPressed: () {
                       final state = context.read<ProfileViewBloc>().state;
                       if (state is ProfileLoaded &&
                           state.profile is SupporterProfileModel) {
                         final supporterProfile =
                             state.profile as SupporterProfileModel;
 
-                        // Navigate to the edit screen and await the result
-                        final updatedProfile = await Navigator.push(
+                        // Wrap EditSupporterProfileScreen in BlocProvider
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => BlocProvider(
@@ -70,19 +75,12 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
                                     context.read<ProfileRepository>(),
                               ),
                               child: EditSupporterProfileScreen(
-                                profile: supporterProfile,
+                                profile:
+                                    supporterProfile, // Pass the profile here
                               ),
                             ),
                           ),
                         );
-
-                        // If an updated profile is returned, refresh the profile screen
-                        if (updatedProfile != null &&
-                            updatedProfile is SupporterProfileModel) {
-                          setState(() {
-                            _updatedProfile = updatedProfile;
-                          });
-                        }
                       }
                     },
                   ),
@@ -91,18 +89,18 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
         ),
         body: BlocBuilder<ProfileViewBloc, ProfileViewState>(
           builder: (context, state) {
-            final profile = _updatedProfile ??
-                (state is ProfileLoaded &&
-                        state.profile is SupporterProfileModel
-                    ? state.profile as SupporterProfileModel
-                    : null);
-
-            if (profile != null) {
-              return _buildProfile(profile);
-            } else if (state is ProfileLoading) {
+            if (state is ProfileLoading) {
               return const Center(child: CircularProgressIndicator());
+            } else if (state is ProfileLoaded &&
+                state.profile is SupporterProfileModel) {
+              final profile = state.profile as SupporterProfileModel;
+              return buildSupporterProfile(profile);
             } else if (state is ProfileError) {
-              return Center(child: Text('Error: ${state.message}'));
+              return Center(
+                  child: Text(
+                'Error: ${state.message}',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ));
             }
             return const Center(child: Text('Unable to load profile.'));
           },
@@ -111,53 +109,70 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
     );
   }
 
-  Widget _buildProfile(SupporterProfileModel profile) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 16), // Space above the avatar
-          CircleAvatar(
-            radius: 70,
-            backgroundImage: profile.profilePhotoUrl != null
-                ? NetworkImage(profile.profilePhotoUrl!)
-                : const AssetImage('assets/images/user.png') as ImageProvider,
+  Widget buildSupporterProfile(SupporterProfileModel profile) {
+    return NestedScrollView(
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          SliverList(
+            delegate: SliverChildListDelegate([
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 16),
+
+                  // Profile Picture
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: profile.profilePhotoUrl != null
+                        ? NetworkImage(profile.profilePhotoUrl!)
+                        : const AssetImage('assets/images/user.png')
+                            as ImageProvider,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // First Name and Last Name
+                  Text(
+                    '${profile.firstName} ${profile.lastName}',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // About Section with Bio
+                  if (profile.bio != null) ...[
+                    Text(
+                      'About',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondary, // Dynamic color
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      profile.bio!,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ],
+              ),
+            ]),
           ),
-          const SizedBox(height: 16), // Spacing between image and name
-          Text(
-            '${profile.firstName} ${profile.lastName}',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8), // Spacing between name and "About"
-          Text(
-            'About',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade700, // Dynamic color based on theme
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8), // Spacing between "About" and bio
-          Text(
-            profile.bio ?? 'No bio available',
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24), // Add space before the TabBar
-          _buildTabBarSection(), // Add TabBar for Investments and Completed
-        ],
-      ),
+        ];
+      },
+      body: buildTabBarSection(),
     );
   }
 
-  Widget _buildTabBarSection() {
+  // Build TabBar Section for "Investments" and "Completed" tabs
+  Widget buildTabBarSection() {
     return Column(
       children: [
         TabBar(
@@ -170,13 +185,13 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
             Tab(text: 'Completed'),
           ],
         ),
-        SizedBox(
-          height: 200, // Fixed height for the TabBar content
+        Expanded(
           child: TabBarView(
             controller: _tabController,
             children: [
-              _buildInvestmentsTab(),
-              _buildCompletedTab(),
+              buildInvestmentsTab(),
+              const Center(
+                  child: Text('Completed investments will be shown here...')),
             ],
           ),
         ),
@@ -184,26 +199,12 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
     );
   }
 
-  Widget _buildInvestmentsTab() {
-    // You can replace this with actual investment data later
-    return Center(
+  // Placeholder for Investments Tab
+  Widget buildInvestmentsTab() {
+    return const Center(
       child: Text(
         'No investments yet.',
-        style: TextStyle(
-          color: Colors.grey.shade600,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCompletedTab() {
-    // You can replace this with actual completed projects data later
-    return Center(
-      child: Text(
-        'No completed projects yet.',
-        style: TextStyle(
-          color: Colors.grey.shade600,
-        ),
+        style: TextStyle(color: Colors.grey),
       ),
     );
   }

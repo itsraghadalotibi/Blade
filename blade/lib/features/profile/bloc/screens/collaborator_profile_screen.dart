@@ -1,11 +1,8 @@
-import 'package:blade_app/features/announcement/screens/announcement_screen.dart';
+import 'package:blade_app/features/announcement/src/announcement_model.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:blade_app/features/announcement/widgets/skill_tag_widget.dart';
-import 'package:blade_app/features/newPost/screens/backgroundPost.dart';
 import 'package:blade_app/features/profile/bloc/screens/edit_collaborator_profile_screen.dart';
-import 'package:blade_app/utils/constants/Navigation/profile.dart';
 import 'package:blade_app/utils/constants/colors.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,9 +15,6 @@ import '../bloc/profile_view_state.dart';
 import '../src/collaborator_profile_model.dart';
 import '../screens/project_idea_card_widget.dart';
 import '../repository/project_idea_repository.dart';
-import '../src/project_idea_model.dart';
-import 'package:blade_app/home_screen.dart';
-import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 
 class CollaboratorProfileScreen extends StatefulWidget {
   final String userId;
@@ -41,7 +35,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     with SingleTickerProviderStateMixin {
   CollaboratorProfileModel? _updatedProfile;
   late ProjectIdeaRepository _projectIdeaRepository;
-  Future<List<Idea>>? _futureIdeas;
+  late AnnouncementRepository _announcementRepository;
   late TabController _tabController;
 
   // Variables for bio expansion
@@ -54,7 +48,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _projectIdeaRepository = ProjectIdeaRepository();
-    _futureIdeas = _projectIdeaRepository.fetchIdeasByOwner(widget.userId);
+    _announcementRepository = AnnouncementRepository();
 
     // Fetch the authenticated user's ID from Firebase
     _currentUserId = FirebaseAuth.instance.currentUser?.uid;
@@ -306,7 +300,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  // const SizedBox(height: 8),
 
                   // About Section with Show More/Show Less
                   Column(
@@ -317,7 +311,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: TColors.primary),
+                            ),
                       ),
                       const SizedBox(height: 8),
                       LayoutBuilder(
@@ -358,8 +352,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                   child: Text(
                                     isBioExpanded ? 'Show less' : 'Show more',
                                     style: const TextStyle(
-                                      color: TColors.primary,
-                                      fontWeight: FontWeight.bold,
+                                      color: TColors.info,
                                     ),
                                   ),
                                 ),
@@ -399,8 +392,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           child: TabBarView(
             controller: _tabController,
             children: [
-              buildProjectIdeasTab(),
-              const Center(child: Text('Ongoing Projects content here...')),
+              buildProjectIdeasTab("open"),
+              buildProjectIdeasTab("ongoing"),
               const Center(child: Text('Completed Projects content here...')),
             ],
           ),
@@ -409,9 +402,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     );
   }
 
-  Widget buildProjectIdeasTab() {
+  Widget buildProjectIdeasTab(String status) {
     return FutureBuilder<List<Idea>>(
-      future: _futureIdeas,
+      future: _projectIdeaRepository.fetchIdeasByOwner(widget.userId,status),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -431,13 +424,16 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
         }
 
         final ideas = snapshot.data!;
+        
 
         return ListView.builder(
           itemCount: ideas.length,
           itemBuilder: (context, index) {
             final idea = ideas[index];
+            if(idea.status == "ongoing" && status != "ongoing")return const SizedBox();
             return ProjectIdeaCardWidget(
               idea: idea,
+              announcementRepository: _announcementRepository,
               repository: _projectIdeaRepository,
             );
           },

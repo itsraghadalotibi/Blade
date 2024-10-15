@@ -12,30 +12,26 @@ class ProjectLoading extends ProjectState {}
 
 class ProjectLoaded extends ProjectState {
   final Idea idea;
-  final bool isMember;
   final bool isOwner;
+  final bool isMember;
 
   const ProjectLoaded({
     required this.idea,
-    required this.isMember,
     required this.isOwner,
+    required this.isMember,
   });
 
-  // Adding copyWith method to update specific fields
-  ProjectLoaded copyWith({
-    Idea? idea,
-    bool? isMember,
-    bool? isOwner,
-  }) {
-    return ProjectLoaded(
-      idea: idea ?? this.idea,
-      isMember: isMember ?? this.isMember,
-      isOwner: isOwner ?? this.isOwner,
-    );
-  }
+  @override
+  List<Object?> get props => [idea, isOwner, isMember];
+}
+
+class ProjectStatusUpdated extends ProjectState {
+  final Idea updatedIdea;
+
+  const ProjectStatusUpdated(this.updatedIdea);
 
   @override
-  List<Object?> get props => [idea, isMember, isOwner];
+  List<Object?> get props => [updatedIdea];
 }
 
 class ProjectError extends ProjectState {

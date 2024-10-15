@@ -1,44 +1,53 @@
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../../../utils/constants/colors.dart';
 import '../../announcement/src/announcement_model.dart';
 import '../../announcement/widgets/skill_tag_widget.dart';
 import '../../profile/bloc/screens/collaborator_profile_screen.dart';
 
-class MembersTab extends StatefulWidget {
-  final Idea idea;
-  final AnnouncementRepository repository;
 
-  const MembersTab({
+
+
+class OffersTab extends StatefulWidget {
+  final Idea idea;
+  final bool forOwner;
+  final AnnouncementRepository repository;
+  final Function(String) addNewMember;
+
+  const OffersTab({
     super.key,
     required this.idea,
-    required this.repository,
+    required this.repository, 
+    required this.forOwner, 
+    required this.addNewMember,
   });
 
   @override
-  State<MembersTab> createState() => _MembersTabState();
+  State<OffersTab> createState() => _OffersTabState();
 }
 
-class _MembersTabState extends State<MembersTab> {
-  Future<List<Collaborator>>? futrueMembers;
-  @override
-  void initState() {
-    super.initState();
-    futrueMembers = _fetchCollaborators();
-  } 
+class _OffersTabState extends State<OffersTab> {
+  bool isPress = false;
   @override
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return FutureBuilder<List<Collaborator>>(
-      future: futrueMembers,
+      future: _fetchCollaborators(),
       builder: (context, snapshot) {
+        
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No members found.'));
+          return const Center(child: Text('No Join Requests found.'));
+        }
+        final int maxMembers = widget.idea.maxMembers;
+        final int currentMembers = widget.idea.members.length;
+        final bool isFull = (currentMembers - 1) >= maxMembers;
+        if (isFull) {
+          return const Center(child: Text('This Project Is Full'));
         }
 
         final collaborators = snapshot.data!;
@@ -49,11 +58,8 @@ class _MembersTabState extends State<MembersTab> {
           itemBuilder: (context, index) {
             final collaborator = collaborators[index];
 
-            // For the first member, show "Project Owner"
-            final isProjectOwner = index == 0;
-            final matchingSkills = isProjectOwner
-                ? ["Project Owner"]
-                : collaborator.skills
+
+            final matchingSkills = collaborator.skills
                     .where((skill) => widget.idea.skills.contains(skill))
                     .toList();
 
@@ -75,11 +81,11 @@ class _MembersTabState extends State<MembersTab> {
                 decoration: BoxDecoration(
                   color: isDarkMode
                       ? Colors.grey[850]
-                      : TColors.white,
+                      : Colors.grey[200],
                   borderRadius: BorderRadius.circular(10),
                   border: isDarkMode
                       ? null
-                      : Border.all(color: const Color.fromARGB(255, 238, 238, 238)),
+                      : Border.all(color: Colors.grey),
                 ),
                 child: Column(
                   children: [
@@ -118,6 +124,62 @@ class _MembersTabState extends State<MembersTab> {
                               ),
                             ),
                     ),
+                    if(!isPress)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          OutlinedButton(
+                            onPressed: () async{
+                              // setState(() {
+                              //   isPress = true;
+                              // });
+                              // Reject join request
+                              await widget.repository.rejectJoinRequest(widget.idea.id!, collaborator.uid);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Rejected ${collaborator.firstName} ${collaborator.lastName}')),
+                              );
+                              setState(() {});
+                            },
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              side: BorderSide(color: Colors.red),
+                              shape: RoundedRectangleBorder(
+
+                                borderRadius: BorderRadius.circular(40),
+                              ),
+                            ),
+                            child: const Text(
+                              'REJECT',
+                              style: TextStyle(color: Colors.white,fontSize: 12,fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () async{
+                              // setState(() {
+                              //   isPress = true;
+                              // });
+                              // Accept join request
+                              await widget.repository.acceptJoinRequest(widget.idea, collaborator.uid);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Accepted ${collaborator.firstName} ${collaborator.lastName}')),
+                              );
+                              widget.addNewMember(collaborator.uid);
+                              setState(() {});
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(40),
+                              ),
+                            ),
+                            child: const Text(
+                              'ACCEPT',
+                              style: TextStyle(color: Colors.white,fontSize: 12,fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -134,7 +196,14 @@ class _MembersTabState extends State<MembersTab> {
   // Fetch collaborators based on memberIds
   Future<List<Collaborator>> _fetchCollaborators() async {
     List<Collaborator> collaborators = [];
-    for (String memberId in widget.idea.members) {
+
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('join_requests')
+          .where('ideaId', isEqualTo: widget.idea.id)
+          .where('status', isEqualTo:'pending')
+          .get();
+    print(querySnapshot.docs.length);
+    for (String memberId in querySnapshot.docs.map((doc)=>doc["userId"])) {
       final collaborator = await widget.repository.fetchCollaborator(memberId);
       if (collaborator != null) {
         collaborators.add(collaborator);

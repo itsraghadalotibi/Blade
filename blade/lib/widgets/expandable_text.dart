@@ -53,7 +53,6 @@ class _ExpandableTextWidgetState extends State<ExpandableTextWidget> {
   @override
   Widget build(BuildContext context) {
     final textStyle = widget.style ?? DefaultTextStyle.of(context).style;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
 
 

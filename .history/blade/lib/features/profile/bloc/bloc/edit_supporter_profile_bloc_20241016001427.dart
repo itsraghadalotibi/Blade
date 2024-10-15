@@ -15,13 +15,13 @@ class EditSupporterProfileBloc
   Future<void> _onSaveSupporterProfile(SaveSupporterProfile event,
       Emitter<EditSupporterProfileState> emit) async {
     try {
-      // Call the repository to update the profile
-      await profileRepository.updateSupporterProfile(event.profile);
-      // Emit success state after updating the profile
-      emit(SupporterProfileUpdateSuccess(event.profile));
+      await profileRepository.updateSupporterProfile(
+          event.profile); // Update profile in repository
+      emit(SupporterProfileUpdateSuccess(
+          event.profile)); // Emit success state with the updated profile
     } catch (error) {
-      // Emit failure state if something goes wrong
-      emit(SupporterProfileUpdateFailure());
+      emit(
+          SupporterProfileUpdateFailure()); // Emit failure state if error occurs
     }
   }
 }

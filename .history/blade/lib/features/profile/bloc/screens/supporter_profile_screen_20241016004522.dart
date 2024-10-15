@@ -23,18 +23,14 @@ class SupporterProfileScreen extends StatefulWidget {
   _SupporterProfileScreenState createState() => _SupporterProfileScreenState();
 }
 
-class _SupporterProfileScreenState extends State<SupporterProfileScreen>
-    with SingleTickerProviderStateMixin {
+class _SupporterProfileScreenState extends State<SupporterProfileScreen> {
   String? _currentUserId;
   SupporterProfileModel? _updatedProfile;
-  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _currentUserId = FirebaseAuth.instance.currentUser?.uid;
-    _tabController = TabController(
-        length: 2, vsync: this); // 2 tabs for investments and completed
   }
 
   @override
@@ -113,97 +109,22 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
 
   Widget _buildProfile(SupporterProfileModel profile) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          const SizedBox(height: 16), // Space above the avatar
           CircleAvatar(
-            radius: 70,
+            radius: 75,
             backgroundImage: profile.profilePhotoUrl != null
                 ? NetworkImage(profile.profilePhotoUrl!)
                 : const AssetImage('assets/images/user.png') as ImageProvider,
           ),
-          const SizedBox(height: 16), // Spacing between image and name
-          Text(
-            '${profile.firstName} ${profile.lastName}',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8), // Spacing between name and "About"
-          Text(
-            'About',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade700, // Dynamic color based on theme
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8), // Spacing between "About" and bio
-          Text(
-            profile.bio ?? 'No bio available',
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24), // Add space before the TabBar
-          _buildTabBarSection(), // Add TabBar for Investments and Completed
+          const SizedBox(height: 16),
+          Text('${profile.firstName} ${profile.lastName}',
+              style: const TextStyle(fontSize: 24)),
+          const SizedBox(height: 16),
+          Text(profile.bio ?? 'No bio available'),
+          // You can add other fields here like the investment tab bar or ongoing projects
         ],
-      ),
-    );
-  }
-
-  Widget _buildTabBarSection() {
-    return Column(
-      children: [
-        TabBar(
-          controller: _tabController,
-          indicatorColor: Theme.of(context).primaryColor,
-          labelColor: Theme.of(context).primaryColor,
-          unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
-          tabs: const [
-            Tab(text: 'Investments'),
-            Tab(text: 'Completed'),
-          ],
-        ),
-        SizedBox(
-          height: 200, // Fixed height for the TabBar content
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildInvestmentsTab(),
-              _buildCompletedTab(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInvestmentsTab() {
-    // You can replace this with actual investment data later
-    return Center(
-      child: Text(
-        'No investments yet.',
-        style: TextStyle(
-          color: Colors.grey.shade600,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCompletedTab() {
-    // You can replace this with actual completed projects data later
-    return Center(
-      child: Text(
-        'No completed projects yet.',
-        style: TextStyle(
-          color: Colors.grey.shade600,
-        ),
       ),
     );
   }
