@@ -26,7 +26,9 @@ class ProjectScreen extends StatefulWidget {
     super.key,
     required this.idea,
     required this.repository,
-    required this.canJoin, required onJoinRequestSent, this.refershIdeasInProfile,
+    required this.canJoin, 
+    required onJoinRequestSent, 
+    this.refershIdeasInProfile,
   });
 
   @override
@@ -127,7 +129,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
         _buttonText = 'Join Project';
       });
 
-      context.read<ProjectBloc>().add(LeaveProject(ideaId));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
