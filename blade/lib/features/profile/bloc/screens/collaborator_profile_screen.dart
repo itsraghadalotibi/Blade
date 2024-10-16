@@ -280,7 +280,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
             children: [
               buildProjectIdeasTab("open"),
               buildProjectIdeasTab("ongoing"),
-              const Center(child: Text('Completed Projects content here...')),
+              buildProjectIdeasTab("completed"),
             ],
           ),
         ),
@@ -319,6 +319,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
               return const SizedBox();
             }
             return ProjectIdeaCardWidget(
+              refershIdeasInProfile: ()=>setState(() {}),
               idea: idea,
               announcementRepository: _announcementRepository,
               repository: _projectIdeaRepository,

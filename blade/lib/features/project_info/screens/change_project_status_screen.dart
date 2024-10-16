@@ -7,25 +7,30 @@ import '../../announcement/src/announcement_model.dart';
 import '../../announcement/src/announcement_repository.dart';
 import '../bloc/project_bloc.dart';
 import '../bloc/project_event.dart';
+
 class ChangeProjectStatusScreen extends StatefulWidget {
   final Idea idea;
   final AnnouncementRepository repository;
+
   const ChangeProjectStatusScreen({
     Key? key,
     required this.idea,
     required this.repository,
   }) : super(key: key);
+
   @override
   _ChangeProjectStatusScreenState createState() =>
       _ChangeProjectStatusScreenState();
 }
+
 class _ChangeProjectStatusScreenState extends State<ChangeProjectStatusScreen> {
   String? _selectedStatus;
+  bool _isLoading = false;
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
-    // Do not set _selectedStatus to the current status if it's not in available options
-    // Instead, set it to null or the first available option
     final availableOptions = _getAvailableStatusOptions(widget.idea.status);
     if (availableOptions.isNotEmpty) {
       _selectedStatus = availableOptions[0];
@@ -33,6 +38,7 @@ class _ChangeProjectStatusScreenState extends State<ChangeProjectStatusScreen> {
       _selectedStatus = null;
     }
   }
+
   List<String> _getAvailableStatusOptions(String currentStatus) {
     switch (currentStatus) {
       case 'open':
@@ -43,6 +49,7 @@ class _ChangeProjectStatusScreenState extends State<ChangeProjectStatusScreen> {
         return [];
     }
   }
+
   Color _getStatusTextColor(String status) {
     switch (status) {
       case 'ongoing':
@@ -53,6 +60,7 @@ class _ChangeProjectStatusScreenState extends State<ChangeProjectStatusScreen> {
         return Colors.green[900]!;
     }
   }
+
   Color _getStatusColor(String status) {
     switch (status) {
       case 'ongoing':
@@ -63,11 +71,76 @@ class _ChangeProjectStatusScreenState extends State<ChangeProjectStatusScreen> {
         return Colors.green[100]!;
     }
   }
+
+  Future<void> _updateProjectStatus() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await widget.repository.updateIdeaStatus(widget.idea.id!, _selectedStatus!);
+      // Show success SnackBar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Project status changed successfully!',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      // Navigate back and indicate success
+      Navigator.pop(context, true);
+    } catch (e) {
+      // Handle error
+      setState(() {
+        _errorMessage = 'Failed to update project status. Please try again.';
+      });
+      // Show error SnackBar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Icon(Icons.error, color: Colors.white),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Failed to update project status. Please try again.',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final availableStatusOptions =
-        _getAvailableStatusOptions(widget.idea.status);
+    final availableStatusOptions = _getAvailableStatusOptions(widget.idea.status);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Change Project Status'),
@@ -93,7 +166,8 @@ class _ChangeProjectStatusScreenState extends State<ChangeProjectStatusScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: 16,
-                        color: isDarkMode ? Colors.white70 : Colors.grey[800],
+                        color:
+                            isDarkMode ? Colors.white70 : Colors.grey[800],
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -102,7 +176,7 @@ class _ChangeProjectStatusScreenState extends State<ChangeProjectStatusScreen> {
                   DropdownButtonFormField<String>(
                     value: _selectedStatus,
                     dropdownColor:
-                        isDarkMode ? TColors.darkerGrey : TColors.lightGrey,
+                        isDarkMode ? Colors.grey[800] : Colors.white,
                     decoration: InputDecoration(
                       labelText: 'Select New Status',
                       border: const OutlineInputBorder(),
@@ -145,56 +219,32 @@ class _ChangeProjectStatusScreenState extends State<ChangeProjectStatusScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _selectedStatus != widget.idea.status
-                          ? () {
-                              // Dispatch event to change status
-                              context.read<ProjectBloc>().add(
-                                    UpdateProjectStatus(
-                                        widget.idea.id!, _selectedStatus!),
-                                  );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    backgroundColor: TColors.success,
-                                    behavior: SnackBarBehavior.floating,
-                                    content: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        const Icon(
-                                            CupertinoIcons
-                                                .check_mark_circled_solid,
-                                            color: Colors
-                                                .white), // Change icon and color as needed
-                                        const SizedBox(
-                                            width:
-                                                8), // Space between icon and text
-                                        const Expanded(
-                                          child: Text(
-                                            'Project status changed Successfully!',
-                                            style: TextStyle(fontSize: 16),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    showCloseIcon: true),
-                              );
-                              Navigator.pop(context, true);
-                            }
-                          : null, // Disable button if no change
+                      onPressed: _selectedStatus != widget.idea.status && !_isLoading
+                          ? _updateProjectStatus
+                          : null, // Disable button if no change or loading
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 24.0, vertical: 12.0),
                         side: const BorderSide(color: Colors.green),
                       ),
-                      child: const Text('Save Status'),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.0,
+                              ),
+                            )
+                          : const Text('Save Status'),
                     ),
                   ),
                   const SizedBox(height: 8),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: _isLoading ? null : () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 24.0, vertical: 12.0),
@@ -202,6 +252,13 @@ class _ChangeProjectStatusScreenState extends State<ChangeProjectStatusScreen> {
                       child: const Text('Cancel'),
                     ),
                   ),
+                  if (_errorMessage != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ],
                 ],
               ),
       ),

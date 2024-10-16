@@ -11,7 +11,7 @@ class BackgroundScreen extends StatefulWidget {
   final bool isSuccess;  // Flag to check if we need to show the success message or form
   final String? accessToken;  // Access token for GitHub authentication
 
-  const BackgroundScreen({Key? key, this.isSuccess = false, this.accessToken}) : super(key: key);
+  const BackgroundScreen({super.key, this.isSuccess = false, this.accessToken});
 
   @override
   _BackgroundScreenState createState() => _BackgroundScreenState();
@@ -60,6 +60,7 @@ class _BackgroundScreenState extends State<BackgroundScreen> with TickerProvider
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Idea'),
+        centerTitle: true,
         backgroundColor: isDarkMode ? Colors.grey.shade900 : const Color.fromARGB(255, 255, 255, 255), // Background color for AppBar
         elevation: 0, // Remove shadow under AppBar
         iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black), // Icon color for AppBar
