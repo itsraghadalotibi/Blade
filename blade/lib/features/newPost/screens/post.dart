@@ -334,7 +334,7 @@ Future<void> _createGithubRepo(String repoName) async {
                               ),
                               child: const Text('Back', style: TextStyle(fontSize: 13)), 
                             ),
-                          const SizedBox(width: 8), 
+                          const SizedBox(width: 10), 
                           ElevatedButton(
                             onPressed: isLastStep ? _submitIdea : details.onStepContinue,
                             style: ElevatedButton.styleFrom(
