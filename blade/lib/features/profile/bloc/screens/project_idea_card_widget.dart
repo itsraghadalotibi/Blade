@@ -4,6 +4,7 @@ import 'package:blade_app/features/project_info/screens/project_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import '../../../../utils/constants/colors.dart';
 import '../repository/project_idea_repository.dart';
 import '../widgets/avatar_stack.dart'; // Correct import after renaming
 import '../widgets/skill_tag.dart'; // Correct import after renaming
@@ -31,12 +32,12 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
     final textStyle = TextStyle(
-      color: Colors.white,
       fontSize: screenWidth * 0.04 * textScaleFactor,
       fontWeight: FontWeight.w400,
     );
@@ -66,7 +67,10 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
         child: Container(
           width: screenWidth * 0.9,
           decoration: BoxDecoration(
-            color: const Color(0xFF333333),
+            color: isDarkMode? TColors.container : TColors.white,
+            border: isDarkMode
+                  ? null // No border in dark mode
+                  : Border.all(color: TColors.borderPrimary), // Light mode border
             borderRadius: BorderRadius.circular(23),
           ),
           child: Padding(
@@ -80,7 +84,6 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
                       child: Text(
                         widget.idea.title,
                         style: TextStyle(
-                          color: Colors.white,
                           fontSize: screenWidth * 0.055 * textScaleFactor,
                           fontWeight: FontWeight.bold,
                         ),

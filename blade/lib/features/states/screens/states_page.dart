@@ -65,12 +65,10 @@ class StatesPage extends StatelessWidget {
     final TextStyle ideaTitleStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
           fontSize: screenWidth * 0.05 * textScaleFactor,
           fontWeight: FontWeight.bold,
-          color: TColors.textWhite,
         ) ??
         const TextStyle();
 
     return Scaffold(
-      backgroundColor: isDarkMode ? TColors.dark : TColors.primaryBackground,
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: streamJoinRequests(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
@@ -121,7 +119,7 @@ class StatesPage extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) => ProjectScreen(
                         idea: idea,
-                        repository: AnnouncementRepository(), // Replace with actual repository instance.
+                        repository: AnnouncementRepository(), 
                         canJoin: !idea.isJoined!, onJoinRequestSent: null, // Check if the user can join the project.
                       ),
                     ),
@@ -131,9 +129,11 @@ class StatesPage extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isDarkMode ? TColors.container : TColors.container,
+                      color: isDarkMode ? TColors.container : TColors.white,
                       borderRadius: BorderRadius.circular(23),
-                      border: Border.all(color: Colors.transparent),
+                      border: isDarkMode
+                  ? null // No border in dark mode
+                  : Border.all(color: TColors.borderPrimary), // Light mode border
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -163,25 +163,42 @@ class StatesPage extends StatelessWidget {
                             ),
                           ),
                           // Right: Status text and cancel button for pending requests.
-                          Row(
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
+                              // if (status == 'pending') ...[
+                              //   const SizedBox(width: 2),
+                              //   IconButton(
+                              //     icon: Icon(
+                              //       Icons.cancel,
+                              //       color: Colors.red,
+                              //       size: screenWidth * 0.07,
+                              //     ),
+                              //     onPressed: () => cancelJoinRequest(requestId),
+                              //   ),
+                              // ],
                               Text(
-                                status.toUpperCase(),
+                                status[0].toUpperCase() + status.substring(1),
                                 style: ideaTitleStyle.copyWith(
                                   color: statusColor,
-                                  fontSize: screenWidth * 0.045 * textScaleFactor,
+                                  fontSize: 16,
                                 ),
                               ),
+                              SizedBox(height: 8),
                               if (status == 'pending') ...[
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.cancel,
-                                    color: Colors.red,
-                                    size: screenWidth * 0.07,
-                                  ),
-                                  onPressed: () => cancelJoinRequest(requestId),
+                              OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+                                  foregroundColor: Colors.red,
+                                  side: const BorderSide(color: Colors.red),
                                 ),
+                                onPressed: () => cancelJoinRequest(requestId),
+                                child: 
+                                Text(
+                                  'Cancel'
+                                ),
+
+                              ),
                               ],
                             ],
                           ),
@@ -202,7 +219,7 @@ class StatesPage extends StatelessWidget {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'pending':
-        return Colors.amber;
+        return Colors.amber[800]!;
       case 'accepted':
         return Colors.green;
       case 'rejected':

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../utils/constants/colors.dart';
 import '../../../widgets/expandable_text.dart';
 import '../../announcement/src/announcement_model.dart';
 import '../../announcement/src/announcement_repository.dart';
@@ -38,7 +39,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
   bool _isRequestPending = false;
   bool _isMember = false;
   String? _joinRequestId;
-  String _buttonText = 'Join Project';
+  String _buttonText = 'Join';
 
   @override
   void initState() {
@@ -72,6 +73,15 @@ class _ProjectScreenState extends State<ProjectScreen> {
       });
     }
   }
+  // Getter for dynamic button background color
+  Color get _buttonBackgroundColor {
+    if (_isRequestPending) {
+      return Colors.amber[800]!; // Grey for pending state
+    } else {
+      return TColors.primary; // Red for join project
+    }
+  }
+
 
   // Send join request
   Future<void> _sendJoinRequest() async {
@@ -111,6 +121,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
             ],
           ),
           duration: const Duration(seconds: 3),
+          showCloseIcon: true,
         ),
       );
     } catch (e) {
@@ -118,9 +129,61 @@ class _ProjectScreenState extends State<ProjectScreen> {
         SnackBar(content: Text('Error: $e')),
       );
       setState(() {
-        _buttonText = 'Join Project';
+        _buttonText = 'Join';
         _isRequestPending = false;
       });
+    }
+  }
+
+   // Function to cancel a join request.
+  Future<void> _cancelJoinRequest(String requestId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('join_requests')
+          .doc(requestId)
+          .delete();
+      print('Join request $requestId cancelled successfully');
+
+      // Show success message with an icon for cancellation
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.orange, // Orange background for cancellation
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            children: [
+              const Icon(Icons.cancel, color: Colors.white), // Cancellation icon
+              const SizedBox(width: 8), // Space between icon and text
+              const Expanded(
+                child: Text(
+                  'Join request cancelled.',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 3),
+          showCloseIcon: true,
+        ),
+      );
+
+      // Update the button state to "Join Project"
+      setState(() {
+        _buttonText = 'Join';
+        _isRequestPending = false;
+        _joinRequestId = null;
+      });
+    } catch (e) {
+      print('Error cancelling join request: $e');
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red, // Red background for errors
+          content: Text('Error cancelling join request: $e'),
+          duration: const Duration(seconds: 3),
+          showCloseIcon: true,
+        ),
+      );
     }
   }
 
@@ -143,7 +206,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
       // Show success message with an icon for leaving
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: Colors.red, // Red background for leave success
+          backgroundColor: Colors.green, // Red background for leave success
           behavior: SnackBarBehavior.floating,
           content: Row(
             children: [
@@ -163,7 +226,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
 
       setState(() {
         _isMember = false;
-        _buttonText = 'Join Project';
+        _buttonText = 'Join';
       });
 
     } catch (e) {
@@ -281,19 +344,28 @@ class _ProjectScreenState extends State<ProjectScreen> {
                       Center(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red, // Red button background
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            backgroundColor: _buttonBackgroundColor, // Red button background
+                            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: _isRequestPending
-                              ? null
-                              : (_isMember ? _leaveProject : _sendJoinRequest),
+                          onPressed: () {
+                            if (_isRequestPending && _joinRequestId != null) {
+                              // Cancel the join request
+                              _cancelJoinRequest(_joinRequestId!);
+                            } else if (_isMember) {
+                              // Leave the project
+                              _leaveProject();
+                            } else {
+                              // Send a join request
+                              _sendJoinRequest();
+                            }
+                          },
                           child: Text(
                             _buttonText,
                             style: const TextStyle(
-                              color: Colors.black, // Black text for contrast
+                              //color: Colors.black, // Black text for contrast
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
