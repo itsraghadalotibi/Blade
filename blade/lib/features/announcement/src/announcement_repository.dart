@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'announcement_model.dart';
+import 'package:rxdart/rxdart.dart';
 
 class AnnouncementRepository {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -237,22 +238,44 @@ class AnnouncementRepository {
 }
 
   // Stream ideas based on the current user
-  Stream<List<Idea>> streamIdeas(String currentUserId) {
-    return firestore.collection('ideas')
-        .where('status', isEqualTo: 'open')
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs.where((doc) {
-            final members = List<String>.from(doc['members'] ?? []);
-            return members.isEmpty ||
-                (members[0] != currentUserId && !members.contains(currentUserId)) && 
-                members.length < doc["maxMembers"];
-          }).map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return Idea.fromMap(data, doc.id);
-          }).toList();
-        });
-  }
+Stream<List<Idea>> streamIdeas(String currentUserId) {
+  // Stream for 'ideas' collection
+  final ideasStream = firestore.collection('ideas')
+      .where('status', isEqualTo: 'open')
+      .snapshots()
+      .map((snapshot) {
+        return snapshot.docs.where((doc) {
+          final members = List<String>.from(doc['members'] ?? []);
+          return members.isEmpty ||
+              (members[0] != currentUserId && !members.contains(currentUserId)) && 
+              members.length < doc["maxMembers"];
+        }).map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return Idea.fromMap(data, doc.id);
+        }).toList();
+      });
+
+  // Stream for 'join_requests' collection
+  final joinRequestsStream = firestore.collection('join_requests')
+      .where('userId', isEqualTo: currentUserId)
+      .snapshots()
+      .map((snapshot) {
+        return snapshot.docs.map((doc) => doc['ideaId'] as String).toList();
+      });
+
+  // Combine both streams
+  return Rx.combineLatest2<List<Idea>, List<String>, List<Idea>>(
+    ideasStream,
+    joinRequestsStream,
+    (ideas, joinIdeaIds) {
+      return ideas.map((idea) {
+        // Set isJoined flag based on join requests
+        idea.isJoined = joinIdeaIds.contains(idea.id);
+        return idea;
+      }).toList();
+    },
+  );
+}
 
   // Update project status
   Future<void> updateProjectStatus(String projectId, String newStatus) async {

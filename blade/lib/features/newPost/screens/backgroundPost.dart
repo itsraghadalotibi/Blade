@@ -147,9 +147,9 @@ class _BackgroundScreenState extends State<BackgroundScreen> with TickerProvider
           ),
           const SizedBox(height: 20),
           Text(
-            'Your post has been successfully created!',
+            'Your post and repo have been successfully created!',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
               color: isDarkMode ? Colors.white : Colors.black, // Adjust text color based on theme
             ),

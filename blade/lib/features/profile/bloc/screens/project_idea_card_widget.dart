@@ -1,5 +1,3 @@
-// Path: lib/features/profile/screens/project_idea_card_widget.dart
-
 import 'package:blade_app/features/announcement/src/announcement_model.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:blade_app/features/project_info/screens/project_screen.dart';
@@ -14,10 +12,15 @@ class ProjectIdeaCardWidget extends StatefulWidget {
   final Idea idea;
   final ProjectIdeaRepository repository;
   final AnnouncementRepository announcementRepository;
-  final Function()? refershIdeasInProfile;
+  final Function()? refreshIdeasInProfile;
 
-  const ProjectIdeaCardWidget(
-      {super.key, required this.idea, required this.repository, required this.announcementRepository, required this.refershIdeasInProfile});
+  const ProjectIdeaCardWidget({
+    super.key,
+    required this.idea,
+    required this.repository,
+    required this.announcementRepository,
+    required this.refreshIdeasInProfile,
+  });
 
   @override
   _ProjectIdeaCardWidgetState createState() => _ProjectIdeaCardWidgetState();
@@ -102,17 +105,17 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
                       text: widget.idea.description,
                       style: textStyle,
                     );
-      
+
                     final tp = TextPainter(
                       text: span,
                       maxLines: 4,
                       textAlign: TextAlign.left,
                       textDirection: TextDirection.ltr,
                     );
-      
+
                     tp.layout(maxWidth: constraints.maxWidth);
                     bool exceedsMaxLines = tp.didExceedMaxLines;
-      
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
