@@ -285,6 +285,7 @@ Future<void> _createGithubRepo(String repoName) async {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return BlocProvider(
       create: (context) => PostBloc(announcementRepository: _ideaRepository),
       child: Scaffold(
@@ -326,12 +327,12 @@ Future<void> _createGithubRepo(String repoName) async {
                             ElevatedButton(
                               onPressed: details.onStepCancel,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+                                backgroundColor: isDarkMode ? TColors.dark : TColors.light, // Change background based on dark mode
                                 foregroundColor: const Color(0xFFFD5336),  
                                 padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), 
-                                minimumSize: const Size(60, 30), 
+                                minimumSize: const Size(80, 35), 
                               ),
-                              child: const Text('Back', style: TextStyle(fontSize: 12)), 
+                              child: const Text('Back', style: TextStyle(fontSize: 13)), 
                             ),
                           const SizedBox(width: 8), 
                           ElevatedButton(
@@ -340,11 +341,11 @@ Future<void> _createGithubRepo(String repoName) async {
                               backgroundColor: const Color(0xFFFD5336),  
                               foregroundColor: const Color.fromARGB(255, 255, 255, 255),
                               padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Small button padding
-                              minimumSize: const Size(60, 30), 
+                              minimumSize: const Size(80, 35), 
                             ),
                             child: Text(
                               isLastStep ? 'Submit' : 'Next',
-                              style: const TextStyle(fontSize: 12), 
+                              style: const TextStyle(fontSize: 13), 
                             ),
                           ),
                         ],
