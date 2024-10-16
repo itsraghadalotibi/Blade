@@ -20,14 +20,13 @@ class ProjectScreen extends StatefulWidget {
   final AnnouncementRepository repository;
   final bool canJoin;
   final Function()? refershIdeasInProfile;
-  
 
   const ProjectScreen({
     super.key,
     required this.idea,
     required this.repository,
-    required this.canJoin, 
-    required onJoinRequestSent, 
+    required this.canJoin,
+    required onJoinRequestSent,
     this.refershIdeasInProfile,
   });
 
@@ -47,6 +46,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
     _checkJoinRequestStatus();
   }
 
+  // Check the join request status
   Future<void> _checkJoinRequestStatus() async {
     final String userId = FirebaseAuth.instance.currentUser!.uid;
     final String ideaId = widget.idea.id!;
@@ -73,6 +73,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
     }
   }
 
+  // Send join request
   Future<void> _sendJoinRequest() async {
     final String userId = FirebaseAuth.instance.currentUser!.uid;
     final String ideaId = widget.idea.id!;
@@ -91,6 +92,27 @@ class _ProjectScreenState extends State<ProjectScreen> {
       });
 
       _joinRequestId = docRef.id;
+
+      // Show success message with an icon for joining
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green, // Success background color for joining
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white), // Success icon for joining
+              const SizedBox(width: 8), // Space between icon and text
+              const Expanded(
+                child: Text(
+                  'Join request sent successfully!',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -102,15 +124,14 @@ class _ProjectScreenState extends State<ProjectScreen> {
     }
   }
 
+  // Leave project
   Future<void> _leaveProject() async {
     final String userId = FirebaseAuth.instance.currentUser!.uid;
     final String ideaId = widget.idea.id!;
 
     try {
-      // Remove the user from the project.
       await widget.repository.removeMemberFromIdea(ideaId, userId);
 
-      // Remove the join request if it exists.
       if (_joinRequestId != null) {
         await FirebaseFirestore.instance
             .collection('join_requests')
@@ -119,10 +140,26 @@ class _ProjectScreenState extends State<ProjectScreen> {
         _joinRequestId = null;
       }
 
+      // Show success message with an icon for leaving
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You have left the project.')),
+        SnackBar(
+          backgroundColor: Colors.red, // Red background for leave success
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            children: [
+              const Icon(Icons.exit_to_app, color: Colors.white), // Exit icon for leaving
+              const SizedBox(width: 8), // Space between icon and text
+              const Expanded(
+                child: Text(
+                  'You have left the project.',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 3),
+        ),
       );
-    
 
       setState(() {
         _isMember = false;
@@ -268,7 +305,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,
                       child: DefaultTabController(
-                        length: 2 + (isOwner && idea.status == "open" ? 1 : 0),
+                        length: 2 + (isOwner ? 1 : 0),
                         child: Column(
                           children: [
                             TabBar(
@@ -278,7 +315,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               tabs: [
                                 const Tab(text: 'Posts'),
                                 const Tab(text: 'Members'),
-                                if (isOwner && idea.status == "open") const Tab(text: 'Join Requests'),
+                                if (isOwner) const Tab(text: 'Join Requests'),
                               ],
                             ),
                             Expanded(
@@ -286,7 +323,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                 children: [
                                   PostsTab(ideaId: idea.id!, repository: widget.repository),
                                   MembersTab(idea: idea, repository: widget.repository),
-                                  if (isOwner && idea.status == "open")
+                                  if (isOwner)
                                     OffersTab(
                                       idea: idea,
                                       repository: widget.repository,
@@ -318,8 +355,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
     );
   }
 
- 
-
   Color _getStatusColor(String status) {
     switch (status) {
       case 'open':
@@ -332,5 +367,4 @@ class _ProjectScreenState extends State<ProjectScreen> {
         return Colors.black;
     }
   }
-
 }
