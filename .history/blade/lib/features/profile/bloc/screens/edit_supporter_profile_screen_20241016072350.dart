@@ -7,6 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+// import '../../../utils/constants/colors.dart'; // Removed duplicate import
+import 'package:blade_app/widgets/custom_text_field.dart';
 import '../bloc/edit_supporter_profile_bloc.dart';
 import '../bloc/edit_supporter_profile_event.dart';
 import '../src/supporter_profile_model.dart';
@@ -30,10 +32,6 @@ class _EditSupporterProfileScreenState
   late TextEditingController _lastNameController;
   late TextEditingController _bioController;
 
-  // Dynamic error handling
-  String? firstNameError;
-  String? lastNameError;
-
   // Profile image handling
   File? _newProfileImage;
   final ImagePicker _picker = ImagePicker();
@@ -41,32 +39,11 @@ class _EditSupporterProfileScreenState
   @override
   void initState() {
     super.initState();
-
     // Initialize text controllers with existing profile data
     _firstNameController =
         TextEditingController(text: widget.profile.firstName);
     _lastNameController = TextEditingController(text: widget.profile.lastName);
     _bioController = TextEditingController(text: widget.profile.bio ?? '');
-
-    // Add listeners for dynamic validation
-    _firstNameController.addListener(_validateFirstName);
-    _lastNameController.addListener(_validateLastName);
-  }
-
-  void _validateFirstName() {
-    setState(() {
-      firstNameError = _firstNameController.text.isEmpty
-          ? 'Please enter your first name'
-          : null;
-    });
-  }
-
-  void _validateLastName() {
-    setState(() {
-      lastNameError = _lastNameController.text.isEmpty
-          ? 'Please enter your last name'
-          : null;
-    });
   }
 
   // Image picker function
@@ -82,10 +59,7 @@ class _EditSupporterProfileScreenState
 
   // Save button functionality
   void _onSaveButtonPressed() async {
-    _validateFirstName();
-    _validateLastName();
-
-    if (firstNameError == null && lastNameError == null) {
+    if (_formKey.currentState!.validate()) {
       String? profileImageUrl = widget.profile.profilePhotoUrl;
 
       if (_newProfileImage != null) {
@@ -128,10 +102,13 @@ class _EditSupporterProfileScreenState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Supporter Edit Profile'),
         centerTitle: true,
+        backgroundColor: theme.appBarTheme.backgroundColor,
       ),
       body: BlocListener<EditSupporterProfileBloc, EditSupporterProfileState>(
         listener: (context, state) {
@@ -146,41 +123,51 @@ class _EditSupporterProfileScreenState
             SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Form(
-                key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
+                key: _formKey, // Ensure form key is added
+                autovalidateMode: AutovalidateMode
+                    .onUserInteraction, // Automatically validate fields
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildProfileImage(),
                     const SizedBox(height: 24),
 
-                    // First Name field with dynamic validation
+                    // First Name field with validator
                     CustomTextField(
                       label: 'First Name*',
                       controller: _firstNameController,
-                      errorText: firstNameError,
                       maxLength: 50,
                       prefixIcon: const Icon(
-                        CupertinoIcons.person_fill,
+                        CupertinoIcons.person_fill, // Add icon
                         color: TColors.grey,
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your first name';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
 
-                    // Last Name field with dynamic validation
+                    // Last Name field with validator
                     CustomTextField(
                       label: 'Last Name*',
                       controller: _lastNameController,
-                      errorText: lastNameError,
                       maxLength: 50,
                       prefixIcon: const Icon(
-                        CupertinoIcons.person_fill,
+                        CupertinoIcons.person_fill, // Add icon
                         color: TColors.grey,
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your last name';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
 
-                    // Bio field with icon
+                    // Bio field with icon and theme
                     CustomTextField(
                       label: 'Bio (Optional)',
                       controller: _bioController,
@@ -188,17 +175,22 @@ class _EditSupporterProfileScreenState
                       maxLength: 150,
                       showCounter: true,
                       prefixIcon: const Icon(
-                        CupertinoIcons.pencil,
+                        CupertinoIcons.pencil, // Add icon
                         color: TColors.grey,
                       ),
                     ),
                     const SizedBox(height: 24),
 
-                    // Save button
+                    // Save Button with theme
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _onSaveButtonPressed,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          textStyle: const TextStyle(fontSize: 18),
+                        ),
                         child: const Text('Save'),
                       ),
                     ),
