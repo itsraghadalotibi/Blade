@@ -43,18 +43,21 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ProjectScreen(
-              canJoin: false,
-              idea: widget.idea,
-              repository: widget.announcementRepository,
-              onJoinRequestSent: null,
-            ),
-          ),
-        );
-      },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProjectScreen(
+          canJoin: false,
+          idea: widget.idea,
+          repository: widget.announcementRepository,
+          onJoinRequestSent: null,
+        ),
+      ),
+    ).then((_) {
+      // Trigger the profile update after returning
+      widget.refreshIdeasInProfile?.call();
+    });
+  },
       child: Padding(
         padding: EdgeInsets.symmetric(
           vertical: screenHeight * 0.02,

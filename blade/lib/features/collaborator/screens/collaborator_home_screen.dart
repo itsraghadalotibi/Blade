@@ -106,15 +106,20 @@ class CollaboratorHomeScreen extends StatelessWidget {
               if (state is AuthenticationAuthenticated &&
                   state.user is CollaboratorModel) {
                 final user = state.user as CollaboratorModel;
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Welcome Collaborator ${user.firstName} ${user.lastName}!',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                return Container(
+                  margin: EdgeInsets.all(20),
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Welcome Collaborator ${user.firstName} ${user.lastName}!',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 );
               } else {
                 return const CircularProgressIndicator();

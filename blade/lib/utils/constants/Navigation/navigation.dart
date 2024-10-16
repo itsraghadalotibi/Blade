@@ -103,7 +103,7 @@ class _NavigationState extends State<Navigation> {
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
           bottomNavigationBar: BottomAppBar(
-            color: isDarkMode ? TColors.light : TColors.dark,
+            color: isDarkMode ? TColors.black : TColors.white,
             shape: const CircularNotchedRectangle(),
             notchMargin: 6,
             height: 50,

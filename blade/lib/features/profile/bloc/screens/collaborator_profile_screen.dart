@@ -390,7 +390,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           itemBuilder: (context, index) {
             final project = projects[index];
             return ProjectIdeaCardWidget(
-              refreshIdeasInProfile: () => context.read().add(LoadProfile(widget.userId)),
+             refreshIdeasInProfile: () {
+        context.read<ProfileViewBloc>().add(LoadProfile(widget.userId));
+      },
               idea: project,
               announcementRepository: _announcementRepository,
               repository: _projectIdeaRepository,
