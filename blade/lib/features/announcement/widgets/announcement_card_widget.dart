@@ -1,8 +1,6 @@
-//theaming
-import 'package:blade_app/features/announcement/bloc/announcement_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../project_info/screens/project_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../src/announcement_model.dart';
 import '../src/announcement_repository.dart';
 import 'avatar_stack_widget.dart';
@@ -11,78 +9,141 @@ import '../screens/members_screen.dart';
 import '../../../utils/constants/colors.dart';
 
 class AnnouncementCardWidget extends StatefulWidget {
-  final Idea idea;
   final AnnouncementRepository repository;
-  final Function() fetchAll;
 
-  const AnnouncementCardWidget({
-    super.key,
-    required this.idea,
-    required this.repository, 
-    required this.fetchAll,
-  });
+  const AnnouncementCardWidget({super.key, required this.repository});
 
   @override
   _AnnouncementCardWidgetState createState() => _AnnouncementCardWidgetState();
 }
 
 class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
-  bool isExpanded = false;
-  bool exceedsMaxLines = false;
+  final ScrollController _scrollController = ScrollController();
+  List<Idea> _ideas = [];
+  bool _isLoading = false;
+  DocumentSnapshot? _lastDoc; // Store the last document for pagination
+  bool _hasMoreData = true;
   String? currentUserId;
-  bool isJoinPending = false;
 
   @override
   void initState() {
     super.initState();
     currentUserId = FirebaseAuth.instance.currentUser?.uid;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkTextOverflow();
+    _loadMoreData(); // Initial data load
+    _scrollController.addListener(_onScroll); // Add scroll listener
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose(); // Dispose the scroll controller
+    super.dispose();
+  }
+
+  // Load more data with Firestore pagination
+  Future<void> _loadMoreData() async {
+    if (_isLoading || !_hasMoreData) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      const int limit = 10; // Number of ideas to load per request
+
+      QuerySnapshot snapshot = (await widget.repository.fetchIdeasWithPagination(
+        limit: limit,
+        lastDoc: _lastDoc, // Use the last document for pagination
+      )) as QuerySnapshot<Object?>;
+
+      List<Idea> newIdeas = snapshot.docs
+          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+
+      // Check if we've reached the end of the data
+      if (newIdeas.length < limit) {
+        _hasMoreData = false; // No more data to load
+      }
+
+      setState(() {
+        _ideas.addAll(newIdeas);
+        if (snapshot.docs.isNotEmpty) {
+          _lastDoc = snapshot.docs.last; // Save the last document for pagination
+        }
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load ideas: $e')),
+      );
+    }
+
+    setState(() {
+      _isLoading = false;
     });
   }
 
-  void _checkTextOverflow() {
-    final textStyle = TextStyle(
-      color: Theme.of(context).textTheme.bodyLarge?.color ?? TColors.textPrimary,
-      fontSize: MediaQuery.of(context).size.width *
-          0.04 *
-          MediaQuery.of(context).textScaleFactor,
-      fontWeight: FontWeight.w400,
-    );
-
-    final span = TextSpan(
-      text: widget.idea.description,
-      style: textStyle,
-    );
-
-    final tp = TextPainter(
-      text: span,
-      maxLines: 4,
-      textAlign: TextAlign.left,
-      textDirection: TextDirection.ltr,
-    );
-
-    tp.layout(maxWidth: MediaQuery.of(context).size.width * 0.9);
-    setState(() {
-      exceedsMaxLines = tp.didExceedMaxLines;
-    });
+  // Detect when the user is near the bottom of the list to load more data
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      // Load more data when the user is near the bottom of the scroll
+      _loadMoreData();
+    }
   }
 
-  void _handleJoinRequest() async {
-
+  Future<void> _handleJoinRequest(Idea idea) async {
     setState(() {
-      isJoinPending = true;
-      widget.idea.isJoined = true;
+      idea.isJoined = true;
     });
 
-    await widget.repository.sendJoinRequest(widget.idea,currentUserId!);
-    widget.fetchAll();
-
+    await widget.repository.sendJoinRequest(idea, currentUserId!);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Join request sent. Awaiting approval.')),
     );
-
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Ideas'),
+      ),
+      body: _ideas.isEmpty && !_isLoading
+          ? const Center(child: Text('No ideas available'))
+          : ListView.builder(
+              controller: _scrollController,
+              itemCount: _ideas.length + (_hasMoreData ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == _ideas.length) {
+                  // Display a loading indicator at the bottom if more data is being loaded
+                  return const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                final idea = _ideas[index];
+                return IdeaCard(
+                  idea: idea,
+                  repository: widget.repository,
+                  onJoinRequest: () => _handleJoinRequest(idea),
+                );
+              },
+            ),
+    );
+  }
+}
+
+class IdeaCard extends StatelessWidget {
+  final Idea idea;
+  final AnnouncementRepository repository;
+  final VoidCallback onJoinRequest;
+
+  const IdeaCard({
+    super.key,
+    required this.idea,
+    required this.repository,
+    required this.onJoinRequest,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -91,58 +152,40 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    
-
-    final int maxMembers = widget.idea.maxMembers;
-    final int currentMembers = widget.idea.members.length;
+    final int maxMembers = idea.maxMembers;
+    final int currentMembers = idea.members.length;
     final int membersNeeded =
         maxMembers > currentMembers ? maxMembers - currentMembers : 0;
 
+    bool canJoin = FirebaseAuth.instance.currentUser?.uid != null &&
+        !idea.isJoined! &&
+        !idea.members.contains(FirebaseAuth.instance.currentUser!.uid) &&
+        currentMembers < maxMembers;
 
-    bool canJoin = currentUserId != null &&
-        !widget.idea.isJoined! &&
-        !widget.idea.members.contains(currentUserId) &&
-        currentMembers < maxMembers &&
-        !isJoinPending ;
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ProjectScreen(
-              canJoin: canJoin,
-              idea: widget.idea,
-              repository: widget.repository,
-               onJoinRequestSent: null,
-            ),
-          ),
-        );
-      },
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: screenHeight * 0.02,
-          horizontal: screenWidth * 0.05,
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: screenHeight * 0.02,
+        horizontal: screenWidth * 0.05,
+      ),
+      child: Container(
+        width: screenWidth * 0.9,
+        decoration: BoxDecoration(
+          color: isDarkMode ? TColors.container : TColors.white,
+          borderRadius: BorderRadius.circular(23),
+          border: isDarkMode
+              ? null // No border in dark mode
+              : Border.all(color: TColors.borderPrimary), // Light mode border
         ),
-        child: Container(
-          width: screenWidth * 0.9,
-          decoration: BoxDecoration(
-            color: isDarkMode ? TColors.container : TColors.white,
-            borderRadius: BorderRadius.circular(23),
-            border: isDarkMode
-                        ? null // No border in dark mode
-                        : Border.all(color: TColors.borderPrimary), // Light mode border
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
                 children: [
                   Expanded(
                     child: Text(
-                      widget.idea.title,
+                      idea.title,
                       style: TextStyle(
                         color: isDarkMode ? TColors.textWhite : TColors.black,
                         fontSize: screenWidth * 0.055 * textScaleFactor,
@@ -153,13 +196,14 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                   SizedBox(width: screenWidth * 0.02),
                   GestureDetector(
                     onTap: () {
+                      // Navigate to MembersScreen on tap
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => MembersScreen(
-                            memberIds: widget.idea.members,
-                            ideaSkills: widget.idea.skills,
-                            repository: widget.repository,
+                            memberIds: idea.members,
+                            ideaSkills: idea.skills,
+                            repository: repository,
                           ),
                         ),
                       );
@@ -170,9 +214,9 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: AvatarStackWidget(
-                          userIds: widget.idea.members,
+                          userIds: idea.members,
                           screenWidth: screenWidth,
-                          repository: widget.repository,
+                          repository: repository,
                         ),
                       ),
                     ),
@@ -183,30 +227,13 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
 
               // Description and "Show more" logic
               Text(
-                widget.idea.description,
+                idea.description,
                 style: TextStyle(
                   color: isDarkMode ? TColors.textWhite : TColors.black,
                 ),
-                
-                maxLines: isExpanded ? null : 4,
-                overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
               ),
-
-              if (exceedsMaxLines)
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isExpanded = !isExpanded;
-                    });
-                  },
-                  child: Text(
-                    isExpanded ? "Show less" : "Show more",
-                    style: TextStyle(
-                      color: TColors.info,
-                      fontSize: screenWidth * 0.04 * textScaleFactor,
-                    ),
-                  ),
-                ),
               SizedBox(height: screenHeight * 0.02),
 
               // Dynamically display the number of members needed
@@ -240,38 +267,35 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                   child: Wrap(
                     spacing: 8.0,
                     runSpacing: 8.0,
-                    children: widget.idea.skills
+                    children: idea.skills
                         .map((skill) => SkillTagWidget(skills: [skill]))
                         .toList(),
                   ),
                 ),
               ),
               SizedBox(height: screenHeight * 0.005),
+
               // Join button
               if (canJoin)
-              Center(
-                child: Container(
-                  width: screenWidth * 0.4,
-                  height: screenHeight * 0.05,
-                  decoration: BoxDecoration(
-                    color: TColors.primary, // Reduced opacity for disabled look
-                    borderRadius: BorderRadius.circular(48),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: _handleJoinRequest,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isJoinPending
-                          ? Colors.grey // Grey color for waiting status
-                          : TColors.primary,
-                      // Regular color for join button
-                      padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                Center(
+                  child: Container(
+                    width: screenWidth * 0.4,
+                    height: screenHeight * 0.05,
+                    decoration: BoxDecoration(
+                      color: TColors.primary, // Reduced opacity for disabled look
+                      borderRadius: BorderRadius.circular(48),
                     ),
-                    child: Text(isJoinPending ? 'Waiting' : 'Join'),
+                    child: ElevatedButton(
+                      onPressed: onJoinRequest,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: TColors.primary, // Regular color for join button
+                        padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                      ),
+                      child: const Text('Join'),
+                    ),
                   ),
                 ),
-              ),
             ],
-            ),
           ),
         ),
       ),

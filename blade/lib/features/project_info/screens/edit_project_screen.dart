@@ -261,7 +261,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
               // Skills
               Text(
                 'Skills*',
-                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 16),
+                //style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 16),
               ),
               const SizedBox(height: 8),
               Autocomplete<String>(
@@ -350,7 +350,7 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                         }
                       });
                     },
-                    backgroundColor: TColors.light,
+                    backgroundColor: isDarkMode? TColors.dark : TColors.light,
                     selectedColor: const Color(0xFFFD5336),
                     showCheckmark: true,
                     checkmarkColor: Colors.white,
