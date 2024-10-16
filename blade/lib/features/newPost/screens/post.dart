@@ -443,8 +443,8 @@ Future<void> _createGithubRepo(String repoName) async {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please describe your idea';
-                  } else if (value.length < 10) {
-                    return 'At least 50 characters required';
+                  } else if (value.length < 20) {
+                    return 'At least 20 characters required';
                   }
                   return null;
                 },
