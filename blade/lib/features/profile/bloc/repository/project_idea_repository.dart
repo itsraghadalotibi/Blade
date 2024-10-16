@@ -6,46 +6,32 @@ import '../src/collaborator_profile_model.dart';
 
 class ProjectIdeaRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+// Fetch open ideas by owner (for Ideas tab)
+  Future<List<Idea>> fetchOpenIdeasByOwner(String userId) async {
+    QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+        .collection('ideas')
+        .where('status', isEqualTo: 'open')
+        .where('members', arrayContains: userId) // Owner is the first member
+        .get();
 
-  // Fetch ideas where the user is the owner (i.e., userId is the first member in the 'members' array)
-  Future<List<Idea>> fetchIdeasByOwner(String userId,String status) async {
-    try {
-      QuerySnapshot snapshot = await _firestore
-          .collection('ideas')
-          .where('status',isEqualTo: status)
-          .where('members',
-              arrayContains: userId) // Check if the user is in the members list
-          .get();
+    return snapshot.docs
+        .map((doc) => Idea.fromMap(doc.data(), doc.id))
+        .toList();
+  }
 
-      // Map Firestore documents to Idea model and filter by the owner (userId at index 0)
-      List<Idea> ideas = snapshot.docs
-          .map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            final members = List<String>.from(data['members']);
+  // Fetch projects (ongoing/completed) where the user is an owner or a member
+  Future<List<Idea>> fetchProjectsByOwnerOrMember(
+      String userId, String status) async {
+    QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+        .collection('ideas')
+        .where('status', isEqualTo: status)
+        .where('members',
+            arrayContains: userId) // User is either owner or member
+        .get();
 
-            // Only return ideas where the user is at index 0 (the owner)
-            if (members.isNotEmpty && members[0] == userId) {
-              return Idea(
-                id: doc.id,
-                status: data['status'],
-                title: data['title'],
-                description: data['description'],
-                skills: List<String>.from(data['skills']),
-                members: members,
-                maxMembers: data['maxMembers'],
-              );
-            }
-            return null;
-          })
-          .where((idea) => idea != null)
-          .cast<Idea>()
-          .toList();
-
-      return ideas;
-    } catch (e) {
-      print('Error fetching ideas for owner: $e');
-      return [];
-    }
+    return snapshot.docs
+        .map((doc) => Idea.fromMap(doc.data(), doc.id))
+        .toList();
   }
 
   // Fetch individual collaborator (used in AvatarWidget)

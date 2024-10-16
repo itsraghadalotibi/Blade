@@ -1,9 +1,9 @@
+//blade/lib/features/announcement/src/announcement_repository.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'announcement_model.dart';
 
 class AnnouncementRepository {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
 
   AnnouncementRepository();
 
@@ -14,14 +14,13 @@ class AnnouncementRepository {
       if (idea.members.isEmpty || idea.members[0] != creatorId) {
         idea.members.insert(0, creatorId);
       }
-      
+
       await firestore.collection('ideas').add(idea.toMap());
     } catch (e) {
       throw Exception('Failed to create idea: $e');
     }
   }
 
-  
   // Fetch ideas where status='open' and not owned or already a member by the current user
   Future<List<Idea>> fetchIdeas(String currentUserId) async {
     try {
@@ -36,23 +35,20 @@ class AnnouncementRepository {
           .get();
 
       // Filter ideas to exclude those owned by the current user
-      return snapshot.docs
-          .where((doc) {
-            final members = List<String>.from(doc['members'] ?? []);
-            return members.isEmpty || 
-                  (members[0] != currentUserId && !members.contains(currentUserId)) && 
-                  members.length < doc["maxMembers"];
-          })
-          .map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return Idea.fromMap(data, doc.id)
-            // Pass the document ID to fromMap
-            ..isJoined = querySnapshot.docs.where((d) {
-              return d['ideaId'] == doc.id;
-            }).isNotEmpty; 
-            // set isJoined value
-          })
-          .toList();
+      return snapshot.docs.where((doc) {
+        final members = List<String>.from(doc['members'] ?? []);
+        return members.isEmpty ||
+            (members[0] != currentUserId && !members.contains(currentUserId)) &&
+                members.length < doc["maxMembers"];
+      }).map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Idea.fromMap(data, doc.id)
+          // Pass the document ID to fromMap
+          ..isJoined = querySnapshot.docs.where((d) {
+            return d['ideaId'] == doc.id;
+          }).isNotEmpty;
+        // set isJoined value
+      }).toList();
     } catch (e) {
       throw Exception('Failed to load ideas: $e');
     }
@@ -90,16 +86,15 @@ class AnnouncementRepository {
     }
   }
 
-
   // Join to Idea
-  Future<void> sendJoinRequest(Idea idea,String cureentUser) async {
+  Future<void> sendJoinRequest(Idea idea, String cureentUser) async {
     try {
       await firestore.collection('join_requests').add({
-        "ideaId":idea.id,
-        "userId":cureentUser,
+        "ideaId": idea.id,
+        "userId": cureentUser,
         'status': 'pending',
         'timestamp': Timestamp.now(), // Convert timestamp to DateTime.
-        });
+      });
     } catch (e) {
       print('Error updating idea: $e');
       throw Exception('Failed to update idea');
@@ -118,7 +113,8 @@ class AnnouncementRepository {
       }
       final snapshot = await query.get();
       return snapshot.docs
-          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .map(
+              (doc) => Idea.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
       throw Exception('Failed to load paginated ideas: $e');
@@ -133,7 +129,8 @@ class AnnouncementRepository {
           .where('maxMembers', isEqualTo: maxMembers)
           .get();
       return snapshot.docs
-          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .map(
+              (doc) => Idea.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
       throw Exception('Failed to load ideas: $e');
@@ -148,13 +145,14 @@ class AnnouncementRepository {
           .where('skills', arrayContains: skill)
           .get();
       return snapshot.docs
-          .map((doc) => Idea.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .map(
+              (doc) => Idea.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
       throw Exception('Failed to load ideas by skill: $e');
     }
   }
-  
+
   // Add a member to an existing idea
   Future<void> addMemberToIdea(String? ideaId, String memberId) async {
     try {
@@ -194,8 +192,7 @@ class AnnouncementRepository {
     }
   }
 
-
-    // Fetch a specific collaborator by userId
+  // Fetch a specific collaborator by userId
   Future<Collaborator?> fetchCollaboratorOffers(String userId) async {
     try {
       final snapshot = await firestore
@@ -226,32 +223,33 @@ class AnnouncementRepository {
 
   // Update idea status
   Future<void> updateIdeaStatus(String ideaId, String newStatus) async {
-  try {
-    await firestore.collection('ideas').doc(ideaId).update({
-      'status': newStatus,
-    });
-  } catch (e) {
-    print('Error updating idea status: $e');
-    throw Exception('Failed to update idea status');
+    try {
+      await firestore.collection('ideas').doc(ideaId).update({
+        'status': newStatus,
+      });
+    } catch (e) {
+      print('Error updating idea status: $e');
+      throw Exception('Failed to update idea status');
+    }
   }
-}
 
   // Stream ideas based on the current user
   Stream<List<Idea>> streamIdeas(String currentUserId) {
-    return firestore.collection('ideas')
+    return firestore
+        .collection('ideas')
         .where('status', isEqualTo: 'open')
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs.where((doc) {
-            final members = List<String>.from(doc['members'] ?? []);
-            return members.isEmpty ||
-                (members[0] != currentUserId && !members.contains(currentUserId)) && 
+      return snapshot.docs.where((doc) {
+        final members = List<String>.from(doc['members'] ?? []);
+        return members.isEmpty ||
+            (members[0] != currentUserId && !members.contains(currentUserId)) &&
                 members.length < doc["maxMembers"];
-          }).map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            return Idea.fromMap(data, doc.id);
-          }).toList();
-        });
+      }).map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Idea.fromMap(data, doc.id);
+      }).toList();
+    });
   }
 
   // Update project status
@@ -265,8 +263,7 @@ class AnnouncementRepository {
     }
   }
 
-
- Future<void> acceptJoinRequest(Idea idea, String userId) async {
+  Future<void> acceptJoinRequest(Idea idea, String userId) async {
     try {
       // Update the join request status to "accepted" in Firestore
       final requestRef = await firestore
@@ -285,7 +282,7 @@ class AnnouncementRepository {
         final int maxMembers = idea.maxMembers;
         final int currentMembers = idea.members.length;
         final bool isFull = currentMembers == maxMembers;
-        if(isFull){
+        if (isFull) {
           await updateProjectStatus(idea.id!, "ongoing");
           idea.status = "ongoing";
           // final requestRef = await firestore

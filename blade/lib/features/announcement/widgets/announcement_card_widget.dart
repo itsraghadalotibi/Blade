@@ -17,7 +17,7 @@ class AnnouncementCardWidget extends StatefulWidget {
   const AnnouncementCardWidget({
     super.key,
     required this.idea,
-    required this.repository, 
+    required this.repository,
     required this.fetchAll,
   });
 
@@ -42,7 +42,8 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
 
   void _checkTextOverflow() {
     final textStyle = TextStyle(
-      color: Theme.of(context).textTheme.bodyLarge?.color ?? TColors.textPrimary,
+      color:
+          Theme.of(context).textTheme.bodyLarge?.color ?? TColors.textPrimary,
       fontSize: MediaQuery.of(context).size.width *
           0.04 *
           MediaQuery.of(context).textScaleFactor,
@@ -68,19 +69,17 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
   }
 
   void _handleJoinRequest() async {
-
     setState(() {
       isJoinPending = true;
       widget.idea.isJoined = true;
     });
 
-    await widget.repository.sendJoinRequest(widget.idea,currentUserId!);
+    await widget.repository.sendJoinRequest(widget.idea, currentUserId!);
     widget.fetchAll();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Join request sent. Awaiting approval.')),
     );
-
   }
 
   @override
@@ -90,19 +89,16 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    
-
     final int maxMembers = widget.idea.maxMembers;
     final int currentMembers = widget.idea.members.length;
     final int membersNeeded =
         maxMembers > currentMembers ? maxMembers - currentMembers : 0;
 
-
     bool canJoin = currentUserId != null &&
         !widget.idea.isJoined! &&
         !widget.idea.members.contains(currentUserId) &&
         currentMembers < maxMembers &&
-        !isJoinPending ;
+        !isJoinPending;
 
     return GestureDetector(
       onTap: () {
@@ -113,7 +109,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
               canJoin: canJoin,
               idea: widget.idea,
               repository: widget.repository,
-               onJoinRequestSent: null,
+              onJoinRequestSent: null,
             ),
           ),
         );
@@ -129,147 +125,150 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
             color: isDarkMode ? TColors.container : TColors.white,
             borderRadius: BorderRadius.circular(23),
             border: isDarkMode
-                        ? null // No border in dark mode
-                        : Border.all(color: TColors.borderPrimary), // Light mode border
+                ? null // No border in dark mode
+                : Border.all(color: TColors.borderPrimary), // Light mode border
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.idea.title,
-                      style: TextStyle(
-                        color: isDarkMode ? TColors.textWhite : TColors.black,
-                        fontSize: screenWidth * 0.055 * textScaleFactor,
-                        fontWeight: FontWeight.bold,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        widget.idea.title,
+                        style: TextStyle(
+                          color: isDarkMode ? TColors.textWhite : TColors.black,
+                          fontSize: screenWidth * 0.055 * textScaleFactor,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(width: screenWidth * 0.02),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MembersScreen(
-                            memberIds: widget.idea.members,
-                            ideaSkills: widget.idea.skills,
+                    SizedBox(width: screenWidth * 0.02),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MembersScreen(
+                              memberIds: widget.idea.members,
+                              ideaSkills: widget.idea.skills,
+                              repository: widget.repository,
+                            ),
+                          ),
+                        );
+                      },
+                      child: SizedBox(
+                        width: screenWidth * 0.2,
+                        height: screenWidth * 0.1,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: AvatarStackWidget(
+                            userIds: widget.idea.members,
+                            screenWidth: screenWidth,
                             repository: widget.repository,
                           ),
                         ),
-                      );
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: screenHeight * 0.01),
+
+                // Description and "Show more" logic
+                Text(
+                  widget.idea.description,
+                  style: TextStyle(
+                    color: isDarkMode ? TColors.textWhite : TColors.black,
+                  ),
+                  maxLines: isExpanded ? null : 4,
+                  overflow:
+                      isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                ),
+
+                if (exceedsMaxLines)
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isExpanded = !isExpanded;
+                      });
                     },
-                    child: SizedBox(
-                      width: screenWidth * 0.2,
-                      height: screenWidth * 0.1,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: AvatarStackWidget(
-                          userIds: widget.idea.members,
-                          screenWidth: screenWidth,
-                          repository: widget.repository,
-                        ),
+                    child: Text(
+                      isExpanded ? "Show less" : "Show more",
+                      style: TextStyle(
+                        color: TColors.info,
+                        fontSize: screenWidth * 0.04 * textScaleFactor,
                       ),
                     ),
                   ),
-                ],
-              ),
-              SizedBox(height: screenHeight * 0.01),
+                SizedBox(height: screenHeight * 0.02),
 
-              // Description and "Show more" logic
-              Text(
-                widget.idea.description,
-                style: TextStyle(
-                  color: isDarkMode ? TColors.textWhite : TColors.black,
-                ),
-                
-                maxLines: isExpanded ? null : 4,
-                overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-              ),
-
-              if (exceedsMaxLines)
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      isExpanded = !isExpanded;
-                    });
-                  },
-                  child: Text(
-                    isExpanded ? "Show less" : "Show more",
+                // Dynamically display the number of members needed
+                if (membersNeeded > 0)
+                  Text(
+                    '$membersNeeded members needed',
                     style: TextStyle(
-                      color: TColors.info,
-                      fontSize: screenWidth * 0.04 * textScaleFactor,
+                      color: isDarkMode ? TColors.grey : TColors.darkerGrey,
+                      fontSize: screenWidth *
+                          0.035 *
+                          textScaleFactor, // Small font size
+                      fontStyle: FontStyle.italic, // Italic for subtle emphasis
+                      fontWeight: FontWeight.w400,
+                    ),
+                  )
+                else
+                  Text(
+                    'All members filled',
+                    style: TextStyle(
+                      color: isDarkMode ? TColors.grey : TColors.darkerGrey,
+                      fontSize: screenWidth * 0.035 * textScaleFactor,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
-                ),
-              SizedBox(height: screenHeight * 0.02),
+                SizedBox(height: screenHeight * 0.01),
 
-              // Dynamically display the number of members needed
-              if (membersNeeded > 0)
-                Text(
-                  '$membersNeeded members needed',
-                  style: TextStyle(
-                    color: isDarkMode ? TColors.grey : TColors.darkerGrey,
-                    fontSize: screenWidth * 0.035 * textScaleFactor, // Small font size
-                    fontStyle: FontStyle.italic, // Italic for subtle emphasis
-                    fontWeight: FontWeight.w400,
-                  ),
-                )
-              else
-                Text(
-                  'All members filled',
-                  style: TextStyle(
-                    color: isDarkMode ? TColors.grey : TColors.darkerGrey,
-                    fontSize: screenWidth * 0.035 * textScaleFactor,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              SizedBox(height: screenHeight * 0.01),
-
-              // Skills section
-              SizedBox(
-                height: screenHeight * 0.05,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Wrap(
-                    spacing: 8.0,
-                    runSpacing: 8.0,
-                    children: widget.idea.skills
-                        .map((skill) => SkillTagWidget(skills: [skill]))
-                        .toList(),
-                  ),
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.005),
-              // Join button
-              if (canJoin)
-              Center(
-                child: Container(
-                  width: screenWidth * 0.4,
+                // Skills section
+                SizedBox(
                   height: screenHeight * 0.05,
-                  decoration: BoxDecoration(
-                    color: TColors.primary, // Reduced opacity for disabled look
-                    borderRadius: BorderRadius.circular(48),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: _handleJoinRequest,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isJoinPending
-                          ? Colors.grey // Grey color for waiting status
-                          : TColors.primary,
-                      // Regular color for join button
-                      padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: widget.idea.skills
+                          .map((skill) => SkillTagWidget(skills: [skill]))
+                          .toList(),
                     ),
-                    child: Text(isJoinPending ? 'Waiting' : 'Join'),
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: screenHeight * 0.005),
+                // Join button
+                if (canJoin)
+                  Center(
+                    child: Container(
+                      width: screenWidth * 0.4,
+                      height: screenHeight * 0.05,
+                      decoration: BoxDecoration(
+                        color: TColors
+                            .primary, // Reduced opacity for disabled look
+                        borderRadius: BorderRadius.circular(48),
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _handleJoinRequest,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isJoinPending
+                              ? Colors.grey // Grey color for waiting status
+                              : TColors.primary,
+                          // Regular color for join button
+                          padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                        ),
+                        child: Text(isJoinPending ? 'Waiting' : 'Join'),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
