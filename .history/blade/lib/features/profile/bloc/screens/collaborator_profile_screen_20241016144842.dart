@@ -164,9 +164,15 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                         ? NetworkImage(profile.profilePhotoUrl!)
                         : const AssetImage('assets/images/user.png')
                             as ImageProvider,
+                    onBackgroundImageError: (_, __) {
+                      setState(() {
+                        // If the network image fails to load, fall back to the default asset image
+                      });
+                    },
                   ),
                   const SizedBox(height: 16),
-// Name and Social Icons Section
+
+                  // Name and Social Icons Section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -176,60 +182,50 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             fontSize: 20, fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
+                        overflow: TextOverflow.ellipsis, // Handle overflow
                       ),
-                      const SizedBox(width: 8), // Space between name and icons
+                      const SizedBox(width: 8),
 
-                      // Social Media Links (GitHub and LinkedIn) next to the name
-                      Row(
-                        children: [
-                          // GitHub Icon
-                          IconButton(
-                            icon: FaIcon(
-                              FontAwesomeIcons.github,
-                              color: profile.socialMediaLinks?['GitHub']
-                                          ?.isNotEmpty ==
+                      // Social Media Links (GitHub and LinkedIn)
+                      IconButton(
+                        icon: FaIcon(
+                          FontAwesomeIcons.github,
+                          color:
+                              profile.socialMediaLinks?['GitHub']?.isNotEmpty ==
                                       true
-                                  ? TColors.primary
-                                  : Colors.grey,
-                            ),
-                            onPressed: () async {
-                              final githubUrl =
-                                  profile.socialMediaLinks?['GitHub'];
-                              if (githubUrl != null && githubUrl.isNotEmpty) {
-                                final uri = Uri.parse(githubUrl);
-                                if (await canLaunchUrl(uri)) {
-                                  await launchUrl(uri);
-                                }
-                              }
-                            },
-                          ),
-                          const SizedBox(
-                              width: 4), // Reduce the width between icons here
-
-                          // LinkedIn Icon
-                          IconButton(
-                            icon: FaIcon(
-                              FontAwesomeIcons.linkedin,
-                              color: profile.socialMediaLinks?['LinkedIn']
-                                          ?.isNotEmpty ==
-                                      true
-                                  ? TColors.primary
-                                  : Colors.grey,
-                            ),
-                            onPressed: () async {
-                              final linkedinUrl =
-                                  profile.socialMediaLinks?['LinkedIn'];
-                              if (linkedinUrl != null &&
-                                  linkedinUrl.isNotEmpty) {
-                                final uri = Uri.parse(linkedinUrl);
-                                if (await canLaunchUrl(uri)) {
-                                  await launchUrl(uri);
-                                }
-                              }
-                            },
-                          ),
-                        ],
+                                  ? TColors.primary // Color it if link exists
+                                  : Colors.grey, // Greyed out if no link
+                        ),
+                        onPressed: () async {
+                          final githubUrl = profile.socialMediaLinks?['GitHub'];
+                          if (githubUrl != null && githubUrl.isNotEmpty) {
+                            final uri = Uri.parse(githubUrl);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri);
+                            }
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 8), // Reduced space between icons
+                      IconButton(
+                        icon: FaIcon(
+                          FontAwesomeIcons.linkedin,
+                          color: profile.socialMediaLinks?['LinkedIn']
+                                      ?.isNotEmpty ==
+                                  true
+                              ? TColors.primary // Color it if link exists
+                              : Colors.grey, // Greyed out if no link
+                        ),
+                        onPressed: () async {
+                          final linkedinUrl =
+                              profile.socialMediaLinks?['LinkedIn'];
+                          if (linkedinUrl != null && linkedinUrl.isNotEmpty) {
+                            final uri = Uri.parse(linkedinUrl);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri);
+                            }
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -238,19 +234,15 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
 
                   // Skills Chips (if available)
                   if (profile.skills != null && profile.skills!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24), // Add horizontal padding
-                      child: SizedBox(
-                        height: 80,
-                        child: SingleChildScrollView(
-                          child: Wrap(
-                            spacing: 8.0,
-                            runSpacing: 8.0,
-                            children: profile.skills!.map((skill) {
-                              return SkillTagWidget(skills: [skill]);
-                            }).toList(),
-                          ),
+                    SizedBox(
+                      height: 80, // Restrict height to show only two rows
+                      child: SingleChildScrollView(
+                        child: Wrap(
+                          spacing: 8.0, // Horizontal space between chips
+                          runSpacing: 8.0, // Vertical space between rows
+                          children: profile.skills!.map((skill) {
+                            return SkillTagWidget(skills: [skill]);
+                          }).toList(),
                         ),
                       ),
                     ),
@@ -259,8 +251,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
 
                   // About Section with Show More/Show Less
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24.0), // Add padding on both sides
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -307,8 +298,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                     },
                                     child: Text(
                                       isBioExpanded ? 'Show less' : 'Show more',
-                                      style:
-                                          const TextStyle(color: TColors.info),
+                                      style: const TextStyle(
+                                        color: TColors.info,
+                                      ),
                                     ),
                                   ),
                               ],

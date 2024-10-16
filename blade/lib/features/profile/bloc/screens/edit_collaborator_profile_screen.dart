@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
-
 import '../bloc/edit_collaborator_profile_bloc.dart';
 import '../bloc/edit_collaborator_profile_event.dart';
 import '../bloc/edit_collaborator_profile_state.dart';
@@ -33,27 +32,6 @@ class EditCollaboratorProfileScreen extends StatefulWidget {
 class _EditCollaboratorProfileScreenState
     extends State<EditCollaboratorProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  String? _validateUrl(String? value, {required String platform}) {
-    if (value != null && value.isNotEmpty) {
-      final urlPattern =
-          r'^(http|https):\/\/[a-zA-Z0-9\-.]+\.[a-zA-Z]{2,3}(/\S*)?$';
-      final result = RegExp(urlPattern, caseSensitive: false).hasMatch(value);
-
-      if (!result) {
-        return 'Please enter a valid URL (e.g., https://example.com)';
-      }
-
-      // Check for platform-specific URLs
-      if (platform == 'GitHub' && !value.contains('github.com')) {
-        return 'Please enter a valid GitHub profile URL';
-      }
-
-      if (platform == 'LinkedIn' && !value.contains('linkedin.com')) {
-        return 'Please enter a valid LinkedIn profile URL';
-      }
-    }
-    return null; // No error if the field is empty (since it's optional)
-  }
 
   // Controllers for fields
   late TextEditingController _firstNameController;
@@ -69,7 +47,6 @@ class _EditCollaboratorProfileScreenState
   // Skills multi-select dropdown
   List<String> _selectedSkills = [];
 
-  @override
   @override
   void initState() {
     super.initState();
@@ -99,6 +76,28 @@ class _EditCollaboratorProfileScreenState
     return null;
   }
 
+  String? _validateUrl(String? value, {required String platform}) {
+    if (value != null && value.isNotEmpty) {
+      const String urlPattern =
+          r'^(http|https):\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?$';
+      final result = RegExp(urlPattern, caseSensitive: false).hasMatch(value);
+
+      if (!result) {
+        return 'Please enter a valid $platform URL';
+      }
+
+      // Check for platform-specific URLs
+      if (platform == 'GitHub' && !value.contains('github.com')) {
+        return 'Please enter a valid GitHub profile URL';
+      }
+
+      if (platform == 'LinkedIn' && !value.contains('linkedin.com')) {
+        return 'Please enter a valid LinkedIn profile URL';
+      }
+    }
+    return null; // No error if the field is empty (since it's optional)
+  }
+
   String? _validateLastName(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter your last name';
@@ -107,7 +106,7 @@ class _EditCollaboratorProfileScreenState
   }
 
   String? _validateBio(String? value) {
-    if (value != null && value.length > 300) {
+    if (value != null && value.length > 150) {
       return 'Bio must be less than 300 characters';
     }
     return null;
@@ -128,7 +127,6 @@ class _EditCollaboratorProfileScreenState
   }
 
   // Save button functionality
-// Save button functionality
   void _onSaveButtonPressed() async {
     if (_formKey.currentState!.validate()) {
       String? profileImageUrl =
@@ -162,13 +160,13 @@ class _EditCollaboratorProfileScreenState
         }
       }
 
-      // Now, save the updated profile information along with the new image URL
+      // Now, save the updated profile information along with the new image URL and selected skills
       final updatedProfile = CollaboratorProfileModel(
         uid: widget.profile.uid,
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         bio: _bioController.text.trim(),
-        skills: _selectedSkills,
+        skills: _selectedSkills, // Include the selected skills here
         profilePhotoUrl: profileImageUrl, // Use the new image URL if it exists
         socialMediaLinks: {
           'GitHub': _githubController.text.trim(),
@@ -190,7 +188,7 @@ class _EditCollaboratorProfileScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('                Edit Profile')),
+      appBar: AppBar(title: const Text('Collaborator Edit Profile')),
       body: BlocListener<EditCollaboratorProfileBloc,
           EditCollaboratorProfileState>(
         listener: (context, state) {
@@ -249,12 +247,16 @@ class _EditCollaboratorProfileScreenState
                       label: 'First Name*',
                       controller: _firstNameController,
                       validator: _validateFirstName,
+                      prefixIcon:
+                          Icon(CupertinoIcons.person_fill, color: TColors.grey),
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(
                       label: 'Last Name*',
                       controller: _lastNameController,
                       validator: _validateLastName,
+                      prefixIcon:
+                          Icon(CupertinoIcons.person_fill, color: TColors.grey),
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(
@@ -277,73 +279,48 @@ class _EditCollaboratorProfileScreenState
                         EditCollaboratorProfileState>(
                       builder: (context, state) {
                         if (state is SkillsLoaded) {
-                          // Detect current theme
+                          // Get the list of available skills
+                          final List<MultiSelectItem<String>> _skillsItems =
+                              state.availableSkills
+                                  .map((skill) =>
+                                      MultiSelectItem<String>(skill, skill))
+                                  .toList();
+
+                          // Determine the mode (dark or light) and apply the respective theme
                           final isDarkMode =
                               Theme.of(context).brightness == Brightness.dark;
 
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              MultiSelectDialogField<String>(
-                                items: state.availableSkills
-                                    .map((skill) =>
-                                        MultiSelectItem(skill, skill))
-                                    .toList(),
-                                initialValue: widget.profile.skills ?? [],
-                                onConfirm: (results) {
-                                  setState(() {
-                                    _selectedSkills = results.cast<String>();
-                                  });
-                                },
-                                title: const Text('Skills'),
-                                buttonText:
-                                    const Text('Select Skills (Optional)'),
-
-                                // Customization for color and text
-                                itemsTextStyle: TextStyle(
-                                  color:
-                                      isDarkMode ? Colors.white : Colors.black,
-                                ),
-                                selectedColor: const Color(
-                                    0xFFFD5336), // Orange selected check color
-                                checkColor: Colors
-                                    .white, // Color of the checkmark inside the box
-
-                                // Dialog decoration
-                                decoration: BoxDecoration(
-                                  color:
-                                      isDarkMode ? Colors.black : Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: isDarkMode
-                                        ? Colors.white
-                                        : Colors.black,
-                                    width: 1.5,
-                                  ),
-                                ),
-
-                                // Display selected skills as chips
-                                chipDisplay: MultiSelectChipDisplay(
-                                  items: _selectedSkills.map((skill) {
-                                    return MultiSelectItem(skill, skill);
-                                  }).toList(),
-                                  chipColor: Theme.of(context).primaryColor,
-                                  textStyle:
-                                      const TextStyle(color: Colors.white),
-                                  onTap: (value) {
+                          return isDarkMode
+                              ? TMultiSelectDialogTheme
+                                  .darkMultiSelectDialogField(
+                                  items: _skillsItems,
+                                  selectedItems: _selectedSkills,
+                                  onConfirm: (results) {
                                     setState(() {
-                                      _selectedSkills.remove(value);
+                                      _selectedSkills = results;
                                     });
                                   },
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-                          );
+                                  title: 'Skills',
+                                  buttonText: 'Select Skills (Optional)',
+                                )
+                              : TMultiSelectDialogTheme
+                                  .lightMultiSelectDialogField(
+                                  items: _skillsItems,
+                                  selectedItems: _selectedSkills,
+                                  onConfirm: (results) {
+                                    setState(() {
+                                      _selectedSkills = results;
+                                    });
+                                  },
+                                  title: 'Skills',
+                                  buttonText: 'Select Skills (Optional)',
+                                );
                         } else if (state is SkillsLoading) {
-                          return const CircularProgressIndicator();
+                          return const Center(
+                              child: CircularProgressIndicator());
                         } else {
-                          return const SizedBox.shrink();
+                          return const SizedBox
+                              .shrink(); // Return empty when there are no skills to display
                         }
                       },
                     ),
@@ -351,16 +328,19 @@ class _EditCollaboratorProfileScreenState
                     CustomTextField(
                       label: 'GitHub Profile Link (Optional)',
                       controller: _githubController,
-                      validator: (value) => _validateUrl(value,
-                          platform: 'GitHub'), // Validate GitHub URL
+                      prefixIcon:
+                          Icon(CupertinoIcons.link, color: TColors.grey),
+                      validator: (value) =>
+                          _validateUrl(value, platform: 'GitHub'),
                     ),
                     const SizedBox(height: 16),
-
                     CustomTextField(
                       label: 'LinkedIn Profile Link (Optional)',
                       controller: _linkedInController,
-                      validator: (value) => _validateUrl(value,
-                          platform: 'LinkedIn'), // Validate LinkedIn URL
+                      prefixIcon:
+                          Icon(CupertinoIcons.link, color: TColors.grey),
+                      validator: (value) =>
+                          _validateUrl(value, platform: 'LinkedIn'),
                     ),
                     const SizedBox(
                         height: 100), // Add some padding at the bottom
@@ -372,15 +352,18 @@ class _EditCollaboratorProfileScreenState
               bottom: 16,
               left: 16,
               right: 16,
-              child: CustomButton(
-                text: 'Save',
-                onPressed: _onSaveButtonPressed,
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(TColors.primary),
-                  padding: MaterialStateProperty.all(
-                      const EdgeInsets.symmetric(vertical: 16.0)),
-                  textStyle:
-                      MaterialStateProperty.all(const TextStyle(fontSize: 18)),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _onSaveButtonPressed,
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(TColors.primary),
+                    padding: MaterialStateProperty.all(
+                        const EdgeInsets.symmetric(vertical: 16.0)),
+                    textStyle: MaterialStateProperty.all(
+                        const TextStyle(fontSize: 18)),
+                  ),
+                  child: const Text('Save'),
                 ),
               ),
             ),
