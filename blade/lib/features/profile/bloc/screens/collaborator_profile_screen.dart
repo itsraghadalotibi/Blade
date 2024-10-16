@@ -78,7 +78,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                 ),
           ),
           centerTitle: true,
-          automaticallyImplyLeading: widget.showBackButton,
+          automaticallyImplyLeading: false,
           actions: isOwner
               ? [
                   IconButton(

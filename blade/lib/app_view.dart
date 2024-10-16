@@ -88,7 +88,7 @@ class AppView extends StatelessWidget {
             );
           case '/supporterHome':
             return MaterialPageRoute(
-              builder: (_) => const SupporterHomeScreen(),
+              builder: (_) => const SupporterNavigation(),
             );
           default:
             return MaterialPageRoute(builder: (_) => const WelcomeScreen());
