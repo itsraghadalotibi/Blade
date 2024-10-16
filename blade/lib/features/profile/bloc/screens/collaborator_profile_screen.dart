@@ -348,7 +348,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           child: TabBarView(
             controller: _tabController,
             children: [
-              buildIdeasTab(), // Open ideas where user is the owner
+              buildProjectTab("open"), // Open ideas where user is the owner
               buildProjectTab(
                   "ongoing"), // Ongoing projects where user is a member or owner
               buildProjectTab(
@@ -360,53 +360,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     );
   }
 
-  Widget buildIdeasTab() {
-    return FutureBuilder<List<Idea>>(
-      future: _projectIdeaRepository.fetchIdeasByOwner(widget.userId, "open"),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error loading ideas: ${snapshot.error}',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          );
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(
-            child: Text(
-              'No project ideas found.',
-              style: TextStyle(color: Colors.grey),
-            ),
-          );
-        }
-
-        final ideas = snapshot.data!;
-
-        return ListView.builder(
-          itemCount: ideas.length,
-          itemBuilder: (context, index) {
-            final idea = ideas[index];
-            if (idea.status == "ongoing") {
-              return const SizedBox(); // Hide ongoing ideas from open tab
-            }
-
-            return ProjectIdeaCardWidget(
-              refershIdeasInProfile: () => context.read().add(LoadProfile(widget.userId)),
-              idea: idea,
-              announcementRepository: _announcementRepository,
-              repository: _projectIdeaRepository,
-            );
-          },
-        );
-      },
-    );
-  }
 
   Widget buildProjectTab(String status) {
     return FutureBuilder<List<Idea>>(
-      future: _projectIdeaRepository.fetchProjectsByOwnerOrMember(
+      future: _projectIdeaRepository.fetchIdeasByOwner(
           widget.userId, status),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
