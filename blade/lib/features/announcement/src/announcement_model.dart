@@ -1,3 +1,4 @@
+//blade/lib/features/announcement/src/announcement_model.dart
 class Idea {
   String? id; // Add the id field
   final String title;
@@ -8,31 +9,29 @@ class Idea {
   bool? isJoined;
   String status;
 
-  Idea({
-    this.id, // Include id in the constructor
-    required this.title,
-    required this.description,
-    required this.maxMembers,
-    required this.members,
-    required this.skills,
-    required this.status,
-    this.isJoined
-  });
+  Idea(
+      {this.id, // Include id in the constructor
+      required this.title,
+      required this.description,
+      required this.maxMembers,
+      required this.members,
+      required this.skills,
+      required this.status,
+      this.isJoined});
 
   // Factory constructor to create an Idea from Firestore data
   factory Idea.fromMap(Map<String, dynamic> data, String documentId) {
     return Idea(
-      id: documentId, // Assign the document ID from Firestore
-      title: data['title'] ?? '',
-      description: data['description'] ?? '',
-      maxMembers: data['maxMembers'] ?? 0,
-      members: List<String>.from(data['members'] ?? []),
-      skills: data['skills'] != null && data['skills'] is List
-          ? List<String>.from(data['skills'])
-          : [],
-      status: data['status'] ?? 'open',
-      isJoined: false
-    );
+        id: documentId, // Assign the document ID from Firestore
+        title: data['title'] ?? '',
+        description: data['description'] ?? '',
+        maxMembers: data['maxMembers'] ?? 0,
+        members: List<String>.from(data['members'] ?? []),
+        skills: data['skills'] != null && data['skills'] is List
+            ? List<String>.from(data['skills'])
+            : [],
+        status: data['status'] ?? 'open',
+        isJoined: false);
   }
 
   Idea copyWith({
@@ -67,6 +66,7 @@ class Idea {
     };
   }
 }
+
 class Collaborator {
   final String uid;
   final String firstName;

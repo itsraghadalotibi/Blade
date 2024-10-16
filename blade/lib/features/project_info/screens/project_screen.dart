@@ -271,8 +271,9 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         child: Column(
                           children: [
                             TabBar(
-                              labelColor: isDarkMode ? Colors.white : Colors.black,
-                              indicatorColor: isDarkMode ? Colors.white : Colors.black,
+                              indicatorColor: Theme.of(context).primaryColor, // Matches the primary theme color
+                              labelColor: Theme.of(context).primaryColor, // Label color for selected tab
+                              unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color, // Color for unselected tab
                               tabs: [
                                 const Tab(text: 'Posts'),
                                 const Tab(text: 'Members'),

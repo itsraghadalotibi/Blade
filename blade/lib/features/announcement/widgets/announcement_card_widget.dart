@@ -68,20 +68,37 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
   }
 
   void _handleJoinRequest() async {
+  if (!mounted) return; // Ensure the widget is still mounted
 
-    setState(() {
-      isJoinPending = true;
-      widget.idea.isJoined = true;
-    });
+  setState(() {
+    isJoinPending = true;
+    widget.idea.isJoined = true;
+  });
 
-    await widget.repository.sendJoinRequest(widget.idea,currentUserId!);
+  try {
+    await widget.repository.sendJoinRequest(widget.idea, currentUserId!);
+    
+    if (!mounted) return; // Check again after async operation
+
     widget.fetchAll();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Join request sent. Awaiting approval.')),
+      
     );
+  } catch (e) {
+    if (!mounted) return; // Ensure widget is still mounted before showing error
 
+    setState(() {
+      isJoinPending = false;
+      widget.idea.isJoined = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to send join request: $e')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

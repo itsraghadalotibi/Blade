@@ -3,6 +3,7 @@ import 'package:blade_app/features/announcement/src/announcement_repository.dart
 import 'package:blade_app/features/announcement/widgets/skill_tag_widget.dart';
 import 'package:blade_app/features/profile/bloc/screens/edit_collaborator_profile_screen.dart';
 import 'package:blade_app/utils/constants/colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -347,9 +348,11 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           child: TabBarView(
             controller: _tabController,
             children: [
-              buildProjectIdeasTab("open"),
-              buildProjectIdeasTab("ongoing"),
-              buildProjectIdeasTab("completed"),
+              buildIdeasTab(), // Open ideas where user is the owner
+              buildProjectTab(
+                  "ongoing"), // Ongoing projects where user is a member or owner
+              buildProjectTab(
+                  "completed"), // Completed projects where user is a member or owner
             ],
           ),
         ),
@@ -357,9 +360,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     );
   }
 
-  Widget buildProjectIdeasTab(String status) {
+  Widget buildIdeasTab() {
     return FutureBuilder<List<Idea>>(
-      future: _projectIdeaRepository.fetchIdeasByOwner(widget.userId, status),
+      future: _projectIdeaRepository.fetchIdeasByOwner(widget.userId, "open"),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -372,10 +375,11 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(
-              child: Text(
-            'No project ideas found.',
-            style: TextStyle(color: Colors.grey),
-          ));
+            child: Text(
+              'No project ideas found.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
         }
 
         final ideas = snapshot.data!;
@@ -384,12 +388,53 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           itemCount: ideas.length,
           itemBuilder: (context, index) {
             final idea = ideas[index];
-            if (idea.status == "ongoing" && status != "ongoing") {
-              return const SizedBox();
+            if (idea.status == "ongoing") {
+              return const SizedBox(); // Hide ongoing ideas from open tab
             }
+
             return ProjectIdeaCardWidget(
-              refershIdeasInProfile: () => setState(() {}),
+              refreshIdeasInProfile: () => setState(() {}),
               idea: idea,
+              announcementRepository: _announcementRepository,
+              repository: _projectIdeaRepository,
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget buildProjectTab(String status) {
+    return FutureBuilder<List<Idea>>(
+      future: _projectIdeaRepository.fetchProjectsByOwnerOrMember(
+          widget.userId, status),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Error loading projects: ${snapshot.error}',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          );
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(
+            child: Text(
+              'No projects found.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
+        }
+
+        final projects = snapshot.data!;
+        return ListView.builder(
+          itemCount: projects.length,
+          itemBuilder: (context, index) {
+            final project = projects[index];
+            return ProjectIdeaCardWidget(
+              refreshIdeasInProfile: () => setState(() {}),
+              idea: project,
               announcementRepository: _announcementRepository,
               repository: _projectIdeaRepository,
             );
