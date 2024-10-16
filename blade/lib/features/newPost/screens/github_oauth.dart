@@ -139,12 +139,12 @@ class _GithubAuthenticationState extends State<GithubAuthentication> {
   Future<String> getGithubAccessToken() async {
     final String clientId = 'Ov23liG9JalaLxAeKYln';
     final String clientSecret = 'b0d93d6535f1eb37b7800ce29bdf3c00b20c627b';
-    final String redirectUri = 'app-1-284932571171-ios-f223f753002d3a42883196://callback';
+    final String redirectUri = 'com.example.blade://callback';
 
     // Step 1: Open the GitHub authorization page.
     final result = await FlutterWebAuth.authenticate(
       url: 'https://github.com/login/oauth/authorize?client_id=$clientId&scope=public_repo&redirect_uri=$redirectUri',
-      callbackUrlScheme: 'app-1-284932571171-ios-f223f753002d3a42883196',
+      callbackUrlScheme: 'com.example.blade',
     );
 
     // Step 2: Extract the code from the result.
