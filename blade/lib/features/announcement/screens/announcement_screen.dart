@@ -58,26 +58,22 @@ class _AnnouncementAndStatesScreenState extends State<AnnouncementScreen>
       create: (context) => AnnouncementBloc(repository: widget.repository)
         ..add(FetchAnnouncements(currentUserId: widget.currentUserId)),
       child: Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          centerTitle: true,
-          title: const Text('Announcements'),
-          bottom: TabBar(
-            controller: _tabController,
-            indicatorColor: Theme.of(context)
-                .primaryColor, // Matches the primary theme color
-            labelColor:
-                Theme.of(context).primaryColor, // Label color for selected tab
-            unselectedLabelColor: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.color, // Color for unselected tabs
-            tabs: const [
-              Tab(text: 'Announcements'),
-              Tab(text: 'Requests'),
-            ],
-          ),
+          appBar: AppBar(
+        elevation: 0,
+        centerTitle: true,
+        title: const Text('Announcements'),
+        automaticallyImplyLeading: false,
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: Theme.of(context).primaryColor, // Matches the primary theme color
+          labelColor: Theme.of(context).primaryColor, // Label color for selected tab
+          unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color, // Color for unselected tabs
+          tabs: const [
+            Tab(text: 'Announcements'),
+            Tab(text: 'Requests'),
+          ],
         ),
+          ),
         body: Focus(
           focusNode: _focusNode, // Wrap the TabBarView with a Focus widget
           child: TabBarView(

@@ -120,6 +120,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You have left the project.')),
       );
+    
 
       setState(() {
         _isMember = false;
