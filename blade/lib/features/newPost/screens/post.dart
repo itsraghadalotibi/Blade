@@ -196,12 +196,13 @@ class _PostState extends State<Post> {
       });
       return;
     }
-
     String creatorId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    int maxMembers = int.parse(_numberController.text) + 1;
+
     Idea newIdea = Idea(
       title: _ideanameController.text,
       description: _ideadescriptionController.text,
-      maxMembers: int.parse(_numberController.text),
+      maxMembers: maxMembers,
       members: [creatorId],
       isJoined: true,
       skills: tags,
@@ -236,7 +237,7 @@ Future<void> _createGithubRepo(String repoName) async {
     },
     body: jsonEncode({
       'name': repoName,  // GitHub repository name
-      'description': 'Repository for the project "$repoName"',
+      'description': _ideadescriptionController.text,
       'private': false,  // public repos only 
     }),
   );
