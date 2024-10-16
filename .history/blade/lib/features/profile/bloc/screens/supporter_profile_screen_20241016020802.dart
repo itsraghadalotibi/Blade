@@ -224,8 +224,8 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen> {
           labelColor: Theme.of(context).primaryColor,
           unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
           tabs: const [
-            Tab(text: 'investing'),
-            Tab(text: 'invested'),
+            Tab(text: 'Investments'),
+            Tab(text: 'Completed'),
           ],
         ),
         const SizedBox(height: 16),

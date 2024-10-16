@@ -158,17 +158,11 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                 children: [
                   const SizedBox(height: 16),
                   CircleAvatar(
-                    radius: 70,
-                    backgroundImage: profile.profilePhotoUrl != null &&
-                            profile.profilePhotoUrl!.isNotEmpty
+                    radius: 50,
+                    backgroundImage: profile.profilePhotoUrl != null
                         ? NetworkImage(profile.profilePhotoUrl!)
                         : const AssetImage('assets/images/user.png')
                             as ImageProvider,
-                    onBackgroundImageError: (_, __) {
-                      setState(() {
-                        // If the network image fails to load, fall back to the default asset image
-                      });
-                    },
                   ),
                   const SizedBox(height: 16),
 

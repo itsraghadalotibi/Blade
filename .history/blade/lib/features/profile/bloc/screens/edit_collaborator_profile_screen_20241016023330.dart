@@ -221,20 +221,22 @@ class _EditCollaboratorProfileScreenState
                             backgroundColor:
                                 Colors.greenAccent, // Green accent border
                             child: CircleAvatar(
-                                radius: 70,
-                                backgroundImage: _newProfileImage != null
-                                    ? FileImage(_newProfileImage!)
-                                    : (widget.profile.profilePhotoUrl != null &&
-                                            widget.profile.profilePhotoUrl!
-                                                .isNotEmpty)
-                                        ? NetworkImage(
-                                                widget.profile.profilePhotoUrl!)
-                                            as ImageProvider<Object>
-                                        : const AssetImage(
-                                                'assets/images/user.png')
-                                            as ImageProvider<
-                                                Object> // Remove "blade/" from the path
-                                ),
+                              radius:
+                                  70, // Inner CircleAvatar for profile image
+                              backgroundImage: _newProfileImage != null
+                                  ? FileImage(_newProfileImage!)
+                                      as ImageProvider
+                                  : (widget.profile.profilePhotoUrl != null &&
+                                          widget.profile.profilePhotoUrl!
+                                              .isNotEmpty &&
+                                          widget.profile.profilePhotoUrl !=
+                                              defaultProfileImageUrl)
+                                      ? NetworkImage(
+                                          widget.profile.profilePhotoUrl!)
+                                      : const AssetImage(
+                                              'blade/assets/images/content/user.png')
+                                          as ImageProvider,
+                            ),
                           ),
                           IconButton(
                             icon: const Icon(CupertinoIcons.camera,
@@ -375,13 +377,6 @@ class _EditCollaboratorProfileScreenState
               child: CustomButton(
                 text: 'Save',
                 onPressed: _onSaveButtonPressed,
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(TColors.primary),
-                  padding: MaterialStateProperty.all(
-                      const EdgeInsets.symmetric(vertical: 16.0)),
-                  textStyle:
-                      MaterialStateProperty.all(const TextStyle(fontSize: 18)),
-                ),
               ),
             ),
           ],

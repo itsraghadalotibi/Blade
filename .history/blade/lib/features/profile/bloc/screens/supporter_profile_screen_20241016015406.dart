@@ -6,8 +6,8 @@ import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
 import '../src/supporter_profile_model.dart';
 import 'edit_supporter_profile_screen.dart';
-import '../bloc/edit_supporter_profile_bloc.dart'; // Import EditSupporterProfileBloc
-import '../repository/profile_repository.dart'; // Import ProfileRepository
+import '../bloc/edit_supporter_profile_bloc.dart';
+import '../repository/profile_repository.dart';
 
 class SupporterProfileScreen extends StatefulWidget {
   final String userId;
@@ -26,11 +26,8 @@ class SupporterProfileScreen extends StatefulWidget {
 class _SupporterProfileScreenState extends State<SupporterProfileScreen> {
   String? _currentUserId;
   SupporterProfileModel? _updatedProfile;
-
-  // State variables to control bio expansion and line limits
-  bool isBioExpanded =
-      false; // To control the expanded/collapsed state of the bio
-  static const int maxBioLines = 3; // Show only 3 lines of bio initially
+  final int maxBioLines = 3; // Define maxBioLines
+  bool isBioExpanded = false; // Define isBioExpanded
 
   @override
   void initState() {
@@ -52,47 +49,39 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen> {
           automaticallyImplyLeading: widget.showBackButton,
           actions: isOwner
               ? [
-                  BlocBuilder<ProfileViewBloc, ProfileViewState>(
-                    builder: (context, state) {
-                      bool isProfileLoaded = state is ProfileLoaded &&
-                          state.profile is SupporterProfileModel;
-                      return IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: isProfileLoaded
-                            ? () async {
-                                final supporterProfile =
-                                    state.profile as SupporterProfileModel;
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () async {
+                      final state = context.read<ProfileViewBloc>().state;
+                      if (state is ProfileLoaded &&
+                          state.profile is SupporterProfileModel) {
+                        final supporterProfile =
+                            state.profile as SupporterProfileModel;
 
-                                // Navigate to the edit screen and await the result
-                                final updatedProfile = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => BlocProvider(
-                                      create: (context) =>
-                                          EditSupporterProfileBloc(
-                                        profileRepository:
-                                            context.read<ProfileRepository>(),
-                                      ),
-                                      child: EditSupporterProfileScreen(
-                                        profile: supporterProfile,
-                                      ),
-                                    ),
-                                  ),
-                                );
+                        // Use pushReplacement to ensure state is reloaded
+                        final updatedProfile = await Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BlocProvider(
+                              create: (context) => EditSupporterProfileBloc(
+                                profileRepository:
+                                    context.read<ProfileRepository>(),
+                              ),
+                              child: EditSupporterProfileScreen(
+                                profile: supporterProfile,
+                              ),
+                            ),
+                          ),
+                        );
 
-                                // If an updated profile is returned, refresh the profile screen
-                                if (updatedProfile != null &&
-                                    updatedProfile is SupporterProfileModel) {
-                                  setState(() {
-                                    _updatedProfile = updatedProfile;
-                                  });
-                                  context
-                                      .read<ProfileViewBloc>()
-                                      .add(LoadProfile(widget.userId));
-                                }
-                              }
-                            : null, // Disable the button until profile is loaded
-                      );
+                        // Ensure profile updates if an updated profile is returned
+                        if (updatedProfile != null &&
+                            updatedProfile is SupporterProfileModel) {
+                          setState(() {
+                            _updatedProfile = updatedProfile;
+                          });
+                        }
+                      }
                     },
                   ),
                 ]
@@ -122,7 +111,7 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen> {
 
   Widget _buildProfile(SupporterProfileModel profile) {
     return DefaultTabController(
-      length: 2, // Number of tabs (Investments and Completed)
+      length: 2, // Number of tabs
       child: SingleChildScrollView(
         child: Column(
           children: [
@@ -224,8 +213,8 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen> {
           labelColor: Theme.of(context).primaryColor,
           unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
           tabs: const [
-            Tab(text: 'investing'),
-            Tab(text: 'invested'),
+            Tab(text: 'Investments'),
+            Tab(text: 'Completed'),
           ],
         ),
         const SizedBox(height: 16),

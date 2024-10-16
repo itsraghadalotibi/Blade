@@ -52,47 +52,43 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen> {
           automaticallyImplyLeading: widget.showBackButton,
           actions: isOwner
               ? [
-                  BlocBuilder<ProfileViewBloc, ProfileViewState>(
-                    builder: (context, state) {
-                      bool isProfileLoaded = state is ProfileLoaded &&
-                          state.profile is SupporterProfileModel;
-                      return IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: isProfileLoaded
-                            ? () async {
-                                final supporterProfile =
-                                    state.profile as SupporterProfileModel;
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () async {
+                      final state = context.read<ProfileViewBloc>().state;
+                      if (state is ProfileLoaded &&
+                          state.profile is SupporterProfileModel) {
+                        final supporterProfile =
+                            state.profile as SupporterProfileModel;
 
-                                // Navigate to the edit screen and await the result
-                                final updatedProfile = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => BlocProvider(
-                                      create: (context) =>
-                                          EditSupporterProfileBloc(
-                                        profileRepository:
-                                            context.read<ProfileRepository>(),
-                                      ),
-                                      child: EditSupporterProfileScreen(
-                                        profile: supporterProfile,
-                                      ),
-                                    ),
-                                  ),
-                                );
+                        // Navigate to the edit screen and await the result
+                        final updatedProfile = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BlocProvider(
+                              create: (context) => EditSupporterProfileBloc(
+                                profileRepository:
+                                    context.read<ProfileRepository>(),
+                              ),
+                              child: EditSupporterProfileScreen(
+                                profile: supporterProfile,
+                              ),
+                            ),
+                          ),
+                        );
 
-                                // If an updated profile is returned, refresh the profile screen
-                                if (updatedProfile != null &&
-                                    updatedProfile is SupporterProfileModel) {
-                                  setState(() {
-                                    _updatedProfile = updatedProfile;
-                                  });
-                                  context
-                                      .read<ProfileViewBloc>()
-                                      .add(LoadProfile(widget.userId));
-                                }
-                              }
-                            : null, // Disable the button until profile is loaded
-                      );
+                        // If an updated profile is returned, reload the profile screen
+                        if (updatedProfile != null &&
+                            updatedProfile is SupporterProfileModel) {
+                          setState(() {
+                            _updatedProfile = updatedProfile;
+                          });
+                          // Trigger the profile reload from the backend
+                          context
+                              .read<ProfileViewBloc>()
+                              .add(LoadProfile(widget.userId));
+                        }
+                      }
                     },
                   ),
                 ]
@@ -224,8 +220,8 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen> {
           labelColor: Theme.of(context).primaryColor,
           unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
           tabs: const [
-            Tab(text: 'investing'),
-            Tab(text: 'invested'),
+            Tab(text: 'Investments'),
+            Tab(text: 'Completed'),
           ],
         ),
         const SizedBox(height: 16),

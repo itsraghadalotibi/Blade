@@ -375,13 +375,6 @@ class _EditCollaboratorProfileScreenState
               child: CustomButton(
                 text: 'Save',
                 onPressed: _onSaveButtonPressed,
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(TColors.primary),
-                  padding: MaterialStateProperty.all(
-                      const EdgeInsets.symmetric(vertical: 16.0)),
-                  textStyle:
-                      MaterialStateProperty.all(const TextStyle(fontSize: 18)),
-                ),
               ),
             ),
           ],
