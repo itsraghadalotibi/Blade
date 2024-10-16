@@ -267,7 +267,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,
                       child: DefaultTabController(
-                        length: 2 + (isOwner ? 1 : 0),
+                        length: 2 + (isOwner && idea.status == "open" ? 1 : 0),
                         child: Column(
                           children: [
                             TabBar(
@@ -276,7 +276,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               tabs: [
                                 const Tab(text: 'Posts'),
                                 const Tab(text: 'Members'),
-                                if (isOwner) const Tab(text: 'Join Requests'),
+                                if (isOwner && idea.status == "open") const Tab(text: 'Join Requests'),
                               ],
                             ),
                             Expanded(
@@ -284,15 +284,15 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                 children: [
                                   PostsTab(ideaId: idea.id!, repository: widget.repository),
                                   MembersTab(idea: idea, repository: widget.repository),
-                                  if (isOwner)
+                                  if (isOwner && idea.status == "open")
                                     OffersTab(
                                       idea: idea,
                                       repository: widget.repository,
-                                      forOwner: isOwner,
                                       addNewMember: (id) {
                                         idea.members.add(id);
                                         final bool isFull = (idea.members.length - 1) >= idea.maxMembers;
                                         if (isFull && widget.refershIdeasInProfile != null) {
+                                          idea.status = "ongoing";
                                           widget.refershIdeasInProfile!();
                                         }
                                         setState(() {});

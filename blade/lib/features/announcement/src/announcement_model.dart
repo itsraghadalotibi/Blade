@@ -6,6 +6,7 @@ class Idea {
   final List<String> members; // Will store user IDs
   final List<String> skills;
   bool? isJoined;
+  int? requestCount;
   String status;
 
   Idea({
@@ -16,7 +17,8 @@ class Idea {
     required this.members,
     required this.skills,
     required this.status,
-    this.isJoined
+    this.isJoined,
+    this.requestCount
   });
 
   // Factory constructor to create an Idea from Firestore data

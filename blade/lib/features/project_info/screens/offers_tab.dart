@@ -1,16 +1,14 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
 import '../../announcement/src/announcement_model.dart';
 import '../../announcement/widgets/skill_tag_widget.dart';
 import '../../profile/bloc/screens/collaborator_profile_screen.dart';
 
-
-
-
 class OffersTab extends StatefulWidget {
   final Idea idea;
-  final bool forOwner;
   final AnnouncementRepository repository;
   final Function(String) addNewMember;
 
@@ -18,7 +16,6 @@ class OffersTab extends StatefulWidget {
     super.key,
     required this.idea,
     required this.repository, 
-    required this.forOwner, 
     required this.addNewMember,
   });
 
@@ -27,7 +24,6 @@ class OffersTab extends StatefulWidget {
 }
 
 class _OffersTabState extends State<OffersTab> {
-  bool isPress = false;
   @override
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -124,62 +120,29 @@ class _OffersTabState extends State<OffersTab> {
                               ),
                             ),
                     ),
-                    if(!isPress)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          OutlinedButton(
-                            onPressed: () async{
-                              // setState(() {
-                              //   isPress = true;
-                              // });
-                              // Reject join request
-                              await widget.repository.rejectJoinRequest(widget.idea.id!, collaborator.uid);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Rejected ${collaborator.firstName} ${collaborator.lastName}')),
-                              );
-                              setState(() {});
-                            },
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              side: BorderSide(color: Colors.red),
-                              shape: RoundedRectangleBorder(
-
-                                borderRadius: BorderRadius.circular(40),
-                              ),
-                            ),
-                            child: const Text(
-                              'REJECT',
-                              style: TextStyle(color: Colors.white,fontSize: 12,fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          ElevatedButton(
-                            onPressed: () async{
-                              // setState(() {
-                              //   isPress = true;
-                              // });
-                              // Accept join request
-                              await widget.repository.acceptJoinRequest(widget.idea, collaborator.uid);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Accepted ${collaborator.firstName} ${collaborator.lastName}')),
-                              );
-                              widget.addNewMember(collaborator.uid);
-                              setState(() {});
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(40),
-                              ),
-                            ),
-                            child: const Text(
-                              'ACCEPT',
-                              style: TextStyle(color: Colors.white,fontSize: 12,fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
+                      AcceptRejectButtons(onAccept: ()async{
+                        // setState(() {
+                        //   isPress = true;
+                        // });
+                        // Reject join request
+                        await widget.repository.rejectJoinRequest(widget.idea.id!, collaborator.uid);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Rejected ${collaborator.firstName} ${collaborator.lastName}')),
+                        );
+                        setState(() {});
+                      },onReject: ()async{
+                        // setState(() {
+                        //   isPress = true;
+                        // });
+                        // Accept join request
+                        await widget.repository.acceptJoinRequest(widget.idea, collaborator.uid);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Accepted ${collaborator.firstName} ${collaborator.lastName}')),
+                        );
+                        widget.addNewMember(collaborator.uid);
+                        setState(() {});
+                      },
+                      )
                   ],
                 ),
               ),
@@ -210,5 +173,79 @@ class _OffersTabState extends State<OffersTab> {
       }
     }
     return collaborators;
+  }
+}
+
+class AcceptRejectButtons extends StatefulWidget {
+  final Function() onAccept;
+  final Function() onReject;
+
+  const AcceptRejectButtons({
+    super.key,
+    required this.onAccept,
+    required this.onReject,
+  });
+
+  @override
+  State<AcceptRejectButtons> createState() => _AcceptRejectButtonsState();
+}
+
+class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
+  bool isPress = false;
+  @override
+  Widget build(BuildContext context) {
+    if(isPress)return const SizedBox();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: () async{
+            setState(() {
+              isPress = true;
+            });
+            await widget.onAccept();
+            setState(() {
+              isPress = false;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.all(10),
+            backgroundColor: Colors.red,
+            side: const BorderSide(color: Colors.red),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(40),
+            ),
+          ),
+          child: const Text(
+            'REJECT',
+            style: TextStyle(color: Colors.white,fontSize: 12,fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(width: 8),
+        ElevatedButton(
+          onPressed: () async{
+            setState(() {
+              isPress = true;
+            });
+            await widget.onReject();
+            setState(() {
+              isPress = false;
+            });
+          },
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.all(10),
+            backgroundColor: Colors.green,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(40),
+            ),
+            side: BorderSide.none, 
+          ),
+          child: const Text(
+            'ACCEPT',
+            style: TextStyle(color: Colors.white,fontSize: 12,fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
   }
 }

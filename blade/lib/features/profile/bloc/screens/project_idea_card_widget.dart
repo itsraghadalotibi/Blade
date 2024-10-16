@@ -3,6 +3,8 @@
 import 'package:blade_app/features/announcement/src/announcement_model.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:blade_app/features/project_info/screens/project_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import '../repository/project_idea_repository.dart';
 import '../widgets/avatar_stack.dart'; // Correct import after renaming
@@ -141,7 +143,15 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
                     );
                   },
                 ),
-                SizedBox(height: screenHeight * 0.02),
+                if(widget.idea.members[0] == FirebaseAuth.instance.currentUser?.uid && 
+                  widget.idea.requestCount != null && widget.idea.requestCount != 0)...[
+                  SizedBox(height: screenHeight * 0.01),
+                  Text(
+                    "Number of requests is ${widget.idea.requestCount!}",
+                    style: textStyle
+                  ),
+                ],
+                  SizedBox(height: screenHeight * 0.01),
                 SizedBox(
                   height: screenHeight * 0.05,
                   child: SingleChildScrollView(

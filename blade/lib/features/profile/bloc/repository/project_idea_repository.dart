@@ -16,7 +16,11 @@ class ProjectIdeaRepository {
           .where('members',
               arrayContains: userId) // Check if the user is in the members list
           .get();
-
+      final allJoinRequests = (await FirebaseFirestore.instance
+          .collection('join_requests')
+          .where('status', isEqualTo: "pending")
+          .where('ideaId', whereIn: snapshot.docs.map((d)=>d.id).toList())
+          .get()).docs;
       // Map Firestore documents to Idea model and filter by the owner (userId at index 0)
       List<Idea> ideas = snapshot.docs
           .map((doc) {
@@ -24,7 +28,7 @@ class ProjectIdeaRepository {
             final members = List<String>.from(data['members']);
 
             // Only return ideas where the user is at index 0 (the owner)
-            if (members.isNotEmpty && members[0] == userId) {
+            if ((members.isNotEmpty && members[0] == userId) || status != 'open') {
               return Idea(
                 id: doc.id,
                 status: data['status'],
@@ -33,6 +37,7 @@ class ProjectIdeaRepository {
                 skills: List<String>.from(data['skills']),
                 members: members,
                 maxMembers: data['maxMembers'],
+                requestCount: allJoinRequests.where((d)=>d["ideaId"] == doc.id).length
               );
             }
             return null;

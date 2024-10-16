@@ -388,7 +388,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
               return const SizedBox();
             }
             return ProjectIdeaCardWidget(
-              refershIdeasInProfile: () => setState(() {}),
+              refershIdeasInProfile: () => context.read().add(LoadProfile(widget.userId)),
               idea: idea,
               announcementRepository: _announcementRepository,
               repository: _projectIdeaRepository,
