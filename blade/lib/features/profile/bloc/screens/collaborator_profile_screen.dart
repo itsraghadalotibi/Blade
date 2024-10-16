@@ -362,7 +362,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
 
   Widget buildIdeasTab() {
     return FutureBuilder<List<Idea>>(
-      future: _projectIdeaRepository.fetchOpenIdeasByOwner(widget.userId),
+      future: _projectIdeaRepository.fetchIdeasByOwner(widget.userId, "open"),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -375,17 +375,25 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(
-              child: Text('No project ideas found.',
-                  style: TextStyle(color: Colors.grey)));
+            child: Text(
+              'No project ideas found.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
         }
 
         final ideas = snapshot.data!;
+
         return ListView.builder(
           itemCount: ideas.length,
           itemBuilder: (context, index) {
             final idea = ideas[index];
+            if (idea.status == "ongoing") {
+              return const SizedBox(); // Hide ongoing ideas from open tab
+            }
+
             return ProjectIdeaCardWidget(
-              refershIdeasInProfile: () => setState(() {}),
+              refreshIdeasInProfile: () => setState(() {}),
               idea: idea,
               announcementRepository: _announcementRepository,
               repository: _projectIdeaRepository,
@@ -412,8 +420,11 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Center(
-              child: Text('No projects found.',
-                  style: TextStyle(color: Colors.grey)));
+            child: Text(
+              'No projects found.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
         }
 
         final projects = snapshot.data!;
@@ -422,7 +433,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           itemBuilder: (context, index) {
             final project = projects[index];
             return ProjectIdeaCardWidget(
-              refershIdeasInProfile: () => setState(() {}),
+              refreshIdeasInProfile: () => setState(() {}),
               idea: project,
               announcementRepository: _announcementRepository,
               repository: _projectIdeaRepository,

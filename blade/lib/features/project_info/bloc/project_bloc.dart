@@ -14,11 +14,11 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     on<UpdateProjectStatus>(_onUpdateProjectStatus);
   }
 
-  Future<void> _onFetchProjectDetails(FetchProjectDetails event, Emitter<ProjectState> emit) async {
+  Future<void> _onFetchProjectDetails(
+      FetchProjectDetails event, Emitter<ProjectState> emit) async {
     try {
       final idea = await repository.getIdeaById(event.ideaId);
-      
-      // Ensure the idea object and its members list are not null
+
       if (idea != null) {
         final members = idea.members;
         final bool isOwner = members.isNotEmpty && members[0] == currentUserId;
@@ -32,11 +32,13 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     }
   }
 
-  Future<void> _onJoinProject(JoinProject event, Emitter<ProjectState> emit) async {
+  Future<void> _onJoinProject(
+      JoinProject event, Emitter<ProjectState> emit) async {
     try {
       await repository.addMemberToIdea(event.ideaId, currentUserId);
-      final idea = await repository.getIdeaById(event.ideaId); // Refetch the idea to get updated member list
-      
+      final idea = await repository.getIdeaById(
+          event.ideaId); // Refetch the idea to get updated member list
+
       if (idea != null) {
         final members = idea.members;
         final bool isOwner = members.isNotEmpty && members[0] == currentUserId;
@@ -50,11 +52,13 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     }
   }
 
-  Future<void> _onLeaveProject(LeaveProject event, Emitter<ProjectState> emit) async {
+  Future<void> _onLeaveProject(
+      LeaveProject event, Emitter<ProjectState> emit) async {
     try {
       await repository.removeMemberFromIdea(event.ideaId, currentUserId);
-      final idea = await repository.getIdeaById(event.ideaId); // Refetch the idea to get updated member list
-      
+      final idea = await repository.getIdeaById(
+          event.ideaId); // Refetch the idea to get updated member list
+
       if (idea != null) {
         final members = idea.members;
         final bool isOwner = members.isNotEmpty && members[0] == currentUserId;
@@ -75,7 +79,8 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
       await repository.updateIdeaStatus(event.ideaId, event.newStatus);
       final updatedIdea = await repository.getIdeaById(event.ideaId);
       if (updatedIdea != null) {
-        final isOwner = updatedIdea.members.isNotEmpty && updatedIdea.members[0] == currentUserId;
+        final isOwner = updatedIdea.members.isNotEmpty &&
+            updatedIdea.members[0] == currentUserId;
         final isMember = updatedIdea.members.contains(currentUserId);
         emit(ProjectStatusUpdated(updatedIdea));
         emit(ProjectLoaded(
@@ -90,5 +95,4 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
       emit(ProjectError('Failed to update project status: $e'));
     }
   }
-  
 }
