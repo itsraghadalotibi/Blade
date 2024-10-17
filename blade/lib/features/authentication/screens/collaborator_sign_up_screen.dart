@@ -159,14 +159,18 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
   String? _validateFirstName(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your first name';
-    }
+    }else if (value.contains(' ')) {
+    return 'First name cannot contain spaces';
+  }
     return null;
   }
 
   String? _validateLastName(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your last name';
-    }
+    }else if (value.contains(' ')) {
+    return 'Last name cannot contain spaces';
+  }
     return null;
   }
 
