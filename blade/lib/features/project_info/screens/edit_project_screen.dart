@@ -172,6 +172,27 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
     if (confirm == true) {
       try {
         await widget.repository.deleteIdea(widget.idea.id!);
+        ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  backgroundColor: TColors.success,
+                  behavior: SnackBarBehavior.floating,
+                  content: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const Icon(CupertinoIcons.check_mark_circled_solid,
+                          color:
+                              Colors.white), // Change icon and color as needed
+                      const SizedBox(width: 8), // Space between icon and text
+                      const Expanded(
+                        child: Text(
+                          'Project deleted Successfully!',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                  showCloseIcon: true),
+            );
         Navigator.popUntil(context, (route) => route.isFirst); // Go back to the main screen
       } catch (e) {
         print('Error deleting idea: $e');
@@ -235,8 +256,8 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please describe your idea';
-                  } else if (value.length < 50) {
-                    return 'At least 50 characters required';
+                  } else if (value.length < 20) {
+                    return 'At least 20 characters required';
                   }
                   return null;
                 },
