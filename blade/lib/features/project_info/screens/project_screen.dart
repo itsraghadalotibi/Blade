@@ -387,7 +387,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               tabs: [
                                 const Tab(text: 'Posts'),
                                 const Tab(text: 'Members'),
-                                if (isOwner) const Tab(text: 'Join Requests'),
+                                if (isOwner) const Tab(text: 'Requests'),
                               ],
                             ),
                             Expanded(
@@ -401,10 +401,12 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                       repository: widget.repository,
                                       addNewMember: (id) {
                                         idea.members.add(id);
-                                        final bool isFull = (idea.members.length - 1) >= idea.maxMembers;
-                                        if (isFull && widget.refershIdeasInProfile != null) {
+                                        final bool isFull = (idea.members.length) >= idea.maxMembers;
+                                        if (isFull) {
                                           idea.status = "ongoing";
-                                          widget.refershIdeasInProfile!();
+                                          widget.repository.updateIdeaStatus(idea.id!, 'ongoing');
+                                          
+                                          //widget.refershIdeasInProfile!();
                                         }
                                         setState(() {});
                                       },

@@ -129,6 +129,7 @@ class _OffersTabState extends State<OffersTab> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Rejected ${collaborator.firstName} ${collaborator.lastName}')),
                         );
+                        Navigator.popUntil(context, (route) => route.isFirst);
                         setState(() {});
                       },onReject: ()async{
                         // setState(() {
