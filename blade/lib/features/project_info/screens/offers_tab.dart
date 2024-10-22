@@ -120,7 +120,7 @@ class _OffersTabState extends State<OffersTab> {
                               ),
                             ),
                     ),
-                      AcceptRejectButtons(onAccept: ()async{
+                      AcceptRejectButtons(onReject: ()async{
                         // setState(() {
                         //   isPress = true;
                         // });
@@ -131,7 +131,7 @@ class _OffersTabState extends State<OffersTab> {
                         );
                         Navigator.popUntil(context, (route) => route.isFirst);
                         setState(() {});
-                      },onReject: ()async{
+                      },onAccept: ()async{
                         // setState(() {
                         //   isPress = true;
                         // });
@@ -204,7 +204,7 @@ class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
             setState(() {
               isPress = true;
             });
-            await widget.onAccept();
+            await widget.onReject();
             setState(() {
               isPress = false;
             });
@@ -228,7 +228,7 @@ class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
             setState(() {
               isPress = true;
             });
-            await widget.onReject();
+            await widget.onAccept();
             setState(() {
               isPress = false;
             });

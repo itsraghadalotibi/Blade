@@ -1,3 +1,4 @@
+import 'package:blade_app/features/project_info/src/post_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'announcement_model.dart';
 import 'package:rxdart/rxdart.dart';
@@ -304,23 +305,6 @@ Stream<List<Idea>> streamIdeas(String currentUserId) {
         await firestore.collection('ideas').doc(idea.id).update({
           'members': FieldValue.arrayUnion([userId])
         });
-        // Is Full Code
-        final int maxMembers = idea.maxMembers;
-        final int currentMembers = idea.members.length;
-        final bool isFull = currentMembers == maxMembers;
-        if(isFull){
-          await updateProjectStatus(idea.id!, "ongoing");
-          idea.status = "ongoing";
-          // final requestRef = await firestore
-          //   .collection('join_requests')
-          //   .where('ideaId', isEqualTo: idea.id).get();
-          //   for (var i = 0; i < requestRef.docs.length; i++) {
-          //     await firestore.collection('join_requests').doc(requestRef.docs[i].id).update({
-          //       'status': "rejected",
-          //     });
-          //   }
-        }
-        // To Here
       }
     } catch (e) {
       throw Exception('Failed to accept join request.');
@@ -343,4 +327,72 @@ Stream<List<Idea>> streamIdeas(String currentUserId) {
       throw Exception('Failed to reject join request.');
     }
   }
+
+  // Send New Post
+  Future<void> sendNewPost(PostModel post) async {
+    try {
+      await firestore.collection('posts').add(post.toMap());
+    } catch (e) {
+      print('Error updating idea: $e');
+      throw Exception('Failed to add post');
+    }
+  }
+
+    // Update Post
+  Future<void> updatePost(PostModel post) async {
+    try {
+      await firestore.collection('posts').doc(post.id).update(post.toMap());
+    } catch (e) {
+      throw Exception('Failed to update post: $e');
+    }
+  }
+
+  // Delete Post
+  Future<void> deletePost(String postId) async {
+    try {
+      await firestore.collection('posts').doc(postId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete post: $e');
+    }
+  }
+
+  // Fetch all collaborators by idea members
+  Future<List<Collaborator>?> fetchIdeaCollaborators(Idea idea) async {
+    try {
+      List<Collaborator> result = [];
+      final snapshot = await firestore
+          .collection('collaborators')
+          .where('uid', whereIn: idea.members)
+          .get();
+      for (var i = 0; i < snapshot.docs.length; i++) {
+        print(snapshot.docs[i].data());
+        result.add(Collaborator.fromMap(snapshot.docs[i].data()));
+      }
+      return result;
+    } catch (e) {
+      throw Exception('Failed to load collaborators: $e');
+    }
+  }
+
+  // Fetch all posts by ideaId
+  Future<List<PostModel>?> fetchPosts(String ideaId) async {
+    try {
+      List<PostModel> result = [];
+      final snapshot = await firestore
+          .collection('posts')
+          .where('ideaId', isEqualTo: ideaId)
+          // .orderBy("date",descending: true)
+          .get();
+      snapshot.docs.sort((a, b) => a.data()["date"].toString().compareTo(b.data()["date"].toString()),);
+      for (var i = 0; i < snapshot.docs.length; i++) {
+        print(snapshot.docs[i].data());
+        result.add(PostModel.fromMap(snapshot.docs[i].data(),snapshot.docs[i].id));
+      }
+      return result;
+    } catch (e) {
+      throw Exception('Failed to load posts: $e');
+    }
+  }
+
+
 }

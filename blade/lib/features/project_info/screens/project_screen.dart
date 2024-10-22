@@ -1,4 +1,5 @@
 import 'package:blade_app/features/project_info/screens/offers_tab.dart';
+import 'package:blade_app/features/project_info/src/post_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -235,6 +236,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
       );
     }
   }
+  int tabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -287,6 +289,21 @@ class _ProjectScreenState extends State<ProjectScreen> {
                     ),
                 ],
               ),
+              resizeToAvoidBottomInset: false,
+              floatingActionButton: tabIndex == 0 ? 
+                FloatingActionButton(
+                  backgroundColor: Colors.blue,
+                  shape: const CircleBorder(),
+                  onPressed: (){
+                    addUpdatePostDialog(context: context, post: PostModel(ideaId: idea.id,messgae: ""), isDarkMode: isDarkMode,buttonText: "Submit", onPressed: (post)async{
+                      await widget.repository.sendNewPost(post);
+                      setState(() {});
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Post sent successfully.')),
+                      );
+                    });
+                  },
+                  child: const Icon(Icons.add,color: Colors.white,)):null,
               body: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,25 +394,36 @@ class _ProjectScreenState extends State<ProjectScreen> {
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,
                       child: DefaultTabController(
-                        length: 2 + (isOwner ? 1 : 0),
+                        length: 2 + (isOwner && idea.status == "open" ? 1 : 0),
                         child: Column(
                           children: [
                             TabBar(
+                              onTap: (v){
+                                setState(() {
+                                  tabIndex = v;
+                                });
+                              },
                               indicatorColor: Theme.of(context).primaryColor, // Matches the primary theme color
                               labelColor: Theme.of(context).primaryColor, // Label color for selected tab
                               unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color, // Color for unselected tab
                               tabs: [
                                 const Tab(text: 'Posts'),
                                 const Tab(text: 'Members'),
-                                if (isOwner) const Tab(text: 'Requests'),
+                                if (isOwner && idea.status == "open") const Tab(text: 'Requests'),
                               ],
                             ),
                             Expanded(
                               child: TabBarView(
                                 children: [
-                                  PostsTab(ideaId: idea.id!, repository: widget.repository),
+                                  PostsTab(
+                                    showSnakbar: (messgae){
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(messgae)),
+                                      );
+                                    },
+                                    idea: idea, repository: widget.repository),
                                   MembersTab(idea: idea, repository: widget.repository),
-                                  if (isOwner)
+                                  if (isOwner && idea.status == "open")
                                     OffersTab(
                                       idea: idea,
                                       repository: widget.repository,
