@@ -66,7 +66,7 @@ class _PostsTabState extends State<PostsTab> {
                 ),
                 child: PostWidget(
                   onEditPost: ()async{
-                    addUpdatePostDialog(context: context, post: post, isDarkMode: isDarkMode,buttonText: "Update", onPressed: (post)async{
+                    addUpdatePostDialog(context: context, post: post, isDarkMode: isDarkMode,buttonText: "Save changes", onPressed: (post)async{
                       await widget.repository.updatePost(post);
                       setState(() {});
                       widget.showSnakbar('Post updated successfully.');
@@ -111,7 +111,7 @@ addUpdatePostDialog({required BuildContext context, required PostModel post,requ
     context: context, 
     builder: (context){
       return AddUpdateDialog(
-        title: buttonText == "Update" ? "Update Post" : "New Post",
+        title: buttonText == "Save changes" ? "Edit post" : "New post",
         isDarkMode: isDarkMode, post: post, onPressed: onPressed, buttonText: buttonText);
     }
   );
