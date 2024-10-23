@@ -1,10 +1,13 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:blade_app/features/announcement/src/announcement_model.dart';
+import 'package:blade_app/features/profile/bloc/repository/project_idea_repository.dart';
 import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
+import 'package:blade_app/features/project_info/screens/new_post.dart';
 import 'package:blade_app/features/project_info/src/post_model.dart';
 import 'package:blade_app/utils/constants/colors.dart';
 import 'package:blade_app/utils/constants/sizes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -13,20 +16,19 @@ import '../../announcement/src/announcement_repository.dart';
 class PostsTab extends StatefulWidget {
   final Idea? idea;
   final AnnouncementRepository repository;
-  final Function(String) showSnakbar;
 
-  const PostsTab({super.key, required this.idea, required this.repository, required this.showSnakbar});
+  const PostsTab({super.key, required this.idea, required this.repository,});
 
   @override
   State<PostsTab> createState() => _PostsTabState();
 }
 
 class _PostsTabState extends State<PostsTab> {
-  Future<List<PostModel>>? futrueMembers;
+  late ProjectIdeaRepository projectIdeaRepository;
   @override
   void initState() {
     super.initState();
-    futrueMembers = _fetchPostModels();
+    projectIdeaRepository = ProjectIdeaRepository();
   }
 
   @override
@@ -66,11 +68,19 @@ class _PostsTabState extends State<PostsTab> {
                 ),
                 child: PostWidget(
                   onEditPost: ()async{
-                    addUpdatePostDialog(context: context, post: post, isDarkMode: isDarkMode,buttonText: "Save changes", onPressed: (post)async{
-                      await widget.repository.updatePost(post);
+                    var res = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => NewPost(post: post,)),
+                    );
+                    if(res != null && res == "DONE"){
                       setState(() {});
-                      widget.showSnakbar('Post updated successfully.');
-                    });
+                      showSnakbar( icon: Icons.error, color: TColors.success, title: 'Post updated Succesfully.');
+                    }
+                    // addUpdatePostDialog(context: context, post: post, isDarkMode: isDarkMode,buttonText: "Save changes", onPressed: (post)async{
+                    //   await widget.repository.updatePost(post);
+                    //   setState(() {});
+                    //   widget.showSnakbar('Post updated successfully.');
+                    // });
                   },
                   onDeletePost: (){
                     showDialog(
@@ -78,9 +88,9 @@ class _PostsTabState extends State<PostsTab> {
                       builder: (context){
                         return DelteeDialog(onPressed: ()async{
                           Navigator.pop(context);
-                          await widget.repository.deletePost(post.id!);
+                          await projectIdeaRepository.deletePost(post);
                           setState(() {});
-                          widget.showSnakbar('Post deleted successfully.');
+                          showSnakbar( icon: Icons.error, color: TColors.success, title: 'Post deleted successfully.');
                         });
                       }
                     );
@@ -94,6 +104,36 @@ class _PostsTabState extends State<PostsTab> {
       },
     );
   }
+  showSnakbar(
+    {
+    required IconData icon,
+    required Color color,
+    required String title}) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      backgroundColor: color, // Success background color
+      behavior: SnackBarBehavior.floating,
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Icon(
+            icon, // Success icon
+            color: Colors.white,
+          ),
+          const SizedBox(width: 8), // Space between icon and text
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 16, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      duration: const Duration(seconds: 3),
+    ),
+  );
+}
+
 
   // Fetch posts with users
   Future<List<PostModel>> _fetchPostModels() async {
@@ -162,33 +202,54 @@ class PostWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${post.user?.firstName ?? ""} ${post.user?.lastName ?? ""}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
-                    fontSize: 18,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${post.user?.firstName ?? ""} ${post.user?.lastName ?? ""}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                        fontSize: 18,
+                      ),
+                    ),
+                    Text(
+                      DateFormat("yyyy-MM-dd").format(post.date!),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white70 : Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 5,),
+                // const SizedBox(height: 8,),
                 Text(
                   post.messgae ?? "",
                   style: TextStyle(
                     color: isDarkMode ? Colors.white70 : Colors.grey[600],
                   ),
                 ),
+                if(post.images!.isNotEmpty)...[
+                  const SizedBox(height: 10,),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.network(post.images!.first)),
+                ],
                 const SizedBox(height: 8,),
-                Text(
-                  DateFormat("yyyy-MM-dd").format(post.date!),
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white70 : Colors.grey[600],
-                  ),
-                ),
+                // Row(
+                //   children: [
+                //     IconButton(onPressed: (){}, icon: const Icon(CupertinoIcons.heart_fill,color: Colors.red,)),
+                //     const Text("2"),
+                //     const SizedBox(width: 10,),
+                //     IconButton(onPressed: (){}, icon: const Icon(CupertinoIcons.text_bubble)),
+                //     const Text("5")
+                //   ],
+                // )
               ],
             ),
           ),
         if(isPostOwner)
           PopupMenuButton(
+            // icon: Icon(Icons.more_horiz),
             onSelected: (v)async{
               if(v==0){
                 await onEditPost();

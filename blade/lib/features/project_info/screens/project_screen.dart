@@ -1,5 +1,4 @@
 import 'package:blade_app/features/project_info/screens/offers_tab.dart';
-import 'package:blade_app/features/project_info/src/post_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,7 +14,6 @@ import '../bloc/project_state.dart';
 import 'posts_tab.dart';
 import 'members_tab.dart';
 import 'project_settings_screen.dart';
-import '../../newPost/screens/github_oauth.dart';
 
 class ProjectScreen extends StatefulWidget {
   final Idea idea;
@@ -290,20 +288,20 @@ class _ProjectScreenState extends State<ProjectScreen> {
                 ],
               ),
               resizeToAvoidBottomInset: false,
-              floatingActionButton: tabIndex == 0 ? 
-                FloatingActionButton(
-                  backgroundColor: Colors.blue,
-                  shape: const CircleBorder(),
-                  onPressed: (){
-                    addUpdatePostDialog(context: context, post: PostModel(ideaId: idea.id,messgae: ""), isDarkMode: isDarkMode,buttonText: "Submit", onPressed: (post)async{
-                      await widget.repository.sendNewPost(post);
-                      setState(() {});
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Post sent successfully.')),
-                      );
-                    });
-                  },
-                  child: const Icon(Icons.add,color: Colors.white,)):null,
+              // floatingActionButton: tabIndex == 0 ? 
+              //   FloatingActionButton(
+              //     backgroundColor: Colors.blue,
+              //     shape: const CircleBorder(),
+              //     onPressed: (){
+              //       addUpdatePostDialog(context: context, post: PostModel(ideaId: idea.id,messgae: ""), isDarkMode: isDarkMode,buttonText: "Submit", onPressed: (post)async{
+              //         await widget.repository.sendNewPost(post);
+              //         setState(() {});
+              //         ScaffoldMessenger.of(context).showSnackBar(
+              //           SnackBar(content: Text('Post sent successfully.')),
+              //         );
+              //       });
+              //     },
+              //     child: const Icon(Icons.add,color: Colors.white,)):null,
               body: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -416,11 +414,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               child: TabBarView(
                                 children: [
                                   PostsTab(
-                                    showSnakbar: (messgae){
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(messgae)),
-                                      );
-                                    },
                                     idea: idea, repository: widget.repository),
                                   MembersTab(idea: idea, repository: widget.repository),
                                   if (isOwner && idea.status == "open")

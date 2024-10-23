@@ -1,3 +1,4 @@
+import 'package:blade_app/features/announcement/src/announcement_model.dart';
 import 'package:blade_app/features/authentication/bloc/authentication_bloc.dart';
 import 'package:blade_app/features/authentication/bloc/authentication_state.dart';
 import 'package:blade_app/features/authentication/src/collaborator_model.dart';
@@ -6,8 +7,10 @@ import 'package:blade_app/features/newPost/screens/github_oauth.dart';
 import 'package:blade_app/features/profile/bloc/bloc/profile_view_bloc.dart';
 import 'package:blade_app/features/profile/bloc/bloc/profile_view_event.dart';
 import 'package:blade_app/features/profile/bloc/repository/profile_repository.dart';
+import 'package:blade_app/features/profile/bloc/repository/project_idea_repository.dart';
 import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
 import 'package:blade_app/features/profile/bloc/screens/supporter_profile_screen.dart';
+import 'package:blade_app/features/project_info/screens/new_post.dart';
 import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 import 'package:blade_app/utils/constants/Navigation/settings.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +32,7 @@ class Navigation extends StatefulWidget {
 
 class _NavigationState extends State<Navigation> {
   final AnnouncementRepository announcementRepository = AnnouncementRepository();
+  final ProjectIdeaRepository projectIdeaRepository = ProjectIdeaRepository();
 
   int currentTap = 0;
   final List<Widget> screen = [
@@ -81,14 +85,38 @@ class _NavigationState extends State<Navigation> {
                         ),
                       ),
                       const SizedBox(height: 60),
-                      Container(
-                        padding: const EdgeInsets.all(30),
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            bottom: MediaQuery.of(context).viewInsets.bottom,
+                      InkWell(
+                        onTap: () async{
+                          List<Idea>? ideas = await projectIdeaRepository.fetchIdeasForDropdownButton(currentUserId);
+                          Navigator.pop(context);
+                          if(ideas.isEmpty){
+                            showSnakbar(icon: Icons.error, color: TColors.error, title: 'There are no projects.');
+                          }
+                          var res = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => NewPost(ideas: ideas,)),
+                          );
+                          if(res != null && res == "DONE"){
+                            showSnakbar( icon: Icons.error, color: TColors.success, title: 'Post sent Succesfully.');
+                          }
+                        },
+                        child: const ListTile(
+                          leading: Icon(Icons.add, color: Colors.white),
+                          title: Text(
+                            'New Post',
+                            style: TextStyle(fontSize: 18, color: Colors.white),
                           ),
                         ),
                       ),
+                      const SizedBox(height: 60),
+                      // Container(
+                      //   padding: const EdgeInsets.all(30),
+                      //   child: Padding(
+                      //     padding: EdgeInsets.only(
+                      //       bottom: MediaQuery.of(context).viewInsets.bottom,
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   );
                 },
@@ -261,4 +289,35 @@ class _NavigationState extends State<Navigation> {
 }
     );
   }
+  
+showSnakbar(
+    {
+    required IconData icon,
+    required Color color,
+    required String title}) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      backgroundColor: color, // Success background color
+      behavior: SnackBarBehavior.floating,
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Icon(
+            icon, // Success icon
+            color: Colors.white,
+          ),
+          const SizedBox(width: 8), // Space between icon and text
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(fontSize: 16, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      duration: Duration(seconds: 3),
+    ),
+  );
+}
+
 }
