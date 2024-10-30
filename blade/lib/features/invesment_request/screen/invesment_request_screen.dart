@@ -71,17 +71,14 @@ class _InvestmentRequestScreenState extends State<InvestmentRequestScreen> {
         if (reason != null) 'reason': reason,
       });
 
-      // Show confirmation message
+      // Show a green confirmation message with a check_circle icon for both accepted and rejected requests
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: status == 'accepted' ? Colors.green : Colors.red,
+          backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           content: Row(
             children: [
-              Icon(
-                status == 'accepted' ? Icons.check_circle : Icons.cancel,
-                color: Colors.white,
-              ),
+              const Icon(Icons.check_circle, color: Colors.white), // Consistent check icon
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -103,59 +100,78 @@ class _InvestmentRequestScreenState extends State<InvestmentRequestScreen> {
 
   void _showRejectionDialog(BuildContext context, String requestId) {
     final TextEditingController reasonController = TextEditingController();
+    bool showError = false;
 
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text(
-            "Reject Investment Request",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: TextField(
-            controller: reasonController,
-            decoration: const InputDecoration(
-              labelText: 'Rejection Reason',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close the dialog
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              ),
-              child: const Text("Cancel"),
-            ),
-            const SizedBox(width: 2),
-            TextButton(
-              onPressed: () {
-                final reason = reasonController.text.trim();
-                if (reason.isNotEmpty) {
-                  Navigator.of(dialogContext).pop(); // Close the dialog
-                  _updateRequestStatus(requestId, 'rejected', reason: reason);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please provide a reason.')),
-                  );
-                }
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-              child: Text(
-                "Reject",
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text(
+                "Reject Investment Request",
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onError,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ],
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: reasonController,
+                    decoration: const InputDecoration(
+                      labelText: 'Rejection Reason',
+                    ),
+                  ),
+                  if (showError)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'Please provide a reason.',
+                        style: TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop(); // Close the dialog
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black,
+                  ),
+                  child: const Text("Cancel"),
+                ),
+                const SizedBox(width: 2),
+                TextButton(
+                  onPressed: () {
+                    final reason = reasonController.text.trim();
+                    if (reason.isNotEmpty) {
+                      Navigator.of(dialogContext).pop(); // Close the dialog
+                      _updateRequestStatus(requestId, 'rejected', reason: reason);
+                    } else {
+                      // Show error message under the text field
+                      setState(() {
+                        showError = true;
+                      });
+                    }
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                  child: Text(
+                    "Reject",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onError,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -309,7 +325,7 @@ class CoinIconPainter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 80, // Icon size
+      height: 80,
       width: 80,
       child: CustomPaint(
         painter: _CoinIconPainter(),
@@ -364,9 +380,6 @@ class _CoinIconPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
-
-
 
 
 
