@@ -76,6 +76,7 @@ class Collaborator {
   final String lastName;
   final String profilePhotoUrl;
   final List<String> skills;
+  final int score;
 
   Collaborator({
     required this.uid,
@@ -83,6 +84,8 @@ class Collaborator {
     required this.lastName,
     required this.profilePhotoUrl,
     required this.skills,
+    this.score = 0,
+
   });
 
   factory Collaborator.fromMap(Map<String, dynamic> data) {
