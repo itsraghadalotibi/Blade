@@ -1,17 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+//raghad
 class NotificationService {
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final FlutterLocalNotificationsPlugin
+      _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  NotificationService() {
-    _initialize();
-  }
+  // List to keep track of notified request IDs to prevent duplicate notifications
+  static final List<String> notifiedRequestIds = [];
 
   // Initialize local notification settings for iOS
-  Future<void> _initialize() async {
+  static Future<void> initialize() async {
     const DarwinInitializationSettings darwinSettings =
         DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -34,7 +34,7 @@ class NotificationService {
 
   // Create a notification in Firebase for the targeted user
   Future<void> createFirebaseNotification(String userId, String status) async {
-    await _firestore.collection('notifications').add({
+    await _firestore.collection('Notification').add({
       'userId': userId,
       'status': status,
       'timestamp': FieldValue.serverTimestamp(),
@@ -47,7 +47,7 @@ class NotificationService {
   }
 
   // Show a local notification on iOS
-  Future<void> showLocalNotification(String title, String body) async {
+  static Future<void> showLocalNotification(String title, String body) async {
     const DarwinNotificationDetails darwinDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
@@ -65,5 +65,24 @@ class NotificationService {
       body,
       notificationDetails,
     );
+  }
+
+  // Listen to Firestore collection for real-time updates
+  static void listenToPendingRequests() {
+    _firestore
+        .collection('join_requests')
+        .where('status', isEqualTo: 'Pending')
+        .snapshots()
+        .listen((snapshot) {
+      for (var doc in snapshot.docs) {
+        if (!notifiedRequestIds.contains(doc.id)) {
+          notifiedRequestIds.add(doc.id); // Prevent duplicate notifications
+          showLocalNotification(
+            'New Join Request',
+            'A new request is waiting for your approval',
+          );
+        }
+      }
+    });
   }
 }
