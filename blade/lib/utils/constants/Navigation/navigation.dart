@@ -11,15 +11,12 @@ import 'package:blade_app/features/profile/bloc/repository/project_idea_reposito
 import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
 import 'package:blade_app/features/profile/bloc/screens/supporter_profile_screen.dart';
 import 'package:blade_app/features/project_info/screens/new_post.dart';
-import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 import 'package:blade_app/utils/constants/Navigation/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart'; // Import the repository
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import '../../../features/announcement/screens/announcement_screen.dart';
-
-import '../../../features/newPost/screens/backgroundPost.dart';
 import '../colors.dart';
 import 'profile.dart';
 
@@ -49,7 +46,7 @@ class _NavigationState extends State<Navigation> {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return BlocBuilder<AuthenticationBloc, AuthenticationState>(
-      builder: (context, state) {
+      builder: (c, state) {
         String currentUserId = '';
         if (state is AuthenticationAuthenticated) {
           currentUserId = state.user.uid; // Ensure the user model has a uid property
@@ -98,6 +95,7 @@ class _NavigationState extends State<Navigation> {
                           );
                           if(res != null && res == "DONE"){
                             showSnakbar( icon: Icons.error, color: TColors.success, title: 'Post sent Succesfully.');
+                            // c.read<AuthenticationBloc>().add(AppStarted());
                           }
                         },
                         child: const ListTile(

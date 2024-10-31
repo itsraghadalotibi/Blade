@@ -1,4 +1,6 @@
 // lib/features/collaborator/presentation/screens/collaborator_home_screen.dart
+import 'package:blade_app/features/project_info/screens/post_bookmarks.dart';
+import 'package:blade_app/features/project_info/screens/posts_tab.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../authentication/bloc/authentication_bloc.dart';
@@ -93,6 +95,10 @@ class CollaboratorHomeScreen extends StatelessWidget {
           title: const Text('Collaborator Home'),
           centerTitle: true,
           automaticallyImplyLeading: false,
+          leading: IconButton(
+              icon: const Icon(Icons.bookmarks),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const PostBookmarks())),
+            ),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -105,22 +111,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
             builder: (context, state) {
               if (state is AuthenticationAuthenticated &&
                   state.user is CollaboratorModel) {
-                final user = state.user as CollaboratorModel;
-                return Container(
-                  margin: EdgeInsets.all(20),
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Welcome Collaborator ${user.firstName} ${user.lastName}!',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                );
+                return const PostsTab();
               } else {
                 return const CircularProgressIndicator();
               }

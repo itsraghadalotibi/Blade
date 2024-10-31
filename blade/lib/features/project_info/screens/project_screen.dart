@@ -414,7 +414,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               child: TabBarView(
                                 children: [
                                   PostsTab(
-                                    idea: idea, repository: widget.repository),
+                                    idea: idea),
                                   MembersTab(idea: idea, repository: widget.repository),
                                   if (isOwner && idea.status == "open")
                                     OffersTab(

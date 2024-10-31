@@ -124,7 +124,7 @@ class _NewPostState extends State<NewPost> {
                                         deletedImages.add(i);
                                         currentImages.removeWhere((f) => i==f,);
                                       });
-                                    }, icon: Icon(Icons.cancel,color: Colors.red,))),
+                                    }, icon: const Icon(Icons.cancel,color: Colors.red,))),
                                   ],
                                 );
                               }),
@@ -142,7 +142,7 @@ class _NewPostState extends State<NewPost> {
                                       setState(() {
                                         imagesFile.removeWhere((f) => i==f,);
                                       });
-                                    }, icon: Icon(Icons.cancel,color: Colors.red,))),
+                                    }, icon: const Icon(Icons.cancel,color: Colors.red,))),
                                   ],
                                 );
                               }),
@@ -168,6 +168,8 @@ class _NewPostState extends State<NewPost> {
                       //   label: null, controller: title),
                       lable("Description"),
                       CustomTextField(
+                        showCounter: true,
+                        maxLength: 500,
                         hint: "What is the latest update for ${selectedIdea?.title}?",
                         label: null, controller: caption,maxLines: 7,),
                     ],
@@ -193,8 +195,9 @@ class _NewPostState extends State<NewPost> {
                         images: currentImages,
                         title: title.text,
                         messgae: caption.text,
-                        ideaId: selectedIdea!.id,
-                      ), imagesFile);
+                        upPosts: [],
+                        idea: selectedIdea,
+                      ), imagesFile,[]);
                       Navigator.pop(context,"DONE");
                     }
                     else{
@@ -206,7 +209,7 @@ class _NewPostState extends State<NewPost> {
                       Navigator.pop(context,"DONE");
                     }
                   }
-                }, label: isPress ? Center(child: CircularProgressIndicator(),): Text(widget.post != null ? "Save changes": "Post")))
+                }, label: isPress ? const Center(child: CircularProgressIndicator(),): Text(widget.post != null ? "Save changes": "Post")))
           ],
         ),
       ),
