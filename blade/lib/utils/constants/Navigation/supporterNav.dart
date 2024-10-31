@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:blade_app/features/authentication/bloc/authentication_bloc.dart';
 import 'package:blade_app/features/authentication/bloc/authentication_state.dart';
 import 'package:blade_app/features/authentication/src/supporter_model.dart';
-import 'package:blade_app/features/supporter/screens/supporter_home_screen.dart';
+import 'package:blade_app/features/supporter/home_page/screens/home_page_screen.dart';
 import 'package:blade_app/features/profile/bloc/repository/profile_repository.dart';
 import 'package:blade_app/features/profile/bloc/screens/supporter_profile_screen.dart';
 import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
@@ -20,13 +20,8 @@ class SupporterNavigation extends StatefulWidget {
 
 class _SupporterNavigationState extends State<SupporterNavigation> {
   int currentTap = 0;
-  final List<Widget> screen = [
-    const SupporterHomeScreen(),
-    const settings.Settings(),
-  ];
-
   final PageStorageBucket bucket = PageStorageBucket();
-  Widget currentScreen = const SupporterHomeScreen();
+  Widget currentScreen =  HomeScreen(); // Initial screen is the home screen
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +47,9 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
                       currentTap == 0 ? const Color(0xFFFD5336) : Colors.grey,
                 ),
                 onPressed: () {
+                  // Set the home page as the current screen when Home icon is clicked
                   setState(() {
-                    currentScreen = const SupporterHomeScreen();
+                    currentScreen = HomeScreen();
                     currentTap = 0;
                   });
                 },
@@ -68,6 +64,7 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
                       currentTap == 1 ? const Color(0xFFFD5336) : Colors.grey,
                 ),
                 onPressed: () {
+                  // Navigate to the settings screen when the Notifications icon is clicked
                   setState(() {
                     currentScreen = const settings.Settings();
                     currentTap = 1;
@@ -90,6 +87,7 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
 
                     if (user is SupporterModel) {
                       setState(() {
+                        // Navigate to the profile screen if the user is authenticated
                         currentScreen = MultiProvider(
                           providers: [
                             RepositoryProvider.value(
@@ -108,6 +106,7 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
                       });
                     }
                   } else {
+                    // Show a snack bar if the user is not authenticated
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("User not authenticated"),
