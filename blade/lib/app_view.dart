@@ -1,4 +1,5 @@
 // gonna contain the material app ( colors, bloc builder, authentication bloc builder to redirect the user either to the auth screen or to the app itself)
+import 'package:blade_app/features/notification/screen/NotificationScreen.dart';
 import 'package:blade_app/intro_screen.dart';
 import 'package:blade_app/utils/constants/Navigation/supporterNav.dart';
 import 'package:flutter/material.dart';
@@ -90,6 +91,11 @@ class AppView extends StatelessWidget {
             return MaterialPageRoute(
               builder: (_) => const SupporterNavigation(),
             );
+          case '/notificationCenter':
+            return MaterialPageRoute(
+                builder: (_) => const NotificationScreen(
+                      userId: '',
+                    ));
           default:
             return MaterialPageRoute(builder: (_) => const WelcomeScreen());
         }
