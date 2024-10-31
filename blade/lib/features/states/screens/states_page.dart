@@ -8,7 +8,6 @@ import '../../../utils/constants/colors.dart';
 
 import 'package:blade_app/features/announcement/screens/announcement_screen.dart';
 
-
 class StatesPage extends StatelessWidget {
   const StatesPage({Key? key}) : super(key: key);
 
@@ -93,7 +92,9 @@ class StatesPage extends StatelessWidget {
             );
           }
 
+          // Get join requests and sort them by timestamp in descending order (most recent first).
           final joinRequests = snapshot.data!;
+          joinRequests.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
 
           return ListView.builder(
             padding: EdgeInsets.symmetric(
@@ -120,7 +121,8 @@ class StatesPage extends StatelessWidget {
                       builder: (_) => ProjectScreen(
                         idea: idea,
                         repository: AnnouncementRepository(), 
-                        canJoin: !idea.isJoined!, onJoinRequestSent: null, // Check if the user can join the project.
+                        canJoin: !idea.isJoined!, 
+                        onJoinRequestSent: null, // Check if the user can join the project.
                       ),
                     ),
                   );
@@ -132,8 +134,8 @@ class StatesPage extends StatelessWidget {
                       color: isDarkMode ? TColors.container : TColors.white,
                       borderRadius: BorderRadius.circular(23),
                       border: isDarkMode
-                  ? null // No border in dark mode
-                  : Border.all(color: TColors.borderPrimary), // Light mode border
+                        ? null // No border in dark mode
+                        : Border.all(color: TColors.borderPrimary), // Light mode border
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -166,17 +168,6 @@ class StatesPage extends StatelessWidget {
                           Column(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              // if (status == 'pending') ...[
-                              //   const SizedBox(width: 2),
-                              //   IconButton(
-                              //     icon: Icon(
-                              //       Icons.cancel,
-                              //       color: Colors.red,
-                              //       size: screenWidth * 0.07,
-                              //     ),
-                              //     onPressed: () => cancelJoinRequest(requestId),
-                              //   ),
-                              // ],
                               Text(
                                 status[0].toUpperCase() + status.substring(1),
                                 style: ideaTitleStyle.copyWith(
@@ -184,21 +175,17 @@ class StatesPage extends StatelessWidget {
                                   fontSize: 16,
                                 ),
                               ),
-                              SizedBox(height: 8),
+                              const SizedBox(height: 8),
                               if (status == 'pending') ...[
-                              OutlinedButton(
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-                                  foregroundColor: Colors.red,
-                                  side: const BorderSide(color: Colors.red),
+                                OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+                                    foregroundColor: Colors.red,
+                                    side: const BorderSide(color: Colors.red),
+                                  ),
+                                  onPressed: () => cancelJoinRequest(requestId),
+                                  child: const Text('Cancel'),
                                 ),
-                                onPressed: () => cancelJoinRequest(requestId),
-                                child: 
-                                Text(
-                                  'Cancel'
-                                ),
-
-                              ),
                               ],
                             ],
                           ),
