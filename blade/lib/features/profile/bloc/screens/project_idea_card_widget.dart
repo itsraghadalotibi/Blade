@@ -2,7 +2,6 @@ import 'package:blade_app/features/announcement/src/announcement_model.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:blade_app/features/project_info/screens/project_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import '../../../../utils/constants/colors.dart';
 import '../repository/project_idea_repository.dart';

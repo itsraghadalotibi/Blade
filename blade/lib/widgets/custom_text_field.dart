@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/constants/sizes.dart';
 
 class CustomTextField extends StatefulWidget {
-  final String label;
+  final String? label;
   final TextEditingController controller;
   final FocusNode? focusNode;
   final bool obscureText;
@@ -14,6 +14,7 @@ class CustomTextField extends StatefulWidget {
   final bool showCounter; //control counter visibility
   final Widget? suffixIcon;
   final Widget? prefixIcon;
+  final String? hint;
 
   const CustomTextField({
     Key? key,
@@ -28,7 +29,8 @@ class CustomTextField extends StatefulWidget {
     this.keyboardType,
     this.showCounter = false, // Counter is hidden by default
     this.suffixIcon,
-    this.prefixIcon,
+    this.prefixIcon, 
+    this.hint,
   }) : super(key: key);
 
   @override
@@ -71,6 +73,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
       keyboardType: widget.keyboardType,
       maxLength: widget.maxLength,
       decoration: InputDecoration(
+        hintText: widget.hint,
+        hintStyle: const TextStyle(color: Colors.grey,fontSize: 14),
         labelText: widget.label,
         errorText: widget.errorText,
         contentPadding: const EdgeInsets.symmetric(

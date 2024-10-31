@@ -1,5 +1,4 @@
 import 'package:blade_app/features/project_info/screens/offers_tab.dart';
-import 'package:blade_app/features/project_info/src/post_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,7 +14,8 @@ import '../bloc/project_state.dart';
 import 'posts_tab.dart';
 import 'members_tab.dart';
 import 'project_settings_screen.dart';
-import '../../newPost/screens/github_oauth.dart';
+import 'package:blade_app/features/invesment_request/screen/invesment_request_screen.dart';
+import 'dollar.dart';  // Import the DollarIcon class
 
 class ProjectScreen extends StatefulWidget {
   final Idea idea;
@@ -74,15 +74,15 @@ class _ProjectScreenState extends State<ProjectScreen> {
       });
     }
   }
+
   // Getter for dynamic button background color
   Color get _buttonBackgroundColor {
     if (_isRequestPending) {
-      return Colors.amber[800]!; // Grey for pending state
+      return Colors.amber[800]!;
     } else {
-      return TColors.primary; // Red for join project
+      return TColors.primary;
     }
   }
-
 
   // Send join request
   Future<void> _sendJoinRequest() async {
@@ -107,12 +107,12 @@ class _ProjectScreenState extends State<ProjectScreen> {
       // Show success message with an icon for joining
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: Colors.green, // Success background color for joining
+          backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           content: Row(
             children: [
-              const Icon(Icons.check_circle, color: Colors.white), // Success icon for joining
-              const SizedBox(width: 8), // Space between icon and text
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 8),
               const Expanded(
                 child: Text(
                   'Join request sent successfully!',
@@ -136,7 +136,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
     }
   }
 
-   // Function to cancel a join request.
+  // Function to cancel a join request.
   Future<void> _cancelJoinRequest(String requestId) async {
     try {
       await FirebaseFirestore.instance
@@ -148,12 +148,12 @@ class _ProjectScreenState extends State<ProjectScreen> {
       // Show success message with an icon for cancellation
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: Colors.orange, // Orange background for cancellation
+          backgroundColor: Colors.orange,
           behavior: SnackBarBehavior.floating,
           content: Row(
             children: [
-              const Icon(Icons.cancel, color: Colors.white), // Cancellation icon
-              const SizedBox(width: 8), // Space between icon and text
+              const Icon(Icons.cancel, color: Colors.white),
+              const SizedBox(width: 8),
               const Expanded(
                 child: Text(
                   'Join request cancelled.',
@@ -179,7 +179,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: Colors.red, // Red background for errors
+          backgroundColor: Colors.red,
           content: Text('Error cancelling join request: $e'),
           duration: const Duration(seconds: 3),
           showCloseIcon: true,
@@ -204,15 +204,14 @@ class _ProjectScreenState extends State<ProjectScreen> {
         _joinRequestId = null;
       }
 
-      // Show success message with an icon for leaving
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: Colors.green, // Red background for leave success
+          backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           content: Row(
             children: [
-              const Icon(Icons.exit_to_app, color: Colors.white), // Exit icon for leaving
-              const SizedBox(width: 8), // Space between icon and text
+              const Icon(Icons.exit_to_app, color: Colors.white),
+              const SizedBox(width: 8),
               const Expanded(
                 child: Text(
                   'You have left the project.',
@@ -236,6 +235,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
       );
     }
   }
+
   int tabIndex = 0;
 
   @override
@@ -290,20 +290,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
                 ],
               ),
               resizeToAvoidBottomInset: false,
-              floatingActionButton: tabIndex == 0 ? 
-                FloatingActionButton(
-                  backgroundColor: Colors.blue,
-                  shape: const CircleBorder(),
-                  onPressed: (){
-                    addUpdatePostDialog(context: context, post: PostModel(ideaId: idea.id,messgae: ""), isDarkMode: isDarkMode,buttonText: "Submit", onPressed: (post)async{
-                      await widget.repository.sendNewPost(post);
-                      setState(() {});
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Post sent successfully.')),
-                      );
-                    });
-                  },
-                  child: const Icon(Icons.add,color: Colors.white,)):null,
               body: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,6 +322,35 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               ],
                             ),
                           ),
+                        if (isOwner)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => InvestmentRequestScreen(ideaId: widget.idea.id!), // Pass ideaId here
+                                ),
+                              );
+                            },
+                            child: Column(
+                              children: [
+                                DollarIcon(size: 40),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Investment Request',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
@@ -361,7 +376,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                       Center(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _buttonBackgroundColor, // Red button background
+                            backgroundColor: _buttonBackgroundColor,
                             padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -382,7 +397,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
                           child: Text(
                             _buttonText,
                             style: const TextStyle(
-                              //color: Colors.black, // Black text for contrast
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -398,14 +412,14 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         child: Column(
                           children: [
                             TabBar(
-                              onTap: (v){
+                              onTap: (v) {
                                 setState(() {
                                   tabIndex = v;
                                 });
                               },
-                              indicatorColor: Theme.of(context).primaryColor, // Matches the primary theme color
-                              labelColor: Theme.of(context).primaryColor, // Label color for selected tab
-                              unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color, // Color for unselected tab
+                              indicatorColor: Theme.of(context).primaryColor,
+                              labelColor: Theme.of(context).primaryColor,
+                              unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
                               tabs: [
                                 const Tab(text: 'Posts'),
                                 const Tab(text: 'Members'),
@@ -415,13 +429,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             Expanded(
                               child: TabBarView(
                                 children: [
-                                  PostsTab(
-                                    showSnakbar: (messgae){
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(messgae)),
-                                      );
-                                    },
-                                    idea: idea, repository: widget.repository),
+                                  PostsTab(idea: idea, repository: widget.repository),
                                   MembersTab(idea: idea, repository: widget.repository),
                                   if (isOwner && idea.status == "open")
                                     OffersTab(
@@ -433,8 +441,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                         if (isFull) {
                                           idea.status = "ongoing";
                                           widget.repository.updateIdeaStatus(idea.id!, 'ongoing');
-                                          
-                                          //widget.refershIdeasInProfile!();
                                         }
                                         setState(() {});
                                       },

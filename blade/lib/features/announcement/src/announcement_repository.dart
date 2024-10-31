@@ -328,34 +328,6 @@ Stream<List<Idea>> streamIdeas(String currentUserId) {
     }
   }
 
-  // Send New Post
-  Future<void> sendNewPost(PostModel post) async {
-    try {
-      await firestore.collection('posts').add(post.toMap());
-    } catch (e) {
-      print('Error updating idea: $e');
-      throw Exception('Failed to add post');
-    }
-  }
-
-    // Update Post
-  Future<void> updatePost(PostModel post) async {
-    try {
-      await firestore.collection('posts').doc(post.id).update(post.toMap());
-    } catch (e) {
-      throw Exception('Failed to update post: $e');
-    }
-  }
-
-  // Delete Post
-  Future<void> deletePost(String postId) async {
-    try {
-      await firestore.collection('posts').doc(postId).delete();
-    } catch (e) {
-      throw Exception('Failed to delete post: $e');
-    }
-  }
-
   // Fetch all collaborators by idea members
   Future<List<Collaborator>?> fetchIdeaCollaborators(Idea idea) async {
     try {
