@@ -45,6 +45,8 @@ dependencies:
   flutter_web_auth: ^0.5.0
   webview_flutter: ^4.10.0
   rxdart: ^0.28.0
+  flutter_svg: ^2.0.10+1
+  intl_phone_field: ^3.2.0
 
 
 
@@ -84,3 +86,7 @@ flutter:
     - assets/images/on_boarding_images/developer-team.png
     - assets/images/on_boarding_images/office-workplace.png
     - assets/images/login/github.png
+    - assets/icons/contract.svg
+    - assets/icons/money.svg
+    - assets/icons/program.svg
+    - assets/icons/rocket.svg
