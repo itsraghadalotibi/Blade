@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
+import 'package:blade_app/features/notification/src/NotificationService.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +16,7 @@ class OffersTab extends StatefulWidget {
   const OffersTab({
     super.key,
     required this.idea,
-    required this.repository, 
+    required this.repository,
     required this.addNewMember,
   });
 
@@ -24,6 +25,7 @@ class OffersTab extends StatefulWidget {
 }
 
 class _OffersTabState extends State<OffersTab> {
+  final _notificationService = NotificationService(); // Add this line
   @override
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -31,7 +33,6 @@ class _OffersTabState extends State<OffersTab> {
     return FutureBuilder<List<Collaborator>>(
       future: _fetchCollaborators(),
       builder: (context, snapshot) {
-        
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
@@ -54,10 +55,9 @@ class _OffersTabState extends State<OffersTab> {
           itemBuilder: (context, index) {
             final collaborator = collaborators[index];
 
-
             final matchingSkills = collaborator.skills
-                    .where((skill) => widget.idea.skills.contains(skill))
-                    .toList();
+                .where((skill) => widget.idea.skills.contains(skill))
+                .toList();
 
             return GestureDetector(
               onTap: () {
@@ -75,19 +75,16 @@ class _OffersTabState extends State<OffersTab> {
               child: Container(
                 padding: const EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
-                  color: isDarkMode
-                      ? Colors.grey[850]
-                      : Colors.grey[200],
+                  color: isDarkMode ? Colors.grey[850] : Colors.grey[200],
                   borderRadius: BorderRadius.circular(10),
-                  border: isDarkMode
-                      ? null
-                      : Border.all(color: Colors.grey),
+                  border: isDarkMode ? null : Border.all(color: Colors.grey),
                 ),
                 child: Column(
                   children: [
                     ListTile(
                       leading: CircleAvatar(
-                        backgroundImage: NetworkImage(collaborator.profilePhotoUrl),
+                        backgroundImage:
+                            NetworkImage(collaborator.profilePhotoUrl),
                         radius: 30,
                       ),
                       title: Text(
@@ -106,7 +103,8 @@ class _OffersTabState extends State<OffersTab> {
                                 child: Row(
                                   children: matchingSkills.map((skill) {
                                     return Padding(
-                                      padding: const EdgeInsets.only(right: 8.0),
+                                      padding:
+                                          const EdgeInsets.only(right: 8.0),
                                       child: SkillTagWidget(skills: [skill]),
                                     );
                                   }).toList(),
@@ -116,34 +114,46 @@ class _OffersTabState extends State<OffersTab> {
                           : Text(
                               'No matching skills',
                               style: TextStyle(
-                                color: isDarkMode ? Colors.white70 : Colors.grey[600],
+                                color: isDarkMode
+                                    ? Colors.white70
+                                    : Colors.grey[600],
                               ),
                             ),
                     ),
-                      AcceptRejectButtons(onReject: ()async{
-                        // setState(() {
-                        //   isPress = true;
-                        // });
-                        // Reject join request
-                        await widget.repository.rejectJoinRequest(widget.idea.id!, collaborator.uid);
+                    AcceptRejectButtons(
+                      onReject: () async {
+                        await widget.repository.rejectJoinRequest(
+                            widget.idea.id!, collaborator.uid);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Rejected ${collaborator.firstName} ${collaborator.lastName}')),
+                          SnackBar(
+                              content: Text(
+                                  'Rejected ${collaborator.firstName} ${collaborator.lastName}')),
                         );
-                        Navigator.popUntil(context, (route) => route.isFirst);
-                        setState(() {});
-                      },onAccept: ()async{
-                        // setState(() {
-                        //   isPress = true;
-                        // });
-                        // Accept join request
-                        await widget.repository.acceptJoinRequest(widget.idea, collaborator.uid);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Accepted ${collaborator.firstName} ${collaborator.lastName}')),
-                        );
-                        widget.addNewMember(collaborator.uid);
+
+                        // Send Firebase notification for rejection
+                        await _notificationService.createFirebaseNotification(
+                            collaborator.uid, 'rejected');
+
                         setState(() {});
                       },
-                      )
+                      onAccept: () async {
+                        await widget.repository
+                            .acceptJoinRequest(widget.idea, collaborator.uid);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  'Accepted ${collaborator.firstName} ${collaborator.lastName}')),
+                        );
+
+                        widget.addNewMember(collaborator.uid);
+
+                        // Send Firebase notification for acceptance
+                        await _notificationService.createFirebaseNotification(
+                            collaborator.uid, 'accepted');
+
+                        setState(() {});
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -161,13 +171,13 @@ class _OffersTabState extends State<OffersTab> {
   Future<List<Collaborator>> _fetchCollaborators() async {
     List<Collaborator> collaborators = [];
 
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('join_requests')
-          .where('ideaId', isEqualTo: widget.idea.id)
-          .where('status', isEqualTo:'pending')
-          .get();
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('join_requests')
+        .where('ideaId', isEqualTo: widget.idea.id)
+        .where('status', isEqualTo: 'pending')
+        .get();
     print(querySnapshot.docs.length);
-    for (String memberId in querySnapshot.docs.map((doc)=>doc["userId"])) {
+    for (String memberId in querySnapshot.docs.map((doc) => doc["userId"])) {
       final collaborator = await widget.repository.fetchCollaborator(memberId);
       if (collaborator != null) {
         collaborators.add(collaborator);
@@ -195,12 +205,12 @@ class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
   bool isPress = false;
   @override
   Widget build(BuildContext context) {
-    if(isPress)return const SizedBox();
+    if (isPress) return const SizedBox();
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ElevatedButton(
-          onPressed: () async{
+          onPressed: () async {
             setState(() {
               isPress = true;
             });
@@ -219,12 +229,13 @@ class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
           ),
           child: const Text(
             'REJECT',
-            style: TextStyle(color: Colors.white,fontSize: 12,fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(width: 8),
         ElevatedButton(
-          onPressed: () async{
+          onPressed: () async {
             setState(() {
               isPress = true;
             });
@@ -239,11 +250,12 @@ class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(40),
             ),
-            side: BorderSide.none, 
+            side: BorderSide.none,
           ),
           child: const Text(
             'ACCEPT',
-            style: TextStyle(color: Colors.white,fontSize: 12,fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
           ),
         ),
       ],
