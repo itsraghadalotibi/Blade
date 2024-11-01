@@ -6,11 +6,12 @@ class InvestmentRequestModel {
   final String supporterName;
   final String reasonForInterest;
   final String offer;
-  final Map<String, String> contactInfo; // Updated to support multiple types of contact information
+  final Map<String, String> contactInfo;
   final DateTime createdAt;
   final DateTime validUntil;
   final String? iconPath;
   final String status;
+  final String reasonForRejection; // New field
 
   InvestmentRequestModel({
     required this.id,
@@ -20,11 +21,12 @@ class InvestmentRequestModel {
     required this.supporterName,
     required this.reasonForInterest,
     required this.offer,
-    required this.contactInfo, // Supports storing both email and phone if available
+    required this.contactInfo,
     required this.createdAt,
     required this.validUntil,
     this.iconPath,
     this.status = "Pending",
+    this.reasonForRejection = "", // Initialize as an empty string
   });
 
   Map<String, dynamic> toMap() {
@@ -36,11 +38,12 @@ class InvestmentRequestModel {
       'supporterName': supporterName,
       'reasonForInterest': reasonForInterest,
       'offer': offer,
-      'contactInfo': contactInfo, // Serialize contactInfo map
+      'contactInfo': contactInfo,
       'createdAt': createdAt.toIso8601String(),
       'validUntil': validUntil.toIso8601String(),
       'iconPath': iconPath,
       'status': status,
+      'reasonForRejection': reasonForRejection, // Include reasonForRejection in serialization
     };
   }
 
@@ -53,11 +56,12 @@ class InvestmentRequestModel {
       supporterName: map['supporterName'] ?? '',
       reasonForInterest: map['reasonForInterest'] ?? '',
       offer: map['offer'] ?? '',
-      contactInfo: Map<String, String>.from(map['contactInfo'] ?? {}), // Deserialize contactInfo map
+      contactInfo: Map<String, String>.from(map['contactInfo'] ?? {}),
       createdAt: DateTime.parse(map['createdAt']),
       validUntil: DateTime.parse(map['validUntil']),
       iconPath: map['iconPath'],
       status: map['status'] ?? 'Pending',
+      reasonForRejection: map['reasonForRejection'] ?? "", // Initialize if not present
     );
   }
 
@@ -74,6 +78,7 @@ class InvestmentRequestModel {
     DateTime? validUntil,
     String? iconPath,
     String? status,
+    String? reasonForRejection,
   }) {
     return InvestmentRequestModel(
       id: id ?? this.id,
@@ -88,6 +93,7 @@ class InvestmentRequestModel {
       validUntil: validUntil ?? this.validUntil,
       iconPath: iconPath ?? this.iconPath,
       status: status ?? this.status,
+      reasonForRejection: reasonForRejection ?? this.reasonForRejection, // Support rejection reason in copyWith
     );
   }
 }
