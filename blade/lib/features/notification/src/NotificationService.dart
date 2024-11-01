@@ -98,8 +98,6 @@ class NotificationService {
       'read': false,
     });
 
-    // Show local notification for the target user (only if they are different from the project owner)
-    showLocalNotification(title, message);
   }
 
   // Listen to changes in the notifications collection in Firebase for real-time notifications
