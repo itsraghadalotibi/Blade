@@ -132,7 +132,7 @@ class _OffersTabState extends State<OffersTab> {
 
                         // Send Firebase notification for rejection
                         await _notificationService.createFirebaseNotification(
-                            collaborator.uid, 'rejected');
+                            collaborator.uid, 'rejected', widget.idea.id!);
 
                         setState(() {});
                       },
@@ -149,7 +149,7 @@ class _OffersTabState extends State<OffersTab> {
 
                         // Send Firebase notification for acceptance
                         await _notificationService.createFirebaseNotification(
-                            collaborator.uid, 'accepted');
+                            collaborator.uid, 'accepted', widget.idea.id!);
 
                         setState(() {});
                       },

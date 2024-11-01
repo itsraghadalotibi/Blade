@@ -84,6 +84,9 @@ flutter:
     - assets/images/on_boarding_images/developer-team.png
     - assets/images/on_boarding_images/office-workplace.png
     - assets/images/login/github.png
+
+
+  
     - assets/icons/contract.svg
     - assets/icons/money.svg
     - assets/icons/program.svg

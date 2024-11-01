@@ -255,13 +255,11 @@ class ProjectIdeaRepository {
                     .collection('posts')
                     .where('ideaId', isEqualTo: idea.id)
                     .where('upPost', isEqualTo: "0")
-                    // .orderBy("date",descending: true)
                     .snapshots()
                 : _firestore
                     .collection('posts')
-                    .where('uid', isEqualTo: uid)
+                    // .where('uid', isEqualTo: uid)
                     .where('upPost', isEqualTo: "0")
-                    // .orderBy("date",descending: true)
                     .snapshots())
         .map((p) => p.docs
             .map((doc) => PostModel.fromMap(doc.data(), doc.id))
@@ -274,7 +272,7 @@ class ProjectIdeaRepository {
                 .snapshots()
             : _firestore
                 .collection('collaborators')
-                .where('uid', isEqualTo: uid)
+                // .where('uid', isEqualTo: uid)
                 .snapshots())
         .map((snapshot) {
       return snapshot.docs
@@ -289,7 +287,7 @@ class ProjectIdeaRepository {
                 .snapshots().map((doc) => [Idea.fromMap(doc.data()!, doc.id)])
             : _firestore
                 .collection('ideas')
-                .where('members', arrayContains: uid)
+                // .where('members', arrayContains: uid)
                 .snapshots().map((snapshot) => snapshot.docs
             .map((doc) => Idea.fromMap(doc.data(), doc.id))
             .toList()));

@@ -10,14 +10,14 @@ class AnnouncementRepository {
   AnnouncementRepository();
 
   // Method to create a new Idea in Firestore with the creator as the first member
-  Future<void> createIdea(Idea idea, String creatorId) async {
+  Future<DocumentReference> createIdea(Idea idea, String creatorId) async {
     try {
       // Ensure the creator is the first member of the idea
       if (idea.members.isEmpty || idea.members[0] != creatorId) {
         idea.members.insert(0, creatorId);
       }
-      
-      await firestore.collection('ideas').add(idea.toMap());
+      // Add the new idea to the Firestore collection and return the DocumentReference
+      return await firestore.collection('ideas').add(idea.toMap());
     } catch (e) {
       throw Exception('Failed to create idea: $e');
     }
@@ -62,16 +62,18 @@ class AnnouncementRepository {
 
   // Fetch an Idea by its ID
   Future<Idea?> getIdeaById(String ideaId) async {
-    try {
-      final doc = await firestore.collection('ideas').doc(ideaId).get();
-      if (doc.exists && doc.data() != null) {
-        return Idea.fromMap(doc.data()! as Map<String, dynamic>, doc.id);
-      }
-      return null;
-    } catch (e) {
-      throw Exception('Failed to load idea: $e');
+  try {
+    final doc = await firestore.collection('ideas').doc(ideaId).get();
+    if (doc.exists && doc.data() != null) {
+      final idea = Idea.fromMap(doc.data()! as Map<String, dynamic>, doc.id);
+      print('Repo URL: ${idea.repoUrl}'); // Log the repoUrl
+      return idea;
     }
+    return null;
+  } catch (e) {
+    throw Exception('Failed to load idea: $e');
   }
+}
 
   // Delete an Idea by its ID
   Future<void> deleteIdea(String ideaId) async {
