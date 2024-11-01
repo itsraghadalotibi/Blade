@@ -33,7 +33,7 @@ class _InvestmentRequestFormScreenState
     extends State<InvestmentRequestFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _reasonController = TextEditingController();
-  final _offerController = TextEditingController();
+  final _customOfferController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   DateTime? _validUntil;
@@ -42,13 +42,25 @@ class _InvestmentRequestFormScreenState
   String? _selectedIconPath;
   bool showPhoneField = false;
   bool showEmailField = false;
+  bool showCustomOfferField = false;
 
-  final List<String> _iconPaths = [
-    'assets/icons/contract.svg',
-    'assets/icons/money.svg',
-    'assets/icons/program.svg',
-    'assets/icons/rocket.svg',
+  // Icon paths
+  final Map<String, String> _iconPaths = {
+    'Financial Investment (Cash Funding)': 'assets/icons/money.svg',
+    'Mentorship and Guidance': 'assets/icons/contract.svg',
+    'Resource Provision (Equipment or Space)': 'assets/icons/program.svg',
+    'Access to Accelerator Program': 'assets/icons/rocket.svg',
+  };
+
+  final List<String> _offerOptions = [
+    'Financial Investment (Cash Funding)',
+    'Mentorship and Guidance',
+    'Resource Provision (Equipment or Space)',
+    'Access to Accelerator Program',
+    'Other',
   ];
+
+  String? _selectedOfferOption;
 
   @override
   void initState() {
@@ -67,7 +79,7 @@ class _InvestmentRequestFormScreenState
     }
   }
 
-   Future<String> getUserName(String userId) async {
+  Future<String> getUserName(String userId) async {
     try {
       final userDoc = await FirebaseFirestore.instance
           .collection('supporters')
@@ -89,75 +101,49 @@ class _InvestmentRequestFormScreenState
   }
 
   void _submitForm() {
-  final form = _formKey.currentState;
-  
-  if (_validUntil == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Please select a validity date')),
-    );
-    return;
-  }
+    if (_formKey.currentState!.validate() && _validUntil != null) {
+      final offer = _selectedOfferOption == 'Other'
+          ? _customOfferController.text.trim()
+          : _selectedOfferOption;
 
-  if (form != null && form.validate()) {
-    // Additional validation for contact info if fields are visible
-    if (showEmailField && (_emailController.text.isEmpty || !_isValidEmail(_emailController.text))) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a valid email address')),
+      final contactInfo = {
+        if (showEmailField) 'email': _emailController.text,
+        if (showPhoneField) 'phone number': _phoneController.text,
+      };
+
+      final request = InvestmentRequestModel(
+        id: '',
+        projectId: widget.projectId,
+        projectName: widget.projectTitle,
+        supporterId: userId!,
+        supporterName: userName!,
+        reasonForInterest: _reasonController.text.trim(),
+        offer: offer!,
+        contactInfo: contactInfo,
+        createdAt: DateTime.now(),
+        validUntil: _validUntil!,
+        iconPath: _selectedIconPath ?? _iconPaths[offer]!,
       );
-      return;
-    }
-    
-    if (showPhoneField && _phoneController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a valid phone number')),
-      );
-      return;
-    }
 
-    final contactInfo = {
-      if (showEmailField) 'email': _emailController.text,
-      if (showPhoneField) 'phone number': _phoneController.text,
-    };
-
-    final request = InvestmentRequestModel(
-      id: '',
-      projectId: widget.projectId,
-      supporterId: userId!,
-      supporterName: userName!,
-      reasonForInterest: _reasonController.text.trim(),
-      offer: _offerController.text.trim(),
-      contactInfo: contactInfo,
-      createdAt: DateTime.now(),
-      validUntil: _validUntil!,
-      iconPath: _selectedIconPath,
-    );
-
-    // Navigate to review screen with the request
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BlocProvider(
-          create: (context) => InvestmentRequestBloc(
-            repository: InvestmentRequestRepository(),
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BlocProvider(
+            create: (context) => InvestmentRequestBloc(
+              repository: InvestmentRequestRepository(),
+            ),
+            child: InvestmentRequestReviewScreen(request: request),
           ),
-          child: InvestmentRequestReviewScreen(request: request),
         ),
-      ),
-    );
+      );
+    }
   }
-}
-
-// Helper function to validate email format
-bool _isValidEmail(String email) {
-  final emailRegex = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
-  return emailRegex.hasMatch(email);
-}
-
 
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDarkMode ? TColors.dark : TColors.light;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Investment Request'),
@@ -174,60 +160,126 @@ bool _isValidEmail(String email) {
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _offerController,
-                decoration:
-                          const InputDecoration(labelText: 'Offer*'),
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Please enter your offer' : null,
-              ),
-              const SizedBox(height: 16),
-              const Text('Choose an Icon',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: _iconPaths.map((iconPath) {
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedIconPath = iconPath;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: _selectedIconPath == iconPath
-                              ? Colors.blue
-                              : TColors.grey,
-                          width: _selectedIconPath == iconPath
-                              ? 3: 1,
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: SvgPicture.asset(
-                        iconPath,
-                        height: 40,
-                        width: 40,
+
+              // Offer Options Dropdown with Icons
+              DropdownButtonHideUnderline(
+                child: Container(
+                  width: MediaQuery.of(context).size.width *
+                      0.9, // Adjust width to fit within the screen
+                  child: DropdownButtonFormField<String>(
+                    isExpanded: true, // Expands the dropdown to avoid overflow
+                    dropdownColor: bgColor,
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12.0), // Adds padding around the dropdown
+                      labelText: 'Select an Offer*',
+                      
+                      border: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(12), // Adds rounded borders
                       ),
                     ),
-                  );
-                }).toList(),
+                    value: _selectedOfferOption,
+                    items: _offerOptions.map((offer) {
+                      return DropdownMenuItem(
+                        value: offer,
+                        child: Row(
+                          children: [
+                            if (offer != 'Other')
+                              SvgPicture.asset(
+                                _iconPaths[offer]!,
+                                height: 24,
+                                width: 24,
+                              ),
+                            if (offer != 'Other') const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                offer,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedOfferOption = value;
+                        showCustomOfferField = value == 'Other';
+                        _selectedIconPath = value == 'Other'
+                            ? 'assets/icons/money.svg'
+                            : _iconPaths[value];
+                      });
+                    },
+                    validator: (value) =>
+                        value == null ? 'Please select an offer' : null,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
+
+              // Custom Offer Input and Icon Selection
+              if (showCustomOfferField) ...[
+                TextFormField(
+                  controller: _customOfferController,
+                  decoration: const InputDecoration(
+                      labelText: 'Custom Offer Description'),
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Please describe your offer'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                const Text('Choose an Icon for Custom Offer',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: _iconPaths.values.map((iconPath) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedIconPath = iconPath;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: _selectedIconPath == iconPath
+                                ? Colors.blue
+                                : Colors.grey,
+                            width: _selectedIconPath == iconPath
+                              ? 3: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: SvgPicture.asset(
+                          iconPath,
+                          height: 60,
+                          width: 60,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+              const SizedBox(height: 16),
+              // Reason for Interest
               TextFormField(
                 controller: _reasonController,
                 maxLength: 300,
                 maxLines: 3,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Please enter your reason for interest' : null,
-                decoration: const InputDecoration(labelText: 'Reason for interest*'),
+                decoration:
+                    const InputDecoration(labelText: 'Reason for Interest*'),
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Please enter your reason for interest'
+                    : null,
               ),
               const SizedBox(height: 16),
-              // Date Selection Field with border
+
+              // Date Selection Field
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: TColors.grey, width: 1),
@@ -253,25 +305,27 @@ bool _isValidEmail(String email) {
                       builder: (context, child) {
                         return Theme(
                           data: Theme.of(context).copyWith(
-                            colorScheme: isDarkMode?  ColorScheme.dark(
-                              primary: Colors.blue[300]!,
-                              onPrimary: Colors.black,
-                              onSurface: Colors.white,
-                            ) : 
-                            const ColorScheme.light(
-                              primary: Colors.blue,
-                              onPrimary: Colors.white,
-                              onSurface: Colors.black,
-                            ),
+                            colorScheme: isDarkMode
+                                ? ColorScheme.dark(
+                                    primary: Colors.blue[300]!,
+                                    onPrimary: Colors.black,
+                                    onSurface: Colors.white,
+                                  )
+                                : const ColorScheme.light(
+                                    primary: Colors.blue,
+                                    onPrimary: Colors.white,
+                                    onSurface: Colors.black,
+                                  ),
                             textButtonTheme: TextButtonThemeData(
                               style: TextButton.styleFrom(
-                                textStyle: const TextStyle(fontWeight: FontWeight.w500),
-                                foregroundColor: isDarkMode? Colors.blue[200]!: Colors.blue,
+                                foregroundColor: isDarkMode
+                                    ? Colors.blue[200]!
+                                    : Colors.blue,
                               ),
                             ),
                           ),
                           child: Container(
-                            color: Colors.grey.withOpacity(0.1), // Set your desired background color here
+                            color: Colors.grey.withOpacity(0.1),
                             child: child,
                           ),
                         );
@@ -286,8 +340,9 @@ bool _isValidEmail(String email) {
                 ),
               ),
               const SizedBox(height: 16),
+
               // Contact Information Section
-              const Text('Contact Information',
+                const Text('Contact Information',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
               Row(
                 children: [

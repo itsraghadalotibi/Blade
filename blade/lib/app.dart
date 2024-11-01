@@ -6,6 +6,7 @@ import 'app_view.dart';
 import 'features/authentication/bloc/authentication_bloc.dart';
 import 'features/authentication/bloc/authentication_event.dart';
 import 'features/authentication/src/authentication_repository.dart';
+import 'features/investment_request/src/investment_request_repository.dart';
 import 'features/profile/bloc/repository/profile_repository.dart';
 
 class App extends StatelessWidget {
@@ -15,12 +16,14 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     final authenticationRepository = AuthenticationRepository();
     final profileRepository = ProfileRepository(); // Add ProfileRepository
+    final investmentRequestRepository = InvestmentRequestRepository();
 
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: authenticationRepository),
         RepositoryProvider.value(
             value: profileRepository), // Provide ProfileRepository
+        RepositoryProvider.value(value: investmentRequestRepository),
       ],
       child: BlocProvider(
         create: (context) => AuthenticationBloc(
