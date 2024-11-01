@@ -157,7 +157,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   CircleAvatar(
                     radius: 70,
                     backgroundImage: profile.profilePhotoUrl != null &&
@@ -166,7 +166,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                         : const AssetImage('assets/images/user.png')
                             as ImageProvider,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
 // Name and Social Icons Section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -179,7 +179,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(width: 8), // Space between name and icons
+                      const SizedBox(width: 3), // Space between name and icons
 
                       // Social Media Links (GitHub and LinkedIn) next to the name
                       Row(
@@ -194,6 +194,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                   ? TColors.primary
                                   : Colors.grey,
                             ),
+                            padding: EdgeInsets.zero, // Remove default padding
                             onPressed: () async {
                               final githubUrl =
                                   profile.socialMediaLinks?['GitHub'];
@@ -206,7 +207,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             },
                           ),
                           const SizedBox(
-                              width: 4), // Reduce the width between icons here
+                              width: 0), // Reduce the width between icons here
 
                           // LinkedIn Icon
                           IconButton(
@@ -218,6 +219,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                   ? TColors.primary
                                   : Colors.grey,
                             ),
+                            padding: EdgeInsets.zero, // Remove default padding
                             onPressed: () async {
                               final linkedinUrl =
                                   profile.socialMediaLinks?['LinkedIn'];
@@ -243,7 +245,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24), // Add horizontal padding
                       child: SizedBox(
-                        height: 80,
+                        height: 50,
                         child: SingleChildScrollView(
                           child: Wrap(
                             spacing: 8.0,
@@ -256,7 +258,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                       ),
                     ),
 
-                  const SizedBox(height: 16),
+                  // const SizedBox(height: 10),
 
                   // About Section with Show More/Show Less
                   Padding(
@@ -265,10 +267,14 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'About',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                        Center(
+                          child: const Text(
+                            'About',
+                            style: TextStyle(
+                              fontSize: 18, 
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 8),
                         LayoutBuilder(
@@ -289,15 +295,18 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             final exceedsMaxLines = tp.didExceedMaxLines;
 
                             return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center, // Centering the entire content horizontally
                               children: [
-                                Text(
-                                  profile.bio ?? 'No bio available',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                  maxLines: isBioExpanded ? null : maxBioLines,
-                                  overflow: isBioExpanded
-                                      ? TextOverflow.visible
-                                      : TextOverflow.ellipsis,
+                                Center( // Centering the bio text
+                                  child: Text(
+                                    profile.bio ?? 'No bio available',
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                    maxLines: isBioExpanded ? null : maxBioLines,
+                                    overflow: isBioExpanded
+                                        ? TextOverflow.visible
+                                        : TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center, // Ensure text itself is centered within the Text widget
+                                  ),
                                 ),
                                 if (exceedsMaxLines)
                                   GestureDetector(
@@ -308,8 +317,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                     },
                                     child: Text(
                                       isBioExpanded ? 'Show less' : 'Show more',
-                                      style:
-                                          const TextStyle(color: TColors.info),
+                                      style: const TextStyle(color: TColors.info),
+                                      textAlign: TextAlign.center, // Center the "Show more" text
                                     ),
                                   ),
                               ],
@@ -348,11 +357,21 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           child: TabBarView(
             controller: _tabController,
             children: [
-              buildProjectTab("open"), // Open ideas where user is the owner
-              buildProjectTab(
-                  "ongoing"), // Ongoing projects where user is a member or owner
-              buildProjectTab(
-                  "completed"), // Completed projects where user is a member or owner
+              buildProjectTab("open", LinearGradient(
+              colors: [Color.fromARGB(255, 120, 215, 219), Color.fromARGB(255, 12, 107, 89)], // Example gradient with #e0fbfc and another color
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )),
+              buildProjectTab("ongoing", LinearGradient(
+                colors: [Color.fromARGB(255, 14, 97, 176), Color.fromARGB(255, 69, 142, 187)], // Gradient for Ideas tab
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )),
+              buildProjectTab("completed", LinearGradient(
+                colors: [Color(0xFFFD5336), Color.fromARGB(255, 237, 122, 70)], // Gradient for Completed tab
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )),
             ],
           ),
         ),
@@ -360,11 +379,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     );
   }
 
-
-  Widget buildProjectTab(String status) {
+  Widget buildProjectTab(String status, Gradient cardGradient) {
     return FutureBuilder<List<Idea>>(
-      future: _projectIdeaRepository.fetchIdeasByOwner(
-          widget.userId, status),
+      future: _projectIdeaRepository.fetchIdeasByOwner(widget.userId, status),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -390,12 +407,13 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           itemBuilder: (context, index) {
             final project = projects[index];
             return ProjectIdeaCardWidget(
-             refreshIdeasInProfile: () {
-        context.read<ProfileViewBloc>().add(LoadProfile(widget.userId));
-      },
               idea: project,
               announcementRepository: _announcementRepository,
               repository: _projectIdeaRepository,
+              refreshIdeasInProfile: () {
+                context.read<ProfileViewBloc>().add(LoadProfile(widget.userId));
+              },
+              cardGradient: cardGradient, // Pass the gradient to the card
             );
           },
         );

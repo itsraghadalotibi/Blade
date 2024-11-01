@@ -1,6 +1,8 @@
 import 'package:blade_app/features/announcement/bloc/announcement_bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../investment_request/screens/investment_request_form.dart';
 import '../../project_info/screens/project_screen.dart';
 import '../src/announcement_model.dart';
 import '../src/announcement_repository.dart';
@@ -30,14 +32,39 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
   bool exceedsMaxLines = false;
   String? currentUserId;
   bool isJoinPending = false;
+  String? userType; 
 
   @override
   void initState() {
     super.initState();
     currentUserId = FirebaseAuth.instance.currentUser?.uid;
+     if (currentUserId != null) {
+      _fetchUserType(); // Fetch user type
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkTextOverflow();
     });
+  }
+  // Function to fetch the user type (collaborator or supporter)
+  void _fetchUserType() async {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('collaborators')
+          .doc(currentUserId)
+          .get();
+      if (userDoc.exists) {
+        setState(() {
+          userType = 'collaborator'; // Assuming 'type' field exists
+        });
+      }
+      else{
+        setState(() {
+          userType = 'supporter'; // Assuming 'type' field exists
+        });
+      }
+    } catch (e) {
+      print('Error fetching user type: $e');
+    }
   }
 
   void _checkTextOverflow() {
@@ -143,6 +170,17 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
       );
     }
   }
+  void _handleSendInvestment() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => InvestmentRequestFormScreen(
+        projectId: widget.idea.id!,
+        projectTitle: widget.idea.title,
+      ),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -304,28 +342,50 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                   ),
                   SizedBox(height: screenHeight * 0.005),
 
-                  // Join button
-                  if (canJoin)
-                    Center(
-                      child: Container(
-                        width: screenWidth * 0.4,
-                        height: screenHeight * 0.05,
-                        decoration: BoxDecoration(
-                          color: TColors.primary, // Reduced opacity for disabled look
-                          borderRadius: BorderRadius.circular(48),
-                        ),
-                        child: ElevatedButton(
-                          onPressed: _handleJoinRequest,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isJoinPending
-                                ? Colors.grey // Grey color for waiting status
-                                : TColors.primary, // Regular color for join button
-                            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                   // Conditional Button based on userType
+                  if (userType != null) // Only show button after userType is fetched
+                    if (userType == 'collaborator' && canJoin)
+                      // Show Join button for collaborators
+                      Center(
+                        child: Container(
+                          width: screenWidth * 0.4,
+                          height: screenHeight * 0.05,
+                          decoration: BoxDecoration(
+                            color: TColors.primary,
+                            borderRadius: BorderRadius.circular(48),
                           ),
-                          child: Text(isJoinPending ? 'Waiting' : 'Join'),
+                          child: ElevatedButton(
+                            onPressed: _handleJoinRequest,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isJoinPending
+                                  ? Colors.grey // Grey color for waiting status
+                                  : TColors.primary, // Regular color for join button
+                              padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                            ),
+                            child: Text(isJoinPending ? 'Waiting' : 'Join'),
+                          ),
+                        ),
+                      )
+                    else if (userType == 'supporter')
+                      // Show Send Investment button for supporters
+                      Center(
+                        child: Container(
+                          width: screenWidth * 0.6,
+                          height: screenHeight * 0.05,
+                          decoration: BoxDecoration(
+                            color: TColors.primary,
+                            borderRadius: BorderRadius.circular(48),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: _handleSendInvestment,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: TColors.primary,
+                              padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                            ),
+                            child: const Text('Send Investment'),
+                          ),
                         ),
                       ),
-                    ),
                 ],
               ),
             ),

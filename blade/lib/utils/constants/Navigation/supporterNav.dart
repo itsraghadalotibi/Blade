@@ -11,6 +11,9 @@ import 'package:blade_app/features/profile/bloc/repository/profile_repository.da
 import 'package:blade_app/features/profile/bloc/screens/supporter_profile_screen.dart';
 import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
 
+import '../../../features/announcement/screens/announcement_screen.dart';
+import '../../../features/announcement/src/announcement_repository.dart';
+
 class SupporterNavigation extends StatefulWidget {
   const SupporterNavigation({super.key});
 
@@ -21,33 +24,43 @@ class SupporterNavigation extends StatefulWidget {
 class _SupporterNavigationState extends State<SupporterNavigation> {
   int currentTap = 0;
   final PageStorageBucket bucket = PageStorageBucket();
-  Widget currentScreen =  HomeScreen(); // Initial screen is the home screen
+  Widget currentScreen = HomeScreen(); // Initial screen is the home screen
 
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: PageStorage(bucket: bucket, child: currentScreen),
+      body: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+        builder: (context, state) {
+          if (state is AuthenticationLoading) {
+            // Show loading indicator while determining the authentication status
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is AuthenticationUnauthenticated) {
+            // Show a placeholder if unauthenticated
+            return Center(child: Text("Please log in to access this feature."));
+          } else {
+            // If authenticated or after loading, show the selected screen
+            return PageStorage(bucket: bucket, child: currentScreen);
+          }
+        },
+      ),
       bottomNavigationBar: BottomAppBar(
         color: isDarkMode ? Colors.black : Colors.white,
         shape: const CircularNotchedRectangle(),
         notchMargin: 6,
         height: 50,
         child: Row(
-          mainAxisAlignment:
-              MainAxisAlignment.spaceEvenly, // Evenly distribute the icons
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             Expanded(
               child: IconButton(
                 iconSize: 30,
                 icon: Icon(
                   Icons.home,
-                  color:
-                      currentTap == 0 ? const Color(0xFFFD5336) : Colors.grey,
+                  color: currentTap == 0 ? const Color(0xFFFD5336) : Colors.grey,
                 ),
                 onPressed: () {
-                  // Set the home page as the current screen when Home icon is clicked
                   setState(() {
                     currentScreen = HomeScreen();
                     currentTap = 0;
@@ -60,15 +73,19 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
                 iconSize: 30,
                 icon: Icon(
                   Icons.notifications,
-                  color:
-                      currentTap == 1 ? const Color(0xFFFD5336) : Colors.grey,
+                  color: currentTap == 1 ? const Color(0xFFFD5336) : Colors.grey,
                 ),
                 onPressed: () {
-                  // Navigate to the settings screen when the Notifications icon is clicked
-                  setState(() {
-                    currentScreen = const settings.Settings();
-                    currentTap = 1;
-                  });
+                  final state = context.read<AuthenticationBloc>().state;
+                  _handleAuthenticatedNavigation(
+                    context,
+                    state,
+                    () => AnnouncementScreen(
+                      repository: AnnouncementRepository(),
+                      currentUserId: (state as AuthenticationAuthenticated).user.uid,
+                    ),
+                    1,
+                  );
                 },
               ),
             ),
@@ -77,42 +94,31 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
                 iconSize: 30,
                 icon: Icon(
                   Icons.person,
-                  color:
-                      currentTap == 2 ? const Color(0xFFFD5336) : Colors.grey,
+                  color: currentTap == 2 ? const Color(0xFFFD5336) : Colors.grey,
                 ),
                 onPressed: () {
                   final state = context.read<AuthenticationBloc>().state;
-                  if (state is AuthenticationAuthenticated) {
-                    final user = state.user;
-
-                    if (user is SupporterModel) {
-                      setState(() {
-                        // Navigate to the profile screen if the user is authenticated
-                        currentScreen = MultiProvider(
-                          providers: [
-                            RepositoryProvider.value(
-                              value: context.read<ProfileRepository>(),
-                            ),
-                            BlocProvider(
-                              create: (context) => ProfileViewBloc(
-                                profileRepository:
-                                    context.read<ProfileRepository>(),
-                              )..add(LoadProfile(user.uid)),
-                            ),
-                          ],
-                          child: SupporterProfileScreen(userId: user.uid),
-                        );
-                        currentTap = 2;
-                      });
-                    }
-                  } else {
-                    // Show a snack bar if the user is not authenticated
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("User not authenticated"),
-                      ),
-                    );
-                  }
+                  _handleAuthenticatedNavigation(
+                    context,
+                    state,
+                    () {
+                      final user = (state as AuthenticationAuthenticated).user;
+                      return MultiProvider(
+                        providers: [
+                          RepositoryProvider.value(
+                            value: context.read<ProfileRepository>(),
+                          ),
+                          BlocProvider(
+                            create: (context) => ProfileViewBloc(
+                              profileRepository: context.read<ProfileRepository>(),
+                            )..add(LoadProfile(user.uid)),
+                          ),
+                        ],
+                        child: SupporterProfileScreen(userId: user.uid),
+                      );
+                    },
+                    2,
+                  );
                 },
               ),
             ),
@@ -120,5 +126,19 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
         ),
       ),
     );
+  }
+
+  void _handleAuthenticatedNavigation(
+      BuildContext context, AuthenticationState state, Widget Function() screenBuilder, int tab) {
+    if (state is AuthenticationAuthenticated) {
+      setState(() {
+        currentScreen = screenBuilder();
+        currentTap = tab;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User not authenticated")),
+      );
+    }
   }
 }

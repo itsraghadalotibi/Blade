@@ -376,7 +376,7 @@ class _ReplayWidgetState extends State<ReplayWidget> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(15),
                           child: widget.image == null ? 
-                          IconButton(onPressed: pickImage, icon: const Icon(Icons.image_outlined,color: Colors.white,)):
+                          IconButton(onPressed: pickImage, icon: const Icon(Icons.image_outlined,)):
                             Image.file(widget.image!,errorBuilder: (context, error, stackTrace) => const SizedBox(),)),
                         if(widget.image != null)
                         Positioned(top:-10,left: -10, child: IconButton(onPressed: (){
