@@ -95,9 +95,10 @@ class CollaboratorHomeScreen extends StatelessWidget {
           centerTitle: true,
           automaticallyImplyLeading: false,
           leading: IconButton(
-              icon: const Icon(Icons.bookmarks),
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const PostBookmarks())),
-            ),
+            icon: const Icon(Icons.bookmarks),
+            onPressed: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (context) => const PostBookmarks())),
+          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -105,17 +106,154 @@ class CollaboratorHomeScreen extends StatelessWidget {
             ),
           ],
         ),
-        body: Center(
-          child: BlocBuilder<AuthenticationBloc, AuthenticationState>(
-            builder: (context, state) {
-              if (state is AuthenticationAuthenticated &&
-                  state.user is CollaboratorModel) {
-                return const PostsTab();
-              } else {
-                return const CircularProgressIndicator();
-              }
-            },
-          ),
+        body: Column(
+          children: [
+            // Reward Points Container
+            Container(
+              padding: const EdgeInsets.all(20.0),
+              margin: const EdgeInsets.all(20.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.star, color: Colors.amber, size: 30),
+                      SizedBox(width: 10),
+                      Text(
+                        "Monthly Challenge",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "500 Points", // Example points; replace with dynamic data if needed
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Row for Activity and How to Earn Containers
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Activity Container
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(20.0),
+                      margin: const EdgeInsets.only(right: 10.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.leaderboard_rounded, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text(
+                            "Leaderboard",
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // How to Earn Container
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HowToEarnPage(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20.0),
+                        margin: const EdgeInsets.only(left: 10.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.local_fire_department, color: Colors.purple),
+                            SizedBox(width: 8),
+                            Text(
+                              "How to Earn",
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Center Content for Posts
+            Expanded(
+              child: Center(
+                child: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+                  builder: (context, state) {
+                    if (state is AuthenticationAuthenticated &&
+                        state.user is CollaboratorModel) {
+                      return const PostsTab();
+                    } else {
+                      return const CircularProgressIndicator();
+                    }
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
