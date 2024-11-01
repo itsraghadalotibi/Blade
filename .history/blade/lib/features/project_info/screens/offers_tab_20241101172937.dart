@@ -203,7 +203,6 @@ class AcceptRejectButtons extends StatefulWidget {
 
 class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
   bool isPress = false;
-
   @override
   Widget build(BuildContext context) {
     if (isPress) return const SizedBox();
@@ -241,17 +240,13 @@ class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
         const SizedBox(width: 8),
         ElevatedButton(
           onPressed: () async {
-            if (mounted) {
-              setState(() {
-                isPress = true;
-              });
-            }
+            setState(() {
+              isPress = true;
+            });
             await widget.onAccept();
-            if (mounted) {
-              setState(() {
-                isPress = false;
-              });
-            }
+            setState(() {
+              isPress = false;
+            });
           },
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.all(10),
