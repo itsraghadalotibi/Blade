@@ -327,44 +327,4 @@ Stream<List<Idea>> streamIdeas(String currentUserId) {
       throw Exception('Failed to reject join request.');
     }
   }
-
-  // Fetch all collaborators by idea members
-  Future<List<Collaborator>?> fetchIdeaCollaborators(Idea idea) async {
-    try {
-      List<Collaborator> result = [];
-      final snapshot = await firestore
-          .collection('collaborators')
-          .where('uid', whereIn: idea.members)
-          .get();
-      for (var i = 0; i < snapshot.docs.length; i++) {
-        print(snapshot.docs[i].data());
-        result.add(Collaborator.fromMap(snapshot.docs[i].data()));
-      }
-      return result;
-    } catch (e) {
-      throw Exception('Failed to load collaborators: $e');
-    }
-  }
-
-  // Fetch all posts by ideaId
-  Future<List<PostModel>?> fetchPosts(String ideaId) async {
-    try {
-      List<PostModel> result = [];
-      final snapshot = await firestore
-          .collection('posts')
-          .where('ideaId', isEqualTo: ideaId)
-          // .orderBy("date",descending: true)
-          .get();
-      snapshot.docs.sort((a, b) => a.data()["date"].toString().compareTo(b.data()["date"].toString()),);
-      for (var i = 0; i < snapshot.docs.length; i++) {
-        print(snapshot.docs[i].data());
-        result.add(PostModel.fromMap(snapshot.docs[i].data(),snapshot.docs[i].id));
-      }
-      return result;
-    } catch (e) {
-      throw Exception('Failed to load posts: $e');
-    }
-  }
-
-
 }
