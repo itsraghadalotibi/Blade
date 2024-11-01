@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import '../../../investment_request/bloc/investment_request_bloc.dart';
+import '../../../investment_request/screens/requests_tab.dart';
+import '../../../investment_request/src/investment_request_repository.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
 import '../bloc/profile_view_state.dart';
@@ -8,245 +12,170 @@ import '../src/supporter_profile_model.dart';
 import 'edit_supporter_profile_screen.dart';
 import '../bloc/edit_supporter_profile_bloc.dart'; // Import EditSupporterProfileBloc
 import '../repository/profile_repository.dart'; // Import ProfileRepository
-
 class SupporterProfileScreen extends StatefulWidget {
   final String userId;
   final bool showBackButton;
 
   const SupporterProfileScreen({
-    super.key,
+    Key? key,
     required this.userId,
     this.showBackButton = false,
-  });
+  }) : super(key: key);
 
   @override
   _SupporterProfileScreenState createState() => _SupporterProfileScreenState();
 }
 
-class _SupporterProfileScreenState extends State<SupporterProfileScreen> {
+class _SupporterProfileScreenState extends State<SupporterProfileScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   String? _currentUserId;
   SupporterProfileModel? _updatedProfile;
-
-  // State variables to control bio expansion and line limits
-  bool isBioExpanded =
-      false; // To control the expanded/collapsed state of the bio
-  static const int maxBioLines = 3; // Show only 3 lines of bio initially
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this); // Two tabs: Investing and Invested
     _currentUserId = FirebaseAuth.instance.currentUser?.uid;
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final bool isOwner = _currentUserId == widget.userId;
 
-    return BlocProvider(
-      create: (context) => ProfileViewBloc(profileRepository: context.read())
-        ..add(LoadProfile(widget.userId)),
+    return MultiProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => ProfileViewBloc(
+            profileRepository: context.read<ProfileRepository>(),
+          )..add(LoadProfile(widget.userId)),
+        ),
+        BlocProvider(
+          create: (context) => InvestmentRequestBloc(
+            repository: context.read<InvestmentRequestRepository>(),
+          ),
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Profile'),
-          centerTitle: true,
           automaticallyImplyLeading: widget.showBackButton,
-          actions: isOwner
-              ? [
-                  BlocBuilder<ProfileViewBloc, ProfileViewState>(
-                    builder: (context, state) {
-                      bool isProfileLoaded = state is ProfileLoaded &&
-                          state.profile is SupporterProfileModel;
-                      return IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: isProfileLoaded
-                            ? () async {
-                                final supporterProfile =
-                                    state.profile as SupporterProfileModel;
-
-                                // Navigate to the edit screen and await the result
-                                final updatedProfile = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => BlocProvider(
-                                      create: (context) =>
-                                          EditSupporterProfileBloc(
-                                        profileRepository:
-                                            context.read<ProfileRepository>(),
-                                      ),
-                                      child: EditSupporterProfileScreen(
-                                        profile: supporterProfile,
-                                      ),
-                                    ),
-                                  ),
-                                );
-
-                                // If an updated profile is returned, refresh the profile screen
-                                if (updatedProfile != null &&
-                                    updatedProfile is SupporterProfileModel) {
-                                  setState(() {
-                                    _updatedProfile = updatedProfile;
-                                  });
-                                  context
-                                      .read<ProfileViewBloc>()
-                                      .add(LoadProfile(widget.userId));
-                                }
-                              }
-                            : null, // Disable the button until profile is loaded
-                      );
-                    },
-                  ),
-                ]
-              : null,
+          actions: isOwner ? [_buildEditButton(context)] : null,
         ),
-        body: BlocBuilder<ProfileViewBloc, ProfileViewState>(
-          builder: (context, state) {
-            final profile = _updatedProfile ??
-                (state is ProfileLoaded &&
-                        state.profile is SupporterProfileModel
-                    ? state.profile as SupporterProfileModel
-                    : null);
-
-            if (profile != null) {
-              return _buildProfile(profile);
-            } else if (state is ProfileLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is ProfileError) {
-              return Center(child: Text('Error: ${state.message}'));
-            }
-            return const Center(child: Text('Unable to load profile.'));
-          },
-        ),
+        body: _buildProfileContent(),
       ),
+    );
+  }
+
+  IconButton _buildEditButton(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.edit),
+      onPressed: () async {
+        final state = BlocProvider.of<ProfileViewBloc>(context).state;
+        if (state is ProfileLoaded && state.profile is SupporterProfileModel) {
+          final profile = _updatedProfile ?? state.profile as SupporterProfileModel;
+          final updatedProfile = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BlocProvider(
+                create: (context) => EditSupporterProfileBloc(
+                  profileRepository: context.read(),
+                ),
+                child: EditSupporterProfileScreen(profile: profile),
+              ),
+            ),
+          );
+
+          if (updatedProfile != null && updatedProfile is SupporterProfileModel) {
+            setState(() {
+              _updatedProfile = updatedProfile;
+            });
+            context.read<ProfileViewBloc>().add(LoadProfile(widget.userId));
+          }
+        }
+      },
+    );
+  }
+
+  Widget _buildProfileContent() {
+    return BlocBuilder<ProfileViewBloc, ProfileViewState>(
+      builder: (context, state) {
+        final profile = _updatedProfile ??
+            (state is ProfileLoaded && state.profile is SupporterProfileModel
+                ? state.profile as SupporterProfileModel
+                : null);
+
+        if (profile != null) {
+          return _buildProfile(profile);
+        } else if (state is ProfileLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is ProfileError) {
+          return Center(child: Text('Error: ${state.message}'));
+        }
+        return const Center(child: Text('Unable to load profile.'));
+      },
     );
   }
 
   Widget _buildProfile(SupporterProfileModel profile) {
-    return DefaultTabController(
-      length: 2, // Number of tabs (Investments and Completed)
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 16), // Space above the avatar
-            CircleAvatar(
-              radius: 70,
-              backgroundImage: profile.profilePhotoUrl != null
-                  ? NetworkImage(profile.profilePhotoUrl!)
-                  : const AssetImage('assets/images/user.png') as ImageProvider,
+    return NestedScrollView(
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                CircleAvatar(
+                  radius: 70,
+                  backgroundImage: profile.profilePhotoUrl != null
+                      ? NetworkImage(profile.profilePhotoUrl!)
+                      : const AssetImage('assets/images/user.png') as ImageProvider,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '${profile.firstName} ${profile.lastName}',
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  profile.bio ?? 'No bio available',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+              ],
             ),
-            const SizedBox(height: 16), // Spacing between image and name
-            Text(
-              _limitText('${profile.firstName} ${profile.lastName}',
-                  20), // Limiting to 20 characters
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis, // Ellipsis for overflow
-            ),
-            const SizedBox(height: 8), // Spacing between name and "About"
-            Text(
-              'About',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700, // Dynamic color based on theme
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8), // Spacing between "About" and bio
-
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0), // Adding left and right padding
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // Measure if the bio text exceeds the max lines
-                  final span = TextSpan(
-                    text: profile.bio ?? 'No bio available',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  );
-
-                  final tp = TextPainter(
-                    text: span,
-                    maxLines: maxBioLines,
-                    textAlign: TextAlign.left,
-                    textDirection: TextDirection.ltr,
-                  );
-
-                  tp.layout(maxWidth: constraints.maxWidth);
-                  final exceedsMaxLines = tp.didExceedMaxLines;
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        profile.bio ?? 'No bio available',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        maxLines: isBioExpanded ? null : maxBioLines,
-                        overflow: isBioExpanded
-                            ? TextOverflow.visible
-                            : TextOverflow.ellipsis,
-                      ),
-                      if (exceedsMaxLines)
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isBioExpanded =
-                                  !isBioExpanded; // Toggle expand/collapse
-                            });
-                          },
-                          child: Text(
-                            isBioExpanded ? 'Show less' : 'Show more',
-                            style: const TextStyle(
-                              color: Colors.blue, // Add a link-style color
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 24), // Add space before the TabBar
-            _buildTabBarSection(), // Add TabBar for Investments and Completed
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabBarSection() {
-    return Column(
-      children: [
-        TabBar(
-          indicatorColor: Theme.of(context).primaryColor,
-          labelColor: Theme.of(context).primaryColor,
-          unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
-          tabs: const [
-            Tab(text: 'investing'),
-            Tab(text: 'invested'),
-          ],
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 200, // Set the height for TabBarView
-          child: TabBarView(
-            children: [
-              const Center(child: Text('No investments yet.')),
-              const Center(child: Text('No completed projects yet.')),
+          ),
+        ];
+      },
+      body: Column(
+        children: [
+          TabBar(
+            controller: _tabController,
+            indicatorColor: Theme.of(context).primaryColor,
+            labelColor: Theme.of(context).primaryColor,
+            unselectedLabelColor: Theme.of(context).textTheme.bodyLarge?.color,
+            tabs: const [
+              Tab(text: 'My requests'),
+              Tab(text: 'Invested'),
             ],
           ),
-        ),
-      ],
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                OffersTab(supporterId: widget.userId),
+                const Center(child: Text('No completed projects yet.')),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
-  }
-
-  // Utility to limit text length for names, etc.
-  String _limitText(String text, int maxLength) {
-    if (text.length <= maxLength) {
-      return text;
-    }
-    return text.substring(0, maxLength) + '...';
   }
 }

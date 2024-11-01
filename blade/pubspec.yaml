@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter # Declares dependency on the Flutter SDK
+  flutter_local_notifications: ^13.0.0
   http: ^1.2.2 #Updated http version
   cupertino_icons: ^1.0.6
   uuid: ^4.5.0
@@ -22,8 +23,6 @@ dependencies:
   chips_choice_null_safety: ^2.0.6
   easy_stepper: ^0.8.5+1 # Use the suggested version
   flutter_spinkit: ^5.1.0
-
-
 
   url_launcher: ^6.3.0
   get: ^4.6.6
@@ -45,8 +44,9 @@ dependencies:
   flutter_web_auth: ^0.5.0
   webview_flutter: ^4.10.0
   rxdart: ^0.28.0
-
-
+  flutter_svg: ^2.0.10+1
+  intl_phone_field: ^3.2.0
+  timeago_flutter: ^3.7.0
 
 dev_dependencies:
   flutter_test:
@@ -87,3 +87,7 @@ flutter:
 
 
   
+    - assets/icons/contract.svg
+    - assets/icons/money.svg
+    - assets/icons/program.svg
+    - assets/icons/rocket.svg

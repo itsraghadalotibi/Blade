@@ -1,40 +1,47 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:blade_app/features/announcement/src/announcement_model.dart';
-import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
+import 'package:blade_app/features/profile/bloc/repository/project_idea_repository.dart';
+import 'package:blade_app/features/project_info/screens/new_post.dart';
+import 'package:blade_app/features/project_info/screens/post_card_widget.dart';
+import 'package:blade_app/features/project_info/screens/post_comments.dart';
 import 'package:blade_app/features/project_info/src/post_model.dart';
 import 'package:blade_app/utils/constants/colors.dart';
-import 'package:blade_app/utils/constants/sizes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:timeago_flutter/timeago_flutter.dart' as timeago;
 
 import '../../announcement/src/announcement_repository.dart';
 
 class PostsTab extends StatefulWidget {
   final Idea? idea;
-  final AnnouncementRepository repository;
-  final Function(String) showSnakbar;
+  final bool getBookMarks;
 
-  const PostsTab({super.key, required this.idea, required this.repository, required this.showSnakbar});
+  const PostsTab({super.key, this.idea,this.getBookMarks = false});
 
   @override
   State<PostsTab> createState() => _PostsTabState();
 }
 
 class _PostsTabState extends State<PostsTab> {
-  Future<List<PostModel>>? futrueMembers;
+  late ProjectIdeaRepository projectIdeaRepository;
+  late AnnouncementRepository repository;
   @override
   void initState() {
     super.initState();
-    futrueMembers = _fetchPostModels();
+    projectIdeaRepository = ProjectIdeaRepository();
+    repository = AnnouncementRepository();
+    timeago.setLocaleMessages('en', MyCustomMessages());
   }
 
   @override
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    String? uid = FirebaseAuth.instance.currentUser?.uid;
 
-    return FutureBuilder<List<PostModel>>(
-      future: _fetchPostModels(),
+    // return FutureBuilder<List<PostModel>>(
+      // future: _fetchPostModels(),
+    return StreamBuilder<List<PostModel>>(
+      stream: widget.getBookMarks ? projectIdeaRepository.streamBookmarksPosts(uid) : projectIdeaRepository.streamPosts(widget.idea, uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -52,12 +59,12 @@ class _PostsTabState extends State<PostsTab> {
           itemBuilder: (context, index) {
             final post = posts[index];
 
-            final isPostOwner = post.uid == FirebaseAuth.instance.currentUser?.uid;
+            final isPostOwner = post.uid == uid;
 
             return Container(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 decoration: BoxDecoration(
-                  color: isDarkMode ? Colors.grey[850] : TColors.white,
+                  color: isDarkMode ? Colors.grey[990] : TColors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: isDarkMode
                       ? null
@@ -65,22 +72,32 @@ class _PostsTabState extends State<PostsTab> {
                           color: const Color.fromARGB(255, 238, 238, 238)),
                 ),
                 child: PostWidget(
+                  projectRepository: projectIdeaRepository,
+                  uid: uid,
+                  upPosts: const [],
+                  withLine: false,
+                  onNaviagte: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>PostComments(upPosts: [post.id!], upPost: post)));
+                  },
                   onEditPost: ()async{
-                    addUpdatePostDialog(context: context, post: post, isDarkMode: isDarkMode,buttonText: "Save changes", onPressed: (post)async{
-                      await widget.repository.updatePost(post);
-                      setState(() {});
-                      widget.showSnakbar('Post updated successfully.');
-                    });
+                    var res = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => NewPost(post: post,)),
+                    );
+                    if(res != null && res == "DONE"){
+                      // setState(() {});
+                      showSnakbar( icon: Icons.check, color: TColors.success, title: 'Post updated Succesfully.');
+                    }
                   },
                   onDeletePost: (){
                     showDialog(
                       context: context, 
                       builder: (context){
-                        return DelteeDialog(onPressed: ()async{
+                        return DeleteDialog(onPressed: ()async{
                           Navigator.pop(context);
-                          await widget.repository.deletePost(post.id!);
-                          setState(() {});
-                          widget.showSnakbar('Post deleted successfully.');
+                          await projectIdeaRepository.deletePost(post,[]);
+                          // setState(() {});
+                          showSnakbar( icon: Icons.check, color: TColors.success, title: 'Post deleted successfully.');
                         });
                       }
                     );
@@ -88,271 +105,69 @@ class _PostsTabState extends State<PostsTab> {
                   post: post, isDarkMode: isDarkMode, isPostOwner: isPostOwner,));
           },
           separatorBuilder: (context, index) {
-            return const SizedBox(height: 10);
+            return const Divider(height: 15,);
           },
         );
       },
     );
   }
+  showSnakbar(
+    {
+    required IconData icon,
+    required Color color,
+    required String title}) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      backgroundColor: color, // Success background color
+      behavior: SnackBarBehavior.floating,
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Icon(
+            icon, // Success icon
+            color: Colors.white,
+          ),
+          const SizedBox(width: 8), // Space between icon and text
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 16, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      duration: const Duration(seconds: 3),
+    ),
+  );
+}
+
 
   // Fetch posts with users
-  Future<List<PostModel>> _fetchPostModels() async {
-    List<PostModel>? posts = await widget.repository.fetchPosts(widget.idea!.id!);
-    final collaborators = await widget.repository.fetchIdeaCollaborators(widget.idea!);
+  Future<List<PostModel>> fetchPostModels() async {
+    String? uid = FirebaseAuth.instance.currentUser?.uid;
+    List<PostModel>? posts = await projectIdeaRepository.fetchPosts(widget.idea?.id,uid);
+    List<Collaborator?>? collaborators = [];
+    if(widget.idea != null){
+      collaborators = await projectIdeaRepository.fetchIdeaCollaborators(widget.idea!);
+    }else{
+      collaborators.add(await repository.fetchCollaborator(uid!));
+    }
     for (var i = 0; i < posts!.length; i++) {
-      posts[i].user = collaborators?.firstWhere((c)=>c.uid == posts[i].uid);
+      posts[i].user = collaborators?.firstWhere((c)=>c?.uid == posts[i].uid);
     }
     return posts;
   }
 }
 
-addUpdatePostDialog({required BuildContext context, required PostModel post,required bool isDarkMode,required Function(PostModel) onPressed,required String buttonText}){
-  showDialog(
-    context: context, 
-    builder: (context){
-      return AddUpdateDialog(
-        title: buttonText == "Save changes" ? "Edit post" : "New post",
-        isDarkMode: isDarkMode, post: post, onPressed: onPressed, buttonText: buttonText);
-    }
-  );
-}
-class PostWidget extends StatelessWidget {
-  final PostModel post;
-  final bool isDarkMode;
-  final bool isPostOwner;
-  final Function() onEditPost;
-  final Function() onDeletePost;
-  const PostWidget({
-    super.key,
-    required this.post, required this.isDarkMode, required this.isPostOwner, required this.onEditPost, required this.onDeletePost,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            onTap: (){
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CollaboratorProfileScreen(
-                    userId: post.user!.uid,
-                    showBackButton: true,
-                  ),
-                ),
-              );
-            },
-            child: CircleAvatar(
-              radius: 30,
-              backgroundImage: post.user?.profilePhotoUrl != null &&
-                      post.user!.profilePhotoUrl.isNotEmpty
-                  ? NetworkImage(post.user!.profilePhotoUrl)
-                  : const AssetImage('assets/images/content/user.png')
-                      as ImageProvider,
-            ),
-          ),
-          const SizedBox(
-            width: 16,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${post.user?.firstName ?? ""} ${post.user?.lastName ?? ""}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
-                    fontSize: 18,
-                  ),
-                ),
-                const SizedBox(height: 5,),
-                Text(
-                  post.messgae ?? "",
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white70 : Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 8,),
-                Text(
-                  DateFormat("yyyy-MM-dd").format(post.date!),
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white70 : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        if(isPostOwner)
-          PopupMenuButton(
-            onSelected: (v)async{
-              if(v==0){
-                await onEditPost();
-              }
-              if(v==1){
-                await onDeletePost();
-              }
-            },
-            itemBuilder: (context) {
-              return const[
-                PopupMenuItem(
-                  value: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Edit',
-                        style: TextStyle(color: Colors.white,fontSize: 12,fontWeight: FontWeight.bold),
-                      ),
-                      Icon(Icons.edit)
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 1,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.red,fontSize: 12,fontWeight: FontWeight.bold),
-                      ),
-                      Icon(Icons.delete,color: Colors.red,)
-                    ],
-                  ),
-                ),
-              ];
-            },
-          )
-        ],
-      ),
-    );
-  }
-}
-
-class AddUpdateDialog extends StatefulWidget {
-  final bool isDarkMode;
-  final PostModel post;
-  final Function(PostModel) onPressed;
-  final String buttonText;
-  final String title;
-
-  const AddUpdateDialog({super.key, required this.isDarkMode, required this.post, required this.onPressed, required this.buttonText, required this.title});
-  @override
-  State<StatefulWidget> createState() => AddUpdateDialogState();
-}
-
-class AddUpdateDialogState extends State<AddUpdateDialog>
-    with SingleTickerProviderStateMixin {
-  late AnimationController controller;
-  late Animation<double> scaleAnimation;
-  late TextEditingController textcontroller;
-  late String originalMessage;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller =
-        AnimationController(vsync: this, duration: const Duration(milliseconds: 450));
-    scaleAnimation =
-        CurvedAnimation(parent: controller, curve: Curves.elasticInOut);
-
-    textcontroller  = TextEditingController(text: widget.post.messgae);
-    originalMessage  = widget.post.messgae!;
-
-    controller.addListener(() {
-      setState(() {});
-    });
-
-    controller.forward();
-  }
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: scaleAnimation,
-      child: Dialog(
-    elevation: 20,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    insetPadding: const EdgeInsets.all(30),
-    child: Padding(
-      padding: const EdgeInsets.all(20),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Center(
-              child: Text(widget.title,style: const TextStyle(fontSize: 25,fontWeight: FontWeight.bold),),
-            ),
-            const SizedBox(height: 20,),
-            TextField(
-              controller: textcontroller,
-              maxLines: 4,
-              onChanged: (v){
-                widget.post.messgae = v;
-                setState(() {});
-              },
-              style: TextStyle(color: widget.isDarkMode ? Colors.white : Colors.black),
-              decoration: InputDecoration(
-                hintText: 'post',
-                hintStyle: TextStyle(
-                  color: widget.isDarkMode ? Colors.grey : Colors.black54,
-                  fontSize: 13,
-                  fontWeight: FontWeight.normal,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-                  borderSide: BorderSide(width: 1, color: widget.isDarkMode ? Colors.white : TColors.grey),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-                  borderSide: BorderSide(width: 1, color: widget.isDarkMode ? Colors.white : TColors.grey),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(TSizes.inputFieldRadius),
-                  borderSide: const BorderSide(width: 2, color: TColors.borderPrimary),
-                ),
-                errorStyle: const TextStyle(color: Colors.red),
-              ),
-            ),
-            const SizedBox(height: 20,),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(10),
-                backgroundColor: Theme.of(context).primaryColor
-              ),
-              onPressed: textcontroller.text==originalMessage? Navigator.of(context).pop : ()async{
-                FocusManager.instance.primaryFocus?.unfocus();
-                Navigator.pop(context);
-                await widget.onPressed(widget.post);}, child: Text(textcontroller.text==originalMessage?"Close": widget.buttonText))
-          ],
-        ),
-      ),
-    ),
-          )
-    );
-  }
-}
-
-
-class DelteeDialog extends StatefulWidget {
+class DeleteDialog extends StatefulWidget {
   final Function() onPressed;
 
-  const DelteeDialog({super.key,  required this.onPressed});
+  const DeleteDialog({super.key,  required this.onPressed});
   @override
-  State<StatefulWidget> createState() => DelteeDialogState();
+  State<StatefulWidget> createState() => DeleteDialogState();
 }
 
-class DelteeDialogState extends State<DelteeDialog>
+class DeleteDialogState extends State<DeleteDialog>
     with SingleTickerProviderStateMixin {
   late AnimationController controller;
   late Animation<double> scaleAnimation;
@@ -423,4 +238,23 @@ class DelteeDialogState extends State<DelteeDialog>
           )
     );
   }
+}
+
+class MyCustomMessages implements timeago.LookupMessages {
+  @override String prefixAgo() => '';
+  @override String prefixFromNow() => '';
+  @override String suffixAgo() => '';
+  @override String suffixFromNow() => '';
+  @override String lessThanOneMinute(int seconds) => 'now';
+  @override String aboutAMinute(int minutes) => '${minutes}m';
+  @override String minutes(int minutes) => '${minutes}m';
+  @override String aboutAnHour(int minutes) => '${minutes}m';
+  @override String hours(int hours) => '${hours}h';
+  @override String aDay(int hours) => '${hours}h';
+  @override String days(int days) => '${days}d';
+  @override String aboutAMonth(int days) => '${days}d';
+  @override String months(int months) => '${months}mo';
+  @override String aboutAYear(int year) => '${year}y';
+  @override String years(int years) => '${years}y';
+  @override String wordSeparator() => ' ';
 }

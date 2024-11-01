@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'app.dart';
 import 'firebase_options.dart';
+import 'features/notification/src/NotificationService.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,11 +13,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
   SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitUp,
   ]);
   runApp(const App());
 }
-
-
-
