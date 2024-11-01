@@ -7,7 +7,6 @@ import 'features/authentication/bloc/authentication_state.dart';
 import 'features/authentication/src/authentication_repository.dart';
 import 'features/notification/src/NotificationService.dart';
 import 'features/profile/bloc/repository/profile_repository.dart';
-
 class App extends StatefulWidget {
   const App({super.key});
 

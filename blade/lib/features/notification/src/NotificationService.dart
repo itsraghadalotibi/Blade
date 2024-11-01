@@ -8,7 +8,8 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  StreamSubscription<QuerySnapshot>? _notificationSubscription;
+  // Declare a StreamSubscription for the notification listener
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _notificationSubscription;
 
   // Constructor to initialize settings
   NotificationService() {
@@ -75,7 +76,7 @@ class NotificationService {
       String userId, String status, String projectId) async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
-    // Skip the notification if the current user is the one performing the action (the owner)
+    // Skip the notification if the current user is the one performing the action
     if (currentUser != null && currentUser.uid == userId) {
       return; // Exit the function early to avoid creating notification for the project owner
     }
@@ -96,12 +97,14 @@ class NotificationService {
       'message': message,
       'read': false,
     });
-  }
+
+    // Show local notification for the target user (only if they are different from the project owner)
+    showLocalNotification(title, message);
   }
 
   // Listen to changes in the notifications collection in Firebase for real-time notifications
   void listenToFirebaseNotifications(String userId) {
-    // Cancel any existing subscription before creating a new one
+    // Cancel any existing subscription to avoid multiple listeners
     _notificationSubscription?.cancel();
 
     // Set up a new subscription for real-time notifications
@@ -115,7 +118,7 @@ class NotificationService {
         if (doc.type == DocumentChangeType.added) {
           final data = doc.doc.data();
           if (data != null) {
-            // Show the local notification for new notifications
+            // Show the local notification
             showLocalNotification(
               data['title'] ?? 'Notification',
               data['message'] ?? 'You have a new notification',
@@ -123,8 +126,7 @@ class NotificationService {
 
             // Mark the notification as read
             doc.doc.reference.update({'read': true}).then((_) {
-              print(
-                  'Notification marked as read in Firebase: ${data['title']}');
+              print('Notification marked as read in Firebase: ${data['title']}');
             }).catchError((error) {
               print('Error marking notification as read: $error');
             });
@@ -133,8 +135,6 @@ class NotificationService {
       }
     });
   }
-
-  // Method to dispose of the notification subscription when it's no longer needed
   void dispose() {
     _notificationSubscription?.cancel();
   }
