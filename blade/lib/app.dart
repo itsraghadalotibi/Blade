@@ -8,14 +8,27 @@ import 'features/authentication/src/authentication_repository.dart';
 import 'features/notification/src/NotificationService.dart';
 import 'features/profile/bloc/repository/profile_repository.dart';
 
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({super.key});
+
+  @override
+  _AppState createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  final NotificationService notificationService = NotificationService();
+
+  @override
+  void dispose() {
+    // Clean up the notification listener
+    notificationService.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final authenticationRepository = AuthenticationRepository();
     final profileRepository = ProfileRepository();
-    final NotificationService notificationService = NotificationService();
 
     return MultiRepositoryProvider(
       providers: [
@@ -29,7 +42,7 @@ class App extends StatelessWidget {
         child: BlocListener<AuthenticationBloc, AuthenticationState>(
           listener: (context, state) {
             if (state is AuthenticationAuthenticated) {
-              // Use uid instead of id for the unique identifier
+              // Start listening to notifications for the authenticated user
               notificationService.listenToFirebaseNotifications(state.user.uid);
             }
           },
