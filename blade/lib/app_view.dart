@@ -14,6 +14,7 @@ import 'features/authentication/screens/welcome_screen.dart';
 import 'features/authentication/src/authentication_repository.dart';
 import 'features/authentication/src/collaborator_model.dart';
 import 'features/authentication/src/supporter_model.dart';
+import 'features/profile/bloc/screens/supporter_profile_screen.dart';
 import 'utils/constants/Navigation/navigation.dart';
 import 'features/supporter/home_page/screens/home_page_screen.dart';
 
@@ -93,6 +94,11 @@ class AppView extends StatelessWidget {
             );
           case '/notificationCenter':
             return MaterialPageRoute(builder: (_) => const Settings());
+          case '/supporterProfile':
+            final String userId = settings.arguments as String; // Pass the user ID dynamically
+            return MaterialPageRoute(
+              builder: (_) => SupporterProfileScreen(userId: userId),
+            );
           default:
             return MaterialPageRoute(builder: (_) => const WelcomeScreen());
         }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
@@ -68,6 +69,7 @@ class NotificationService {
 
   // Add a notification to Firebase for the target user
   Future<void> createFirebaseNotification(String userId, String status) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
     final title =
         status == 'accepted' ? 'Request Accepted' : 'Request Rejected';
     final message = status == 'accepted'
@@ -84,8 +86,10 @@ class NotificationService {
       'read': false,
     });
 
-    // Show local notification immediately
+    if (currentUser != null && currentUser.uid == userId) {
+    print('Showing local notification for title: $title');
     showLocalNotification(title, message);
+  }
   }
 
   // Listen to changes in the notifications collection in Firebase for real-time notifications

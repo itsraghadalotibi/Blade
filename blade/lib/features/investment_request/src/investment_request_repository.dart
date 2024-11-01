@@ -34,6 +34,7 @@ class InvestmentRequestRepository {
       String supporterId) async {
     final querySnapshot = await _investmentRequests
         .where('supporterId', isEqualTo: supporterId)
+        .orderBy('createdAt', descending: true)
         .get();
 
     return querySnapshot.docs

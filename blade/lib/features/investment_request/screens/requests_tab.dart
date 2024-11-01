@@ -129,6 +129,7 @@ class OffersTab extends StatelessWidget {
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 12, vertical: 6),
+                                        margin: EdgeInsets.only(left: 10.0),
                                         decoration: BoxDecoration(
                                           color:
                                               _getStatusColor(request.status),
@@ -188,13 +189,19 @@ class OffersTab extends StatelessWidget {
           title: const Text("Cancel Request"),
           content: const Text("Are you sure you want to cancel this request?"),
           actions: [
-            TextButton(
+            OutlinedButton(
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 10.0)
+              ),
               child: const Text("No"),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
             ),
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 10.0)
+              ),
               child: const Text("Yes"),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
@@ -214,13 +221,15 @@ class OffersTab extends StatelessWidget {
       case 'Accepted':
         return Colors.green;
       case 'Pending':
-        return Colors.amber[700]!;
+        return Colors.amber[800]!;
       case 'Rejected':
         return Colors.red;
       case 'Cancelled':
+        return Colors.blue;
+      case 'Expired':
         return Colors.grey[600]!;
       default:
-        return Colors.black;
+        return Colors.purple;
     }
   }
 }
