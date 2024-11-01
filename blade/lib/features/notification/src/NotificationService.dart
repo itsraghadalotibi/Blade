@@ -1,17 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-//raghad
 class NotificationService {
-  static final FlutterLocalNotificationsPlugin
-      _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // List to keep track of notified request IDs to prevent duplicate notifications
-  static final List<String> notifiedRequestIds = [];
+  // Constructor to initialize settings
+  NotificationService() {
+    _initialize(); // Properly initialize on instance creation
+  }
 
-  // Initialize local notification settings for iOS
-  static Future<void> initialize() async {
+  // Initialize local notifications for iOS and macOS
+  Future<void> _initialize() async {
     const DarwinInitializationSettings darwinSettings =
         DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -27,27 +28,25 @@ class NotificationService {
     await _flutterLocalNotificationsPlugin.initialize(
       settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Handle notification tap, if necessary
+        // Handle notification tap if necessary
       },
     );
   }
 
-  // Create a notification in Firebase for the targeted user
-  Future<void> createFirebaseNotification(String userId, String status) async {
-    await _firestore.collection('Notification').add({
-      'userId': userId,
-      'status': status,
-      'timestamp': FieldValue.serverTimestamp(),
-      'title': status == 'accepted' ? 'Request Accepted' : 'Request Rejected',
-      'message': status == 'accepted'
-          ? 'You have been accepted for the project!'
-          : 'Your join request has been rejected.',
-      'read': false,
-    });
+  // Request permissions for local notifications (useful for iOS)
+  Future<void> requestPermissions() async {
+    await _flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
   }
 
-  // Show a local notification on iOS
-  static Future<void> showLocalNotification(String title, String body) async {
+  // Show a local notification on the device
+  Future<void> showLocalNotification(String title, String body) async {
     const DarwinNotificationDetails darwinDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
@@ -67,20 +66,44 @@ class NotificationService {
     );
   }
 
-  // Listen to Firestore collection for real-time updates
-  static void listenToPendingRequests() {
+  // Add a notification to Firebase for the target user
+  Future<void> createFirebaseNotification(String userId, String status) async {
+    final title =
+        status == 'accepted' ? 'Request Accepted' : 'Request Rejected';
+    final message = status == 'accepted'
+        ? 'You have been accepted for the project!'
+        : 'Your join request has been rejected.';
+
+    // Create notification in Firebase
+    await _firestore.collection('notifications').add({
+      'userId': userId,
+      'status': status,
+      'timestamp': FieldValue.serverTimestamp(),
+      'title': title,
+      'message': message,
+      'read': false,
+    });
+
+    // Show local notification immediately
+    showLocalNotification(title, message);
+  }
+
+  // Listen to changes in the notifications collection in Firebase for real-time notifications
+  void listenToFirebaseNotifications(String userId) {
     _firestore
-        .collection('join_requests')
-        .where('status', isEqualTo: 'Pending')
+        .collection('notifications')
+        .where('userId', isEqualTo: userId)
         .snapshots()
         .listen((snapshot) {
-      for (var doc in snapshot.docs) {
-        if (!notifiedRequestIds.contains(doc.id)) {
-          notifiedRequestIds.add(doc.id); // Prevent duplicate notifications
-          showLocalNotification(
-            'New Join Request',
-            'A new request is waiting for your approval',
-          );
+      for (var doc in snapshot.docChanges) {
+        if (doc.type == DocumentChangeType.added) {
+          final data = doc.doc.data();
+          if (data != null) {
+            showLocalNotification(
+              data['title'] ?? 'Notification',
+              data['message'] ?? 'You have a new notification',
+            );
+          }
         }
       }
     });
