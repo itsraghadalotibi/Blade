@@ -211,13 +211,17 @@ class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
       children: [
         ElevatedButton(
           onPressed: () async {
-            setState(() {
-              isPress = true;
-            });
+            if (mounted) {
+              setState(() {
+                isPress = true;
+              });
+            }
             await widget.onReject();
-            setState(() {
-              isPress = false;
-            });
+            if (mounted) {
+              setState(() {
+                isPress = false;
+              });
+            }
           },
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.all(10),
