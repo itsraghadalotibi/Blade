@@ -216,7 +216,7 @@ class _NavigationState extends State<Navigation> {
                         minWidth: 30,
                         onPressed: () {
                           setState(() {
-                            currentScreen = const settings.Settings();
+                            currentScreen = const Settings();
                             currentTap = 2;
                           });
                         },

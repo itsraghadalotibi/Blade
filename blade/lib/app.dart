@@ -33,15 +33,24 @@ class App extends StatelessWidget {
         create: (context) => AuthenticationBloc(
           authenticationRepository: authenticationRepository,
         )..add(AppStarted()),
+         child: BlocProvider(
+        create: (context) => AuthenticationBloc(
+          authenticationRepository: authenticationRepository,
+        )..add(AppStarted()),
+              child: BlocProvider(
+        create: (context) => AuthenticationBloc(
+          authenticationRepository: authenticationRepository,
+        )..add(AppStarted()),
         child: BlocListener<AuthenticationBloc, AuthenticationState>(
           listener: (context, state) {
             if (state is AuthenticationAuthenticated) {
-              // Start listening for notifications when authenticated
-              notificationService.listenToFirebaseNotifications(state.user.id);
+              // Use uid instead of id for the unique identifier
+              notificationService.listenToFirebaseNotifications(state.user.uid);
             }
           },
           child: const AppView(),
         ),
+              ),)
       ),
     );
   }
