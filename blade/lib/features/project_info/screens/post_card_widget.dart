@@ -1,6 +1,8 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:blade_app/features/profile/bloc/repository/project_idea_repository.dart';
 import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
+import 'package:blade_app/features/project_info/screens/project_screen.dart';
 import 'package:blade_app/features/project_info/src/post_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +17,7 @@ class PostWidget extends StatefulWidget {
   final bool isPostOwner;
   final bool withLine;
   final bool isStaticPost;
+  final bool fromHome;
   final String? uid;
   final Function()? onNaviagte;
   final Function() onEditPost;
@@ -25,6 +28,7 @@ class PostWidget extends StatefulWidget {
       required this.post,
       required this.isDarkMode,
       required this.isPostOwner,
+      required this.fromHome,
       required this.onEditPost,
       required this.onDeletePost,
       required this.withLine,
@@ -77,7 +81,7 @@ class _PostWidgetState extends State<PostWidget> {
                   Expanded(
                       child: Container(
                     width: 2,
-                    color: Colors.white,
+                    color: widget.isDarkMode ?  Colors.white : Colors.black,
                   ))
               ],
             ),
@@ -129,77 +133,105 @@ class _PostWidgetState extends State<PostWidget> {
                           child: Image.network(widget.post.images!.first)),
                     ],
                     const SizedBox(
-                      height: 8,
+                      height: 5,
+                    ),
+                    // if(widget.fromHome && widget.post.upPost == "0" && widget.post.idea != null)
+                    // SizedBox(
+                    //   height: 80,
+                    //   child: Card(
+                    //     elevation: 5,
+                    //     color: widget.isDarkMode ? Colors.black  : Colors.white,
+                    //     child: ListTile(
+                    //       trailing: IconButton(onPressed: (){
+                    //         Navigator.of(context).push(MaterialPageRoute(builder: (context){
+                    //           return ProjectScreen(idea: widget.post.idea!, repository: AnnouncementRepository(), canJoin: false, onJoinRequestSent: null);
+                    //         }));
+                    //       }, icon: const Icon(Icons.open_in_new)),
+                    //       title: Text("${widget.post.idea?.title}"),
+                    //       subtitle: Text("${widget.post.idea?.description}",
+                    //       overflow: TextOverflow.ellipsis,
+                    //       maxLines: 2,),
+                    //     ),
+                    //   ),
+                    // ),
+                    const SizedBox(
+                      height: 5,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            IconButton(
-                                onPressed: () async{
-                                  if(!isPress){
-                                    isPress = true;
-                                    PostModel copyPost = widget.post.copyWith();
-                                    if(widget.post.likes!.contains(widget.uid)){
-                                      await widget.projectRepository.removeLikeOrMark(widget.post.id!, "likes", widget.uid!);
-                                      copyPost.likes?.removeWhere((l)=>l==widget.uid);
-                                    }else{
-                                      await widget.projectRepository.addLikeOrMark(widget.post.id!, "likes", widget.uid!);
-                                      widget.post.likes!.add(widget.uid!);
+                        Expanded(
+                          child: Row(
+                            children: [
+                              IconButton(
+                                  onPressed: () async{
+                                    if(!isPress){
+                                      isPress = true;
+                                      PostModel copyPost = widget.post.copyWith();
+                                      if(widget.post.likes!.contains(widget.uid)){
+                                        await widget.projectRepository.removeLikeOrMark(widget.post.id!, "likes", widget.uid!);
+                                        copyPost.likes?.removeWhere((l)=>l==widget.uid);
+                                      }else{
+                                        await widget.projectRepository.addLikeOrMark(widget.post.id!, "likes", widget.uid!);
+                                        widget.post.likes!.add(widget.uid!);
+                                      }
+                                      widget.refersh?.call(copyPost);
+                                      isPress = false;
                                     }
-                                    widget.refersh?.call(copyPost);
-                                    isPress = false;
-                                  }
-                                },
-                                icon:  Icon(
-                                  widget.post.likes!.contains(widget.uid) ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
-                                  color: widget.post.likes!.contains(widget.uid) ? Colors.red : null,
-                                )),
-                            if (widget.post.likes?.isNotEmpty ?? false)
-                              Text("${widget.post.likes?.length}"),
-                          ],
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                                onPressed: ()=>widget.onNaviagte?.call(),
-                                icon: const Icon(CupertinoIcons.text_bubble)),
-                            if ((widget.post.comments ?? 0) > 0)
-                              Text("${widget.post.comments}"),
-                          ],
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                                onPressed: () async{
-                                  if(!isPress){
-                                    isPress = true;
-                                    PostModel copyPost = widget.post.copyWith();
-                                    if(widget.post.marks!.contains(widget.uid)){
-                                      await widget.projectRepository.removeLikeOrMark(widget.post.id!, "marks", widget.uid!);
-                                      copyPost.marks?.removeWhere((l)=>l==widget.uid);
-                                    }else{
-                                      await widget.projectRepository.addLikeOrMark(widget.post.id!, "marks", widget.uid!);
-                                      widget.post.marks!.add(widget.uid!);
-                                    }
-                                    widget.refersh?.call(copyPost);
-                                    isPress = false;
-                                  }
-                                },
-                                icon: Icon(
-                                  widget.post.marks!.contains(widget.uid) ? Icons.bookmark : Icons.bookmark_outline,
-                                  color: widget.post.marks!.contains(widget.uid) ? Colors.blue : null,
+                                  },
+                                  icon:  Icon(
+                                    widget.post.likes!.contains(widget.uid) ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                                    color: widget.post.likes!.contains(widget.uid) ? Colors.red : null,
                                   )),
-                            if (widget.post.marks?.isNotEmpty ?? false)
-                              Text("${widget.post.marks?.length}"),
-                          ],
+                              if (widget.post.likes?.isNotEmpty ?? false)
+                                Text("${widget.post.likes?.length}"),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              IconButton(
+                                  onPressed: ()=>widget.onNaviagte?.call(),
+                                  icon: const Icon(CupertinoIcons.text_bubble)),
+                              if ((widget.post.comments ?? 0) > 0)
+                                Text("${widget.post.comments}"),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              IconButton(
+                                  onPressed: () async{
+                                    if(!isPress){
+                                      isPress = true;
+                                      PostModel copyPost = widget.post.copyWith();
+                                      if(widget.post.marks!.contains(widget.uid)){
+                                        await widget.projectRepository.removeLikeOrMark(widget.post.id!, "marks", widget.uid!);
+                                        copyPost.marks?.removeWhere((l)=>l==widget.uid);
+                                      }else{
+                                        await widget.projectRepository.addLikeOrMark(widget.post.id!, "marks", widget.uid!);
+                                        widget.post.marks!.add(widget.uid!);
+                                      }
+                                      widget.refersh?.call(copyPost);
+                                      isPress = false;
+                                    }
+                                  },
+                                  icon: Icon(
+                                    widget.post.marks!.contains(widget.uid) ? Icons.bookmark : Icons.bookmark_outline,
+                                    color: widget.post.marks!.contains(widget.uid) ? Colors.blue : null,
+                                    )),
+                              if (widget.post.marks?.isNotEmpty ?? false)
+                                Text("${widget.post.marks?.length}"),
+                            ],
+                          ),
                         ),
                       ],
                     )
@@ -228,7 +260,6 @@ class _PostWidgetState extends State<PostWidget> {
                           Text(
                             'Edit',
                             style: TextStyle(
-                                color: Colors.white,
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold),
                           ),

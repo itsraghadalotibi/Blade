@@ -11,7 +11,9 @@ class PostBookmarks extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Bookmarks"),
       ),
-      body: const PostsTab(getBookMarks: true,)
+      body: const PostsTab(
+        fromHome: true,
+        getBookMarks: true,)
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:blade_app/features/profile/bloc/repository/project_idea_reposito
 import 'package:blade_app/features/profile/bloc/src/collaborator_profile_model.dart';
 import 'package:blade_app/features/project_info/screens/post_card_widget.dart';
 import 'package:blade_app/features/project_info/screens/posts_tab.dart';
+import 'package:blade_app/features/project_info/screens/project_screen.dart';
 import 'package:blade_app/utils/constants/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +68,24 @@ class _PostCommentsState extends State<PostComments> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("post"),
+        actions:(widget.upPost.idea != null)? [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 5,horizontal: 10)
+            ),
+            onPressed: (){
+            Navigator.of(context).push(MaterialPageRoute(builder: (context){
+              return ProjectScreen(idea: widget.upPost.idea!, repository: AnnouncementRepository(), canJoin: false, onJoinRequestSent: null);
+            }));
+          },child: Text("Project Card"),),
+          // IconButton(
+          // tooltip: "Move to project card",
+          // onPressed: (){
+          //                   Navigator.of(context).push(MaterialPageRoute(builder: (context){
+          //                     return ProjectScreen(idea: widget.upPost.idea!, repository: AnnouncementRepository(), canJoin: false, onJoinRequestSent: null);
+          //                   }));
+          //                 }, icon: const Icon(Icons.open_in_new))
+                          ]:null,
       ),
       body: StreamBuilder<List<PostModel>>(
         stream: projectIdeaRepository.streamPosts(null, uid, widget.upPost),
@@ -94,6 +113,7 @@ class _PostCommentsState extends State<PostComments> {
                   child: Column(
                     children: [
                       PostWidget(
+                        fromHome: true,
                         refersh: (post)=> setState((){
                           widget.upPost.likes = post.likes;
                           widget.upPost.marks = post.marks;
@@ -133,6 +153,7 @@ class _PostCommentsState extends State<PostComments> {
                                             const Color.fromARGB(255, 238, 238, 238)),
                               ),
                               child: PostWidget(
+                                fromHome: false,
                                 projectRepository: projectIdeaRepository,
                                 uid: uid,
                                 upPosts: widget.upPosts,
@@ -180,6 +201,7 @@ class _PostCommentsState extends State<PostComments> {
                                             const Color.fromARGB(255, 238, 238, 238)),
                               ),
                               child: PostWidget(
+                                fromHome: false,
                                 projectRepository: projectIdeaRepository,
                                 uid: uid,
                                 upPosts: const [],

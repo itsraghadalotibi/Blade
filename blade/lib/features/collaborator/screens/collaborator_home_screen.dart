@@ -245,7 +245,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
                   builder: (context, state) {
                     if (state is AuthenticationAuthenticated &&
                         state.user is CollaboratorModel) {
-                      return const PostsTab();
+                      return const PostsTab(fromHome: true,);
                     } else {
                       return const CircularProgressIndicator();
                     }

@@ -15,8 +15,9 @@ import '../../announcement/src/announcement_repository.dart';
 class PostsTab extends StatefulWidget {
   final Idea? idea;
   final bool getBookMarks;
+  final bool fromHome;
 
-  const PostsTab({super.key, this.idea,this.getBookMarks = false});
+  const PostsTab({super.key, this.idea,this.getBookMarks = false, required this.fromHome});
 
   @override
   State<PostsTab> createState() => _PostsTabState();
@@ -40,75 +41,79 @@ class _PostsTabState extends State<PostsTab> {
 
     // return FutureBuilder<List<PostModel>>(
       // future: _fetchPostModels(),
-    return StreamBuilder<List<PostModel>>(
-      stream: widget.getBookMarks ? projectIdeaRepository.streamBookmarksPosts(uid) : projectIdeaRepository.streamPosts(widget.idea, uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No Posts found.'));
-        }
-
-        final posts = snapshot.data!;
-
-        return ListView.separated(
-          padding: const EdgeInsets.all(16.0),
-          itemCount: posts.length,
-          itemBuilder: (context, index) {
-            final post = posts[index];
-
-            final isPostOwner = post.uid == uid;
-
-            return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                decoration: BoxDecoration(
-                  color: isDarkMode ? Colors.grey[990] : TColors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: isDarkMode
-                      ? null
-                      : Border.all(
-                          color: const Color.fromARGB(255, 238, 238, 238)),
-                ),
-                child: PostWidget(
-                  projectRepository: projectIdeaRepository,
-                  uid: uid,
-                  upPosts: const [],
-                  withLine: false,
-                  onNaviagte: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>PostComments(upPosts: [post.id!], upPost: post)));
-                  },
-                  onEditPost: ()async{
-                    var res = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => NewPost(post: post,)),
-                    );
-                    if(res != null && res == "DONE"){
-                      // setState(() {});
-                      showSnakbar( icon: Icons.check, color: TColors.success, title: 'Post updated Succesfully.');
-                    }
-                  },
-                  onDeletePost: (){
-                    showDialog(
-                      context: context, 
-                      builder: (context){
-                        return DeleteDialog(onPressed: ()async{
-                          Navigator.pop(context);
-                          await projectIdeaRepository.deletePost(post,[]);
-                          // setState(() {});
-                          showSnakbar( icon: Icons.check, color: TColors.success, title: 'Post deleted successfully.');
-                        });
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: StreamBuilder<List<PostModel>>(
+        stream: widget.getBookMarks ? projectIdeaRepository.streamBookmarksPosts(uid) : projectIdeaRepository.streamPosts(widget.idea, uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No Posts found.'));
+          }
+      
+          final posts = snapshot.data!;
+      
+          return ListView.separated(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              final post = posts[index];
+      
+              final isPostOwner = post.uid == uid;
+      
+              return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? Colors.grey[990] : TColors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: isDarkMode
+                        ? null
+                        : Border.all(
+                            color: const Color.fromARGB(255, 238, 238, 238)),
+                  ),
+                  child: PostWidget(
+                    fromHome: widget.fromHome,
+                    projectRepository: projectIdeaRepository,
+                    uid: uid,
+                    upPosts: const [],
+                    withLine: false,
+                    onNaviagte: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>PostComments(upPosts: [post.id!], upPost: post)));
+                    },
+                    onEditPost: ()async{
+                      var res = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => NewPost(post: post,)),
+                      );
+                      if(res != null && res == "DONE"){
+                        // setState(() {});
+                        showSnakbar( icon: Icons.check, color: TColors.success, title: 'Post updated Succesfully.');
                       }
-                    );
-                  },
-                  post: post, isDarkMode: isDarkMode, isPostOwner: isPostOwner,));
-          },
-          separatorBuilder: (context, index) {
-            return const Divider(height: 15,);
-          },
-        );
-      },
+                    },
+                    onDeletePost: (){
+                      showDialog(
+                        context: context, 
+                        builder: (context){
+                          return DeleteDialog(onPressed: ()async{
+                            Navigator.pop(context);
+                            await projectIdeaRepository.deletePost(post,[]);
+                            // setState(() {});
+                            showSnakbar( icon: Icons.check, color: TColors.success, title: 'Post deleted successfully.');
+                          });
+                        }
+                      );
+                    },
+                    post: post, isDarkMode: isDarkMode, isPostOwner: isPostOwner,));
+            },
+            separatorBuilder: (context, index) {
+              return const Divider(height: 15,);
+            },
+          );
+        },
+      ),
     );
   }
   showSnakbar(
