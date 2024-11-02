@@ -19,6 +19,7 @@ class ProjectIdeaRepository {
     try {
       QuerySnapshot snapshot = await _firestore
           .collection('ideas')
+          .orderBy('title', descending: false)
           .where('status', isEqualTo: status)
           .where('members',
               arrayContains: userId) // Check if the user is in the members list
@@ -134,25 +135,25 @@ class ProjectIdeaRepository {
     }
   }
 
-  Future<void> plusMinuseCommentsNumber(List<String> posts, int number)async{
-    for(var post in posts) {
+  Future<void> plusMinuseCommentsNumber(List<String> posts, int number) async {
+    for (var post in posts) {
       await _firestore
-            .collection('posts').doc(post).update(<String, dynamic>{
-        "comments": FieldValue.increment(number)
-      });
+          .collection('posts')
+          .doc(post)
+          .update(<String, dynamic>{"comments": FieldValue.increment(number)});
     }
   }
 
   // Send New Post
-  Future<void> sendNewPost(PostModel post, List<File> imageFiles,List<String> upPosts) async {
+  Future<void> sendNewPost(
+      PostModel post, List<File> imageFiles, List<String> upPosts) async {
     try {
       post.images ??= [];
       post.images?.addAll((await uploadPostImages(imageFiles)));
       await _firestore.collection('posts').add(post.toMap());
-      if(upPosts.isNotEmpty) {
+      if (upPosts.isNotEmpty) {
         await plusMinuseCommentsNumber(upPosts, 1);
       }
-
     } catch (e) {
       print('Error updating idea: $e');
       throw Exception('Failed to add post');
@@ -173,18 +174,21 @@ class ProjectIdeaRepository {
   }
 
   // Delete Post
-  Future<int> deletePost(PostModel post,List<String> upPosts) async {
+  Future<int> deletePost(PostModel post, List<String> upPosts) async {
     try {
       await deletePostImages(post.images ?? []);
       await _firestore.collection('posts').doc(post.id).delete();
       int removedItems = 1;
-      var snapshots =  await _firestore.collection('posts').where("upPosts",arrayContains: post.id!).get();
-      for(var document in snapshots.docs) {
+      var snapshots = await _firestore
+          .collection('posts')
+          .where("upPosts", arrayContains: post.id!)
+          .get();
+      for (var document in snapshots.docs) {
         await document.reference.delete();
         removedItems++;
       }
 
-      if(upPosts.isNotEmpty) {
+      if (upPosts.isNotEmpty) {
         await plusMinuseCommentsNumber(upPosts, removedItems * -1);
       }
       return removedItems;
@@ -281,16 +285,18 @@ class ProjectIdeaRepository {
     });
 
     final ideas = (idea != null
-            ? _firestore
-                .collection('ideas')
-                .doc(idea.id)
-                .snapshots().map((doc) => [Idea.fromMap(doc.data()!, doc.id)])
-            : _firestore
-                .collection('ideas')
-                // .where('members', arrayContains: uid)
-                .snapshots().map((snapshot) => snapshot.docs
-            .map((doc) => Idea.fromMap(doc.data(), doc.id))
-            .toList()));
+        ? _firestore
+            .collection('ideas')
+            .doc(idea.id)
+            .snapshots()
+            .map((doc) => [Idea.fromMap(doc.data()!, doc.id)])
+        : _firestore
+            .collection('ideas')
+            // .where('members', arrayContains: uid)
+            .snapshots()
+            .map((snapshot) => snapshot.docs
+                .map((doc) => Idea.fromMap(doc.data(), doc.id))
+                .toList()));
 
     // Combine both streams
     return Rx.combineLatest3<List<PostModel>, List<Collaborator>, List<Idea>,
@@ -309,25 +315,24 @@ class ProjectIdeaRepository {
     );
   }
 
-   Stream<List<PostModel>> streamBookmarksPosts(String? uid) {
+  Stream<List<PostModel>> streamBookmarksPosts(String? uid) {
     final posts = _firestore
-                .collection('posts')
-                .where('marks', arrayContains: uid)
-                .snapshots()
+        .collection('posts')
+        .where('marks', arrayContains: uid)
+        .snapshots()
         .map((p) => p.docs
             .map((doc) => PostModel.fromMap(doc.data(), doc.id))
             .toList());
 
     final collaborators = _firestore
-                .collection('collaborators')
-                .where('uid', isEqualTo: uid)
-                .snapshots()
+        .collection('collaborators')
+        .where('uid', isEqualTo: uid)
+        .snapshots()
         .map((snapshot) {
       return snapshot.docs
           .map((doc) => Collaborator.fromMap(doc.data()))
           .toList();
     });
-
 
     // Combine both streams
     return Rx.combineLatest2<List<PostModel>, List<Collaborator>,
@@ -344,7 +349,7 @@ class ProjectIdeaRepository {
     );
   }
 
-  Future<void> addLikeOrMark(String postId,String field, String uid) async {
+  Future<void> addLikeOrMark(String postId, String field, String uid) async {
     try {
       await _firestore.collection('posts').doc(postId).update({
         field: FieldValue.arrayUnion([uid])
@@ -354,7 +359,7 @@ class ProjectIdeaRepository {
     }
   }
 
-  Future<void> removeLikeOrMark(String postId,String field, String uid) async {
+  Future<void> removeLikeOrMark(String postId, String field, String uid) async {
     try {
       await _firestore.collection('posts').doc(postId).update({
         field: FieldValue.arrayRemove([uid])
@@ -363,5 +368,4 @@ class ProjectIdeaRepository {
       throw Exception('Failed to remove $field: $e');
     }
   }
-
 }
