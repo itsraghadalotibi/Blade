@@ -25,14 +25,18 @@ class ProjectScreen extends StatefulWidget {
   final AnnouncementRepository repository;
   final bool canJoin;
   final Function()? refershIdeasInProfile;
+  final Function()? onJoinRequestSent;
+  final bool useInvestButton;
+
 
   const ProjectScreen({
     super.key,
     required this.idea,
     required this.repository,
     required this.canJoin,
-    required onJoinRequestSent,
+    this.onJoinRequestSent, //Make it optional BC the supporter call does not provide it
     this.refershIdeasInProfile,
+      this.useInvestButton = false, // For supporter
   });
 
   @override
@@ -80,9 +84,11 @@ class _ProjectScreenState extends State<ProjectScreen> {
   // Getter for dynamic button background color
   Color get _buttonBackgroundColor {
     if (_isRequestPending) {
-      return Colors.amber[800]!;
-    } else {
+      return Colors.amber[800]!; // Grey for pending state
+    } else if(widget.useInvestButton){
       return TColors.primary;
+    }else {
+      return TColors.primary; // Red for join project
     }
   }
 
@@ -376,7 +382,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         child: SkillTagWidget(skills: idea.skills),
                       ),
                     ),
-                    if (!isOwner && idea.status == 'open') ...[
+                    if ((!isOwner && idea.status == 'open') || widget.useInvestButton) ...[
                       const SizedBox(height: 16),
                       Center(
                         child: ElevatedButton(
@@ -389,7 +395,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             ),
                           ),
                           onPressed: () {
-                            if (_isRequestPending && _joinRequestId != null) {
+                            if ((_isRequestPending && _joinRequestId != null)) {
                               // Cancel the join request
                               _cancelJoinRequest(_joinRequestId!);
                             } else if (_isMember) {
@@ -401,7 +407,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             }
                           },
                           child: Text(
-                            _buttonText,
+                            widget.useInvestButton? "Invest" : _buttonText,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -410,6 +416,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         ),
                       ),
                     ],
+
+
                     const SizedBox(height: 16),
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,
