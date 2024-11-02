@@ -130,9 +130,18 @@ class _OffersTabState extends State<OffersTab> {
                                   'Rejected ${collaborator.firstName} ${collaborator.lastName}')),
                         );
 
-                        // Send Firebase notification for rejection
+                        // Fetch the project name from the ideas collection
+                        final ideaDoc = await FirebaseFirestore.instance
+                            .collection('ideas')
+                            .doc(widget.idea.id)
+                            .get();
+
+                        final projectName =
+                            ideaDoc.data()?['title'] ?? 'the project';
+
+                        // Send Firebase notification for rejection with the project name
                         await _notificationService.createFirebaseNotification(
-                            collaborator.uid, 'rejected', widget.idea.id!);
+                            collaborator.uid, 'rejected', projectName);
 
                         setState(() {});
                       },
@@ -147,9 +156,18 @@ class _OffersTabState extends State<OffersTab> {
 
                         widget.addNewMember(collaborator.uid);
 
-                        // Send Firebase notification for acceptance
+                        // Fetch the project name from the ideas collection
+                        final ideaDoc = await FirebaseFirestore.instance
+                            .collection('ideas')
+                            .doc(widget.idea.id)
+                            .get();
+
+                        final projectName =
+                            ideaDoc.data()?['title'] ?? 'the project';
+
+                        // Send Firebase notification for acceptance with the project name
                         await _notificationService.createFirebaseNotification(
-                            collaborator.uid, 'accepted', widget.idea.id!);
+                            collaborator.uid, 'accepted', projectName);
 
                         setState(() {});
                       },
