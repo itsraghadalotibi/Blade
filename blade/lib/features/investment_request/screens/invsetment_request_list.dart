@@ -6,6 +6,7 @@ import '../../../utils/constants/colors.dart';
 import '../bloc/investment_request_bloc.dart';
 import '../bloc/investment_request_event.dart';
 import '../bloc/investment_request_state.dart';
+import '../src/investment_request_model.dart';
 import 'investment_request_details.dart';
 
 class InvestmentRequestsListScreen extends StatelessWidget {
@@ -47,8 +48,8 @@ class InvestmentRequestsListScreen extends StatelessWidget {
                 final isPending = request.status == 'Pending';
 
                 return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => InvestmentRequestDetailScreen(
@@ -57,6 +58,25 @@ class InvestmentRequestsListScreen extends StatelessWidget {
                         ),
                       ),
                     );
+                    if (result is Map<String, dynamic>) {
+                      if (result["status"] == "accepted") {
+                        context.read<InvestmentRequestBloc>().add(
+                          AcceptInvestmentRequest(
+                            requestId: request.id,
+                            projectId: projectId,
+                          ),
+                        );
+                      } else if (result["status"] == "rejected") {
+                        final rejectionReason = result["reason"];
+                        context.read<InvestmentRequestBloc>().add(
+                          RejectInvestmentRequest(
+                            requestId: request.id,
+                            projectId: projectId,
+                            reasonForRejection: rejectionReason,
+                          ),
+                        );
+                      }
+                    }
                   },
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -140,45 +160,47 @@ class InvestmentRequestsListScreen extends StatelessWidget {
                             Align(
                               alignment: Alignment.center,
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  if (isOwner)
+                                  if (isOwner && request.status == 'Pending')
                                     Expanded(
                                       child: ElevatedButton(
-                                       child: const Text('Reject'),
                                         style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.red,
-                                            side: const BorderSide(color: Colors.red),
-                                            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-                                           ),
+                                          backgroundColor: Colors.red,
+                                          side: const BorderSide(
+                                              color: Colors.red),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12.0, vertical: 12.0),
+                                        ),
                                         onPressed: () {
-                                          // context.read<InvestmentRequestBloc>().add(
-                                          //       RejectInvestmentRequest(
-                                          //         requestId: request.id,
-                                          //         projectId: projectId,
-                                          //       ),
-                                          //     );
+                                          _showRejectDialog(context, request);
                                         },
+                                        child: const Text('Reject'),
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
-                                  if (isOwner) // Only show buttons if the user is the project owner
+                                  const SizedBox(width: 16),
+                                  if (isOwner &&
+                                      request.status ==
+                                          'Pending') // Only show buttons if the user is the project owner
                                     Expanded(
                                       child: ElevatedButton(
-                                        child: const Text('Accept'),
                                         style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.green,
-                                            side: const BorderSide(color: Colors.green),
-                                            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-                                           ),
+                                          backgroundColor: Colors.green,
+                                          side: const BorderSide(
+                                              color: Colors.green),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12.0, vertical: 12.0),
+                                        ),
                                         onPressed: () {
-                                          // context.read<InvestmentRequestBloc>().add(
-                                          //       AcceptInvestmentRequest(
-                                          //         requestId: request.id,
-                                          //         projectId: projectId,
-                                          //       ),
-                                          //     );
+                                          context
+                                              .read<InvestmentRequestBloc>()
+                                              .add(AcceptInvestmentRequest(
+                                                requestId: request.id,
+                                                projectId: projectId,
+                                              ));
                                         },
+                                        child: const Text('Accept'),
                                       ),
                                     ),
                                 ],
@@ -200,6 +222,86 @@ class InvestmentRequestsListScreen extends StatelessWidget {
       ),
     );
   }
+
+  void _showRejectDialog(BuildContext outerContext, InvestmentRequestModel request) {
+  final TextEditingController reasonController = TextEditingController();
+  bool showError = false;
+
+  showDialog(
+    context: outerContext,
+    builder: (BuildContext dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text("Reject Request"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("Are you sure you want to reject this request?"),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: reasonController,
+                  decoration: const InputDecoration(
+                    labelText: 'Rejection Reason',
+                  ),
+                  maxLength: 100,
+                ),
+                if (showError)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      'Please provide a reason.',
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+              ],
+            ),
+            actions: [
+              OutlinedButton(
+                style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 12.0),
+                    ),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 12.0),
+                    ),
+                onPressed: () {
+                  final reason = reasonController.text.trim();
+                  if (reason.isNotEmpty) {
+                    outerContext.read<InvestmentRequestBloc>().add(
+                          RejectInvestmentRequest(
+                            requestId: request.id,
+                            projectId: projectId,
+                            reasonForRejection: reason,
+                          ),
+                        );
+                    Navigator.of(dialogContext).pop();
+                  } else {
+                    // Show error message under the text field
+                    setState(() {
+                      showError = true;
+                    });
+                  }
+                },
+                child: const Text('Reject'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Accepted':

@@ -98,7 +98,6 @@ class OffersTab extends StatelessWidget {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            
                                             Text(
                                               request.projectName,
                                               style: const TextStyle(
@@ -129,7 +128,7 @@ class OffersTab extends StatelessWidget {
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 12, vertical: 6),
-                                        margin: EdgeInsets.only(left: 10.0),
+                                        margin: const EdgeInsets.only(left: 10.0),
                                         decoration: BoxDecoration(
                                           color:
                                               _getStatusColor(request.status),
@@ -163,6 +162,22 @@ class OffersTab extends StatelessWidget {
                                         child: const Text('Cancel Request'),
                                       ),
                                     ),
+                                  if (request.status == 'Rejected')
+                                    Align(
+                                      alignment: Alignment.center,
+                                      child: OutlinedButton(
+                                        onPressed: () {
+                                          _showRejectionReason(context,
+                                              request.reasonForRejection);
+                                        },
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 0.0, horizontal: 8.0),
+                                        ),
+                                        child:
+                                            const Text('View Rejection Reason'),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
@@ -191,8 +206,7 @@ class OffersTab extends StatelessWidget {
           actions: [
             OutlinedButton(
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 10.0)
-              ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0)),
               child: const Text("No"),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
@@ -200,8 +214,7 @@ class OffersTab extends StatelessWidget {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 10.0)
-              ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0)),
               child: const Text("Yes"),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
@@ -209,6 +222,25 @@ class OffersTab extends StatelessWidget {
                     CancelInvestmentRequest(
                         requestId: request.id, supporterId: supporterId));
               },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  void _showRejectionReason(BuildContext context, String reason) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Rejection Reason'),
+          content: Text(reason),
+          actions: [
+            OutlinedButton(
+              style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0)),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
             ),
           ],
         );

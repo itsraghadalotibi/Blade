@@ -100,6 +100,27 @@ class _InvestmentRequestFormScreenState
     }
   }
 
+  Future<bool> _onWillPop() async {
+    return (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Discard Changes?'),
+            content: const Text('Are you sure you want to discard your changes?'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        )) ??
+        false;
+  }
+
   void _submitForm() {
     if (_formKey.currentState!.validate() && _validUntil != null) {
       final offer = _selectedOfferOption == 'Other'
@@ -143,8 +164,10 @@ class _InvestmentRequestFormScreenState
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDarkMode ? TColors.dark : TColors.light;
+    return WillPopScope(
+      onWillPop: _onWillPop,
 
-    return Scaffold(
+    child:  Scaffold(
       appBar: AppBar(
         title: const Text('Investment Request'),
       ),
@@ -438,7 +461,8 @@ class _InvestmentRequestFormScreenState
                 onPressed: _submitForm,
                 child: const Text('Review Request'),
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

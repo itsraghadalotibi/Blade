@@ -60,10 +60,8 @@ class _SuccessAnimationScreenState extends State<SuccessAnimationScreen>
               int popCount = 4;
               Navigator.popUntil(
                 context,
-                (route) {
-                  popCount--;
-                  return popCount <= 0; // Continue popping until we've popped 3 screens
-                },
+                (route) =>
+                    route.isFirst,
               );
             },
             child: Container(

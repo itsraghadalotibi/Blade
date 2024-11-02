@@ -14,59 +14,83 @@ class InvestmentRequestDetailScreen extends StatelessWidget {
   const InvestmentRequestDetailScreen({Key? key, required this.request, required this.isOwner})
       : super(key: key);
 
-  void _acceptRequest(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text("Accept Request"),
-          content: const Text("Are you sure you want to accept this request?"),
-          actions: [
-            TextButton(
-              child: const Text("No"),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-            TextButton(
-              child: const Text("Yes"),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                Navigator.pop(context, "accepted"); // Return 'accepted' status to previous screen
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  
 
-  void _rejectRequest(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text("Reject Request"),
-          content: const Text("Are you sure you want to reject this request?"),
-          actions: [
-            TextButton(
-              child: const Text("No"),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
+  void _rejectRequest(BuildContext outerContext, InvestmentRequestModel request) {
+  final TextEditingController reasonController = TextEditingController();
+  bool showError = false;
+
+  showDialog(
+    context: outerContext,
+    builder: (BuildContext dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text("Reject Request"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("Are you sure you want to reject this request?"),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: reasonController,
+                  decoration: const InputDecoration(
+                    labelText: 'Rejection Reason',
+                  ),
+                  maxLength: 100,
+                ),
+                if (showError)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      'Please provide a reason.',
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ),
+              ],
             ),
-            TextButton(
-              child: const Text("Yes"),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                Navigator.pop(context, "rejected"); // Return 'rejected' status to previous screen
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+            actions: [
+              OutlinedButton(
+                style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 12.0),
+                    ),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 12.0),
+                    ),
+                onPressed: () {
+                  final reason = reasonController.text.trim();
+                  if (reason.isNotEmpty) {
+                    Navigator.of(dialogContext).pop();
+                      Navigator.pop(outerContext, {
+                        "status": "rejected",
+                        "reason": reason,
+                      });
+                  } else {
+                    // Show error message under the text field
+                    setState(() {
+                      showError = true;
+                    });
+                  }
+                },
+                child: const Text('Reject'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -98,10 +122,10 @@ class InvestmentRequestDetailScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    if (isOwner) ...[
+                    if (isOwner && request.status == 'Pending') ...[
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () => _rejectRequest(context),
+                          onPressed: () => _rejectRequest(context, request),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red,
                             side: const BorderSide(color: Colors.red),
@@ -112,7 +136,9 @@ class InvestmentRequestDetailScreen extends StatelessWidget {
                       const SizedBox(width: 12.0),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () => _acceptRequest(context),
+                          onPressed: () => {
+                            Navigator.pop(context, {"status": "accepted"}),
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             side: const BorderSide(color: Colors.green),
