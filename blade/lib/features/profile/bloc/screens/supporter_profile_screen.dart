@@ -35,7 +35,7 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this); // Two tabs: Investing and Invested
+    _tabController = TabController(length: 1, vsync: this); // Two tabs: Investing and Invested
     _currentUserId = FirebaseAuth.instance.currentUser?.uid;
   }
 
@@ -162,7 +162,7 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
             unselectedLabelColor: Theme.of(context).textTheme.bodyLarge?.color,
             tabs: const [
               Tab(text: 'My requests'),
-              Tab(text: 'Invested'),
+              //Tab(text: 'Invested'),
             ],
           ),
           Expanded(
@@ -170,7 +170,7 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
               controller: _tabController,
               children: [
                 OffersTab(supporterId: widget.userId),
-                const Center(child: Text('No completed projects yet.')),
+                //const Center(child: Text('No completed projects yet.')),
               ],
             ),
           ),
