@@ -18,7 +18,6 @@ import '../bloc/project_state.dart';
 import 'posts_tab.dart';
 import 'members_tab.dart';
 import 'project_settings_screen.dart';
-import 'package:blade_app/features/invesment_request/screen/invesment_request_screen.dart';
 import 'dollar.dart'; // Import the DollarIcon class
 
 class ProjectScreen extends StatefulWidget {
