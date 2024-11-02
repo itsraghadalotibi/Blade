@@ -5,14 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:blade_app/features/authentication/bloc/authentication_bloc.dart';
 import 'package:blade_app/features/authentication/bloc/authentication_state.dart';
-import 'package:blade_app/features/authentication/src/supporter_model.dart';
 import 'package:blade_app/features/supporter/home_page/screens/home_page_screen.dart';
 import 'package:blade_app/features/profile/bloc/repository/profile_repository.dart';
 import 'package:blade_app/features/profile/bloc/screens/supporter_profile_screen.dart';
-import 'package:blade_app/utils/constants/Navigation/settings.dart' as settings;
-
-import '../../../features/announcement/screens/announcement_screen.dart';
-import '../../../features/announcement/src/announcement_repository.dart';
+import 'SupporterSettings.dart';
 
 class SupporterNavigation extends StatefulWidget {
   const SupporterNavigation({super.key});
@@ -69,26 +65,23 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
               ),
             ),
             Expanded(
-              child: IconButton(
-                iconSize: 30,
-                icon: Icon(
-                  Icons.notifications,
-                  color: currentTap == 1 ? const Color(0xFFFD5336) : Colors.grey,
-                ),
-                onPressed: () {
-                  final state = context.read<AuthenticationBloc>().state;
-                  _handleAuthenticatedNavigation(
-                    context,
-                    state,
-                    () => AnnouncementScreen(
-                      repository: AnnouncementRepository(),
-                      currentUserId: (state as AuthenticationAuthenticated).user.uid,
-                    ),
-                    1,
-                  );
-                },
-              ),
-            ),
+  child: IconButton(
+    iconSize: 30,
+    icon: Icon(
+      Icons.notifications,
+      color: currentTap == 1 ? const Color(0xFFFD5336) : Colors.grey,
+    ),
+    onPressed: () {
+      final state = context.read<AuthenticationBloc>().state;
+      _handleAuthenticatedNavigation(
+        context,
+        state,
+        () => SupporterSettings(), // Navigate to SupporterSettings instead of AnnouncementScreen
+        1,
+      );
+    },
+  ),
+),
             Expanded(
               child: IconButton(
                 iconSize: 30,

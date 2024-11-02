@@ -326,7 +326,7 @@ class InvestmentRequestsListScreen extends StatelessWidget {
                       padding: EdgeInsets.only(top: 8.0),
                       child: Text(
                         'Please provide a reason.',
-                        style: TextStyle(color: Colors.red, fontSize: 12),
+                        style: TextStyle(color: Colors.red, fontSize: 14, fontWeight: FontWeight.w500),
                       ),
                     ),
                 ],
