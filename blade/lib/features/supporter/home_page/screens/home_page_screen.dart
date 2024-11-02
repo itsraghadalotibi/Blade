@@ -152,14 +152,14 @@ Widget build(BuildContext context) {
       height: 52,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: ShapeDecoration(
-        color: Colors.white,
+        color: isDarkMode ? TColors.container : TColors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(100),
         ),
       ),
       child: Row(
         children: [
-          Icon(Icons.search, color: Color(0xFF8D8DA6)),
+          Icon(Icons.search, color: isDarkMode ? Colors.white70 : Color(0xFF8D8DA6)),
           const SizedBox(width: 16),
           Expanded(
             child: TextField(
@@ -288,7 +288,7 @@ Widget build(BuildContext context) {
         Text(
           'Find the best project for you to invest',
           style: TextStyle(
-            color: Color(0xFF8D8DA6),
+            color: isDarkMode ? Colors.white70 : Color(0xFF8D8DA6),
             fontSize: 16,
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w400,
