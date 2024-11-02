@@ -89,9 +89,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   showCloseIcon: true),
             );
             if (user is CollaboratorModel) {
-              Navigator.pushReplacementNamed(context, '/collaboratorHome');
+              Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/collaboratorHome',
+            (Route<dynamic> route) => false,
+          );
             } else{
-              Navigator.pushReplacementNamed(context, '/supporterHome');
+              Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/supporterHome',
+            (Route<dynamic> route) => false,
+          );
             }
           } else if (state is AuthenticationFailure) {
             ScaffoldMessenger.of(context).showSnackBar(

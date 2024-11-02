@@ -1,3 +1,4 @@
+import 'package:blade_app/features/investment_request/src/investment_request_repository.dart';
 import 'package:blade_app/features/project_info/screens/offers_tab.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,9 @@ import '../../../widgets/expandable_text.dart';
 import '../../announcement/src/announcement_model.dart';
 import '../../announcement/src/announcement_repository.dart';
 import '../../announcement/widgets/skill_tag_widget.dart';
+import '../../investment_request/bloc/investment_request_bloc.dart';
+import '../../investment_request/bloc/investment_request_event.dart';
+import '../../investment_request/screens/invsetment_request_list.dart';
 import '../bloc/project_bloc.dart';
 import '../bloc/project_event.dart';
 import '../bloc/project_state.dart';
@@ -15,7 +19,7 @@ import 'posts_tab.dart';
 import 'members_tab.dart';
 import 'project_settings_screen.dart';
 import 'package:blade_app/features/invesment_request/screen/invesment_request_screen.dart';
-import 'dollar.dart';  // Import the DollarIcon class
+import 'dollar.dart'; // Import the DollarIcon class
 
 class ProjectScreen extends StatefulWidget {
   final Idea idea;
@@ -95,7 +99,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
     });
 
     try {
-      final docRef = await FirebaseFirestore.instance.collection('join_requests').add({
+      final docRef =
+          await FirebaseFirestore.instance.collection('join_requests').add({
         'ideaId': ideaId,
         'userId': userId,
         'status': 'pending',
@@ -228,7 +233,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
         _isMember = false;
         _buttonText = 'Join';
       });
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -241,7 +245,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ProjectBloc(widget.repository, FirebaseAuth.instance.currentUser?.uid ?? '')
+      create: (context) => ProjectBloc(
+          widget.repository, FirebaseAuth.instance.currentUser?.uid ?? '')
         ..add(FetchProjectDetails(widget.idea.id!)),
       child: BlocBuilder<ProjectBloc, ProjectState>(
         builder: (context, state) {
@@ -263,14 +268,40 @@ class _ProjectScreenState extends State<ProjectScreen> {
           } else if (state is ProjectLoaded) {
             final idea = state.idea;
             final bool isOwner = state.isOwner;
-            final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+            final bool isDarkMode =
+                Theme.of(context).brightness == Brightness.dark;
 
             return Scaffold(
               appBar: AppBar(
                 title: const Text('Project details'),
                 centerTitle: true,
                 actions: [
-                  if (isOwner && (idea.status == 'open' || idea.status == 'ongoing'))
+                  if (_isMember || isOwner)
+                    IconButton(
+                      icon: const Icon(Icons.mail), // Use envelope icon
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BlocProvider(
+                              create: (context) => InvestmentRequestBloc(
+                                repository:
+                                    context.read<InvestmentRequestRepository>(),
+                              )..add(FetchInvestmentRequests(
+                                  projectId: widget
+                                      .idea.id!)), // Fetch requests on creation
+                              child: InvestmentRequestsListScreen(
+                                projectId: widget.idea.id!,
+                                isOwner:
+                                    isOwner, // pass the `isOwner` parameter if you have it available
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  if (isOwner &&
+                      (idea.status == 'open' || idea.status == 'ongoing'))
                     IconButton(
                       icon: const Icon(Icons.settings),
                       onPressed: () {
@@ -283,7 +314,9 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             ),
                           ),
                         ).then((_) {
-                          context.read<ProjectBloc>().add(FetchProjectDetails(idea.id!));
+                          context
+                              .read<ProjectBloc>()
+                              .add(FetchProjectDetails(idea.id!));
                         });
                       },
                     ),
@@ -315,51 +348,29 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                   text: idea.description,
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: isDarkMode ? Colors.white70 : Colors.grey[800],
+                                    color: isDarkMode
+                                        ? Colors.white70
+                                        : Colors.grey[800],
                                   ),
                                   maxLines: 4,
                                 ),
                               ],
                             ),
                           ),
-                        if (isOwner)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 16),
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => InvestmentRequestScreen(ideaId: widget.idea.id!), // Pass ideaId here
-                                ),
-                              );
-                            },
-                            child: Column(
-                              children: [
-                                DollarIcon(size: 40),
-                                const SizedBox(height: 4),
-                                const Text(
-                                  'Investment Request',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-
+                          
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: _getStatusColor(idea.status),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              idea.status[0].toUpperCase() + idea.status.substring(1),
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                              idea.status[0].toUpperCase() +
+                                  idea.status.substring(1),
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600),
                             ),
                           ),
                         ],
@@ -377,7 +388,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _buttonBackgroundColor,
-                            padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 36, vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -419,28 +431,35 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               },
                               indicatorColor: Theme.of(context).primaryColor,
                               labelColor: Theme.of(context).primaryColor,
-                              unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
+                              unselectedLabelColor:
+                                  Theme.of(context).textTheme.bodyMedium?.color,
                               tabs: [
                                 const Tab(text: 'Posts'),
                                 const Tab(text: 'Members'),
-                                if (isOwner && idea.status == "open") const Tab(text: 'Requests'),
+                                if (isOwner && idea.status == "open")
+                                  const Tab(text: 'Requests'),
                               ],
                             ),
                             Expanded(
                               child: TabBarView(
                                 children: [
-                                  PostsTab(idea: idea, repository: widget.repository),
-                                  MembersTab(idea: idea, repository: widget.repository),
+                                  PostsTab(idea: idea),
+                                  MembersTab(
+                                      idea: idea,
+                                      repository: widget.repository),
                                   if (isOwner && idea.status == "open")
                                     OffersTab(
                                       idea: idea,
                                       repository: widget.repository,
                                       addNewMember: (id) {
                                         idea.members.add(id);
-                                        final bool isFull = (idea.members.length) >= idea.maxMembers;
+                                        final bool isFull =
+                                            (idea.members.length) >=
+                                                idea.maxMembers;
                                         if (isFull) {
                                           idea.status = "ongoing";
-                                          widget.repository.updateIdeaStatus(idea.id!, 'ongoing');
+                                          widget.repository.updateIdeaStatus(
+                                              idea.id!, 'ongoing');
                                         }
                                         setState(() {});
                                       },

@@ -23,14 +23,23 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           .orderBy('timestamp', descending: true)
           .get();
 
+      if (querySnapshot.docs.isEmpty && !emit.isDone) {
+        emit(NotificationLoaded([]));
+        return;
+      }
+
       final notifications = querySnapshot.docs.map((doc) {
         return NotificationModel.fromMap(
             doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
 
-      emit(NotificationLoaded(notifications));
+      if (!emit.isDone) {
+        emit(NotificationLoaded(notifications));
+      }
     } catch (e) {
-      emit(NotificationError(e.toString()));
+      if (!emit.isDone) {
+        emit(NotificationError(e.toString()));
+      }
     }
   }
 
@@ -43,9 +52,13 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           .update({
         'read': true,
       });
-      emit(NotificationUpdated());
+      if (!emit.isDone) {
+        emit(NotificationUpdated());
+      }
     } catch (e) {
-      emit(NotificationError(e.toString()));
+      if (!emit.isDone) {
+        emit(NotificationError(e.toString()));
+      }
     }
   }
 
@@ -56,9 +69,13 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           .collection('notifications')
           .doc(event.notificationId)
           .delete();
-      emit(NotificationDeleted());
+      if (!emit.isDone) {
+        emit(NotificationDeleted());
+      }
     } catch (e) {
-      emit(NotificationError(e.toString()));
+      if (!emit.isDone) {
+        emit(NotificationError(e.toString()));
+      }
     }
   }
 }

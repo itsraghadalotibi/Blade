@@ -1,4 +1,5 @@
-//blade/lib/features/announcement/src/announcement_model.dart
+// blade/lib/features/announcement/src/announcement_model.dart
+
 class Idea {
   String? id; // Add the id field
   final String title;
@@ -9,6 +10,7 @@ class Idea {
   bool? isJoined;
   int? requestCount;
   String status;
+  final String? repoUrl; // To store the GitHub repository URL
 
   Idea({
     this.id, // Include id in the constructor
@@ -18,23 +20,27 @@ class Idea {
     required this.members,
     required this.skills,
     required this.status,
+    this.repoUrl,
     this.isJoined,
-    this.requestCount
+    this.requestCount,
   });
 
   // Factory constructor to create an Idea from Firestore data
   factory Idea.fromMap(Map<String, dynamic> data, String documentId) {
     return Idea(
-        id: documentId, // Assign the document ID from Firestore
-        title: data['title'] ?? '',
-        description: data['description'] ?? '',
-        maxMembers: data['maxMembers'] ?? 0,
-        members: List<String>.from(data['members'] ?? []),
-        skills: data['skills'] != null && data['skills'] is List
-            ? List<String>.from(data['skills'])
-            : [],
-        status: data['status'] ?? 'open',
-        isJoined: false);
+      id: documentId, // Assign the document ID from Firestore
+      title: data['title'] ?? '',
+      description: data['description'] ?? '',
+      maxMembers: data['maxMembers'] ?? 0,
+      members: List<String>.from(data['members'] ?? []),
+      skills: data['skills'] != null && data['skills'] is List
+          ? List<String>.from(data['skills'])
+          : [],
+      status: data['status'] ?? 'open',
+    repoUrl: data['repoUrl'] ?? '', 
+      isJoined: data['isJoined'] ?? false,
+      requestCount: data['requestCount'],
+    );
   }
 
   Idea copyWith({
@@ -54,6 +60,7 @@ class Idea {
       isJoined: isJoined ?? this.isJoined,
       maxMembers: maxMembers,
       skills: skills,
+      repoUrl: repoUrl, // Retain the repoUrl when copying
     );
   }
 
@@ -66,6 +73,9 @@ class Idea {
       'members': members,
       'skills': skills,
       'status': status,
+      'repoUrl': repoUrl, // Include the repoUrl in the map
+      'isJoined': isJoined,
+      'requestCount': requestCount,
     };
   }
 }

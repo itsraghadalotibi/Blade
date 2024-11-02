@@ -1,6 +1,9 @@
 import 'package:blade_app/features/announcement/src/announcement_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../authentication/bloc/authentication_bloc.dart';
+import '../../../authentication/bloc/authentication_event.dart';
+import '../../../authentication/bloc/authentication_state.dart';
 import 'home_page_bloc.dart';
 import 'home_page_event.dart';
 import 'home_page_state.dart';
@@ -9,8 +12,88 @@ import 'completed_projects_widget.dart';
 import 'home_page_repository.dart';
 
 class HomeScreen extends StatelessWidget {
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+      title: const Text(
+        "Logout Confirmation",
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: const Text(
+        "Are you sure you want to log out from Blade?",
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(dialogContext).pop(); // Close the dialog
+          },
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black,
+          ),
+          child: const Text("Cancel"),
+        ),
+        const SizedBox(width: 2),
+        TextButton(
+          onPressed: () {
+            Navigator.of(dialogContext).pop(); // Close the dialog
+            _onLogoutButtonPressed(context); // Perform logout
+          },
+          style: TextButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error, // Red background
+          ),
+          child: Text(
+            "Logout",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onError, // White text
+            ),
+          ),
+        ),
+      ],
+    );
+      },
+    );
+  }
+
+  void _onLogoutButtonPressed(BuildContext context) {
+    context.read<AuthenticationBloc>().add(LoggedOut());
+    Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/welcome',
+            (Route<dynamic> route) => false, // Clear all previous routes
+          );
+  }
   @override
   Widget build(BuildContext context) {
+    (context, state) {
+        if (state is AuthenticationUnauthenticated) {
+          // Show the success snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Logged out successfully!',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(top: 10, left: 10, right: 10),
+              showCloseIcon: true,
+            ),
+          );
+
+          // Navigate to the welcome screen and clear the navigation stack
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/welcome',
+            (Route<dynamic> route) => false, // Clear all previous routes
+          );
+        }
+      };
     return Scaffold(
       body: BlocProvider(
         create: (context) => HomeBloc(
@@ -26,6 +109,10 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: ListView(
                   children: [
+                    IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () => _showLogoutConfirmation(context),
+            ),
                     _buildHeader(state.currentUser),
                     const SizedBox(height: 30),
                     _buildIntro(),

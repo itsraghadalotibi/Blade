@@ -130,9 +130,18 @@ class _OffersTabState extends State<OffersTab> {
                                   'Rejected ${collaborator.firstName} ${collaborator.lastName}')),
                         );
 
-                        // Send Firebase notification for rejection
+                        // Fetch the project name from the ideas collection
+                        final ideaDoc = await FirebaseFirestore.instance
+                            .collection('ideas')
+                            .doc(widget.idea.id)
+                            .get();
+
+                        final projectName =
+                            ideaDoc.data()?['title'] ?? 'the project';
+
+                        // Send Firebase notification for rejection with the project name
                         await _notificationService.createFirebaseNotification(
-                            collaborator.uid, 'rejected');
+                            collaborator.uid, 'rejected', projectName);
 
                         setState(() {});
                       },
@@ -147,9 +156,18 @@ class _OffersTabState extends State<OffersTab> {
 
                         widget.addNewMember(collaborator.uid);
 
-                        // Send Firebase notification for acceptance
+                        // Fetch the project name from the ideas collection
+                        final ideaDoc = await FirebaseFirestore.instance
+                            .collection('ideas')
+                            .doc(widget.idea.id)
+                            .get();
+
+                        final projectName =
+                            ideaDoc.data()?['title'] ?? 'the project';
+
+                        // Send Firebase notification for acceptance with the project name
                         await _notificationService.createFirebaseNotification(
-                            collaborator.uid, 'accepted');
+                            collaborator.uid, 'accepted', projectName);
 
                         setState(() {});
                       },
@@ -203,6 +221,7 @@ class AcceptRejectButtons extends StatefulWidget {
 
 class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
   bool isPress = false;
+
   @override
   Widget build(BuildContext context) {
     if (isPress) return const SizedBox();
@@ -211,13 +230,17 @@ class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
       children: [
         ElevatedButton(
           onPressed: () async {
-            setState(() {
-              isPress = true;
-            });
+            if (mounted) {
+              setState(() {
+                isPress = true;
+              });
+            }
             await widget.onReject();
-            setState(() {
-              isPress = false;
-            });
+            if (mounted) {
+              setState(() {
+                isPress = false;
+              });
+            }
           },
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.all(10),
@@ -236,13 +259,17 @@ class _AcceptRejectButtonsState extends State<AcceptRejectButtons> {
         const SizedBox(width: 8),
         ElevatedButton(
           onPressed: () async {
-            setState(() {
-              isPress = true;
-            });
+            if (mounted) {
+              setState(() {
+                isPress = true;
+              });
+            }
             await widget.onAccept();
-            setState(() {
-              isPress = false;
-            });
+            if (mounted) {
+              setState(() {
+                isPress = false;
+              });
+            }
           },
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.all(10),

@@ -8,6 +8,7 @@ class NotificationModel {
   final bool read;
   final String? status;
   final String? userId;
+  final String? projectName; // Add this field
 
   NotificationModel({
     required this.id,
@@ -17,9 +18,9 @@ class NotificationModel {
     this.read = false,
     this.status,
     this.userId,
+    this.projectName,
   });
 
-  // Factory method to create an instance of NotificationModel from Firebase data
   factory NotificationModel.fromMap(
       Map<String, dynamic> data, String documentId) {
     return NotificationModel(
@@ -30,10 +31,10 @@ class NotificationModel {
       read: data['read'] ?? false,
       status: data['status'] ?? '',
       userId: data['userId'] ?? '',
+      projectName: data['projectName'] ?? '', // Retrieve project name
     );
   }
 
-  // Method to convert NotificationModel instance to a map for saving to Firebase
   Map<String, dynamic> toMap() {
     return {
       'title': title,
@@ -42,6 +43,7 @@ class NotificationModel {
       'read': read,
       'status': status,
       'userId': userId,
+      'projectName': projectName, // Include project name in map
     };
   }
 }

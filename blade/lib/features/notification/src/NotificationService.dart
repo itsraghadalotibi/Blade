@@ -1,17 +1,24 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-//raghad
 class NotificationService {
-  static final FlutterLocalNotificationsPlugin
-      _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // List to keep track of notified request IDs to prevent duplicate notifications
-  static final List<String> notifiedRequestIds = [];
+  // Declare a StreamSubscription for the notification listener
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _notificationSubscription;
 
-  // Initialize local notification settings for iOS
-  static Future<void> initialize() async {
+  // Constructor to initialize settings
+  NotificationService() {
+    _initialize(); // Properly initialize on instance creation
+  }
+
+  // Initialize local notifications for iOS and macOS
+  Future<void> _initialize() async {
     const DarwinInitializationSettings darwinSettings =
         DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -27,27 +34,25 @@ class NotificationService {
     await _flutterLocalNotificationsPlugin.initialize(
       settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Handle notification tap, if necessary
+        // Handle notification tap if necessary
       },
     );
   }
 
-  // Create a notification in Firebase for the targeted user
-  Future<void> createFirebaseNotification(String userId, String status) async {
-    await _firestore.collection('Notification').add({
-      'userId': userId,
-      'status': status,
-      'timestamp': FieldValue.serverTimestamp(),
-      'title': status == 'accepted' ? 'Request Accepted' : 'Request Rejected',
-      'message': status == 'accepted'
-          ? 'You have been accepted for the project!'
-          : 'Your join request has been rejected.',
-      'read': false,
-    });
+  // Request permissions for local notifications (useful for iOS)
+  Future<void> requestPermissions() async {
+    await _flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
   }
 
-  // Show a local notification on iOS
-  static Future<void> showLocalNotification(String title, String body) async {
+  // Show a local notification on the device
+  Future<void> showLocalNotification(String title, String body) async {
     const DarwinNotificationDetails darwinDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
@@ -67,22 +72,70 @@ class NotificationService {
     );
   }
 
-  // Listen to Firestore collection for real-time updates
-  static void listenToPendingRequests() {
-    _firestore
-        .collection('join_requests')
-        .where('status', isEqualTo: 'Pending')
+  // Add a notification to Firebase for the target user
+  Future<void> createFirebaseNotification(
+      String userId, String status, String projectName) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    // Skip the notification if the current user is the one performing the action
+    if (currentUser != null && currentUser.uid == userId) {
+      return; // Exit the function early to avoid creating notification for the project owner
+    }
+
+    final title =
+        status == 'accepted' ? 'Request Accepted' : 'Request Rejected';
+    final message = status == 'accepted'
+        ? 'You have been accepted for the project $projectName!'
+        : 'Your join request for the project $projectName has been rejected.';
+
+    // Create notification in Firebase with project ID for the target user
+    await _firestore.collection('notifications').add({
+      'userId': userId,
+      'status': status,
+      'projectId': projectName, // Store the project ID
+      'timestamp': FieldValue.serverTimestamp(),
+      'title': title,
+      'message': message,
+      'read': false,
+    });
+  }
+
+  // Listen to changes in the notifications collection in Firebase for real-time notifications
+  void listenToFirebaseNotifications(String userId) {
+    // Cancel any existing subscription to avoid multiple listeners
+    _notificationSubscription?.cancel();
+
+    // Set up a new subscription for real-time notifications
+    _notificationSubscription = _firestore
+        .collection('notifications')
+        .where('userId', isEqualTo: userId)
+        .where('read', isEqualTo: false) // Only fetch unread notifications
         .snapshots()
         .listen((snapshot) {
-      for (var doc in snapshot.docs) {
-        if (!notifiedRequestIds.contains(doc.id)) {
-          notifiedRequestIds.add(doc.id); // Prevent duplicate notifications
-          showLocalNotification(
-            'New Join Request',
-            'A new request is waiting for your approval',
-          );
+      for (var doc in snapshot.docChanges) {
+        if (doc.type == DocumentChangeType.added) {
+          final data = doc.doc.data();
+          if (data != null) {
+            // Show the local notification
+            showLocalNotification(
+              data['title'] ?? 'Notification',
+              data['message'] ?? 'You have a new notification',
+            );
+
+            // Mark the notification as read
+            doc.doc.reference.update({'read': true}).then((_) {
+              print(
+                  'Notification marked as read in Firebase: ${data['title']}');
+            }).catchError((error) {
+              print('Error marking notification as read: $error');
+            });
+          }
         }
       }
     });
+  }
+
+  void dispose() {
+    _notificationSubscription?.cancel();
   }
 }

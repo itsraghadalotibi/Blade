@@ -200,6 +200,7 @@ class _PostState extends State<Post> {
     int maxMembers = int.parse(_numberController.text) + 1;
 
     Idea newIdea = Idea(
+      id: '', // Placeholder, Firestore will assign an ID
       title: _ideanameController.text,
       description: _ideadescriptionController.text,
       maxMembers: maxMembers,
@@ -210,10 +211,12 @@ class _PostState extends State<Post> {
     );
 
     try {
-      await _ideaRepository.createIdea(newIdea, creatorId);
+      // Save the new idea and get its DocumentReference
+      final DocumentReference docRef = await _ideaRepository.createIdea(newIdea, creatorId);
+      final String ideaId = docRef.id; // Get the ideaId from the document reference
       
-      // After the idea is successfully created, create a GitHub repo
-      await _createGithubRepo(_ideanameController.text);
+      // Now create the GitHub repo and save the repo URL in the Firestore idea document
+      await _createGithubRepo(_ideanameController.text, ideaId); // Pass the ideaId to create GitHub repo
 
       Navigator.pushReplacement(
         context,
@@ -224,7 +227,7 @@ class _PostState extends State<Post> {
     }
   }
 
-Future<void> _createGithubRepo(String repoName) async {
+Future<void> _createGithubRepo(String repoName, String ideaId) async {
   final url = Uri.parse('https://api.github.com/user/repos');
     // Print access token for debugging
       print('Access Token: ${widget.accessToken}');
@@ -243,6 +246,14 @@ Future<void> _createGithubRepo(String repoName) async {
   );
 
   if (response.statusCode == 201) {
+    final responseBody = jsonDecode(response.body);
+    final repoUrl = responseBody['html_url']; // Get the repository URL
+    
+    // Save the repo URL to Firestore under the corresponding idea
+    await FirebaseFirestore.instance.collection('ideas').doc(ideaId).update({
+      'repoUrl': repoUrl,
+    });
+
     print('GitHub repository created successfully!');
   } else {
     print('Failed to create GitHub repository: ${response.body}');
