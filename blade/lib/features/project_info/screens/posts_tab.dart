@@ -157,9 +157,12 @@ class _PostsTabState extends State<PostsTab> {
     }else{
       collaborators.add(await repository.fetchCollaborator(uid!));
     }
-    for (var i = 0; i < posts!.length; i++) {
-      posts[i].user = collaborators?.firstWhere((c)=>c?.uid == posts[i].uid);
-    }
+  for (var i = 0; i < posts!.length; i++) {
+    posts[i].user = collaborators?.firstWhere(
+      (c) => c?.uid == posts[i].uid,
+      orElse: () => null, // Provide a default if not found
+    );
+  }
     return posts;
   }
 }
