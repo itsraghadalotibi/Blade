@@ -373,7 +373,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             ),
                           ),
                           onPressed: () {
-                            if ((_isRequestPending && _joinRequestId != null) || widget.useInvestButton) {
+                            if ((_isRequestPending && _joinRequestId != null)) {
                               // Cancel the join request
                               _cancelJoinRequest(_joinRequestId!);
                             } else if (_isMember) {
