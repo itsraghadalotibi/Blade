@@ -1,57 +1,70 @@
 import 'package:bloc/bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'git_hub_points_event.dart';
 import 'git_hub_points_state.dart';
 
 class GitHubPointsBloc extends Bloc<GitHubPointsEvent, GitHubPointsState> {
+  final _secureStorage = const FlutterSecureStorage(); // Secure storage instance
+  int totalPoints = 0;
+
   GitHubPointsBloc() : super(GitHubPointsInitial()) {
-    // Register event handler for FetchGitHubPointsEvent
     on<FetchGitHubPointsEvent>(_onFetchGitHubPoints);
   }
 
+  // Fetch commits and calculate points
   Future<void> _onFetchGitHubPoints(
       FetchGitHubPointsEvent event, Emitter<GitHubPointsState> emit) async {
     print("Event received in Bloc with URL: ${event.repoUrl}");
     emit(GitHubPointsLoading());
 
     try {
+      // Retrieve the GitHub access token
+      final accessToken = await _secureStorage.read(key: 'github_access_token');
+      if (accessToken == null || accessToken.isEmpty) {
+        emit(GitHubPointsError("GitHub access token not available"));
+        return;
+      }
+
       // Parse repo owner and name from the provided URL
       final repoDetails = event.repoUrl.split("github.com/")[1].split("/");
       final owner = repoDetails[0];
       final repo = repoDetails[1];
-      
+
       print("Owner: $owner, Repo: $repo - Preparing API request...");
       final url = Uri.parse('https://api.github.com/repos/$owner/$repo/commits');
-      final response = await http.get(url);
+
+      // Include token in the request headers
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Accept': 'application/vnd.github.v3+json',
+        },
+      );
 
       print("API response status: ${response.statusCode}");
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
         // Calculate commit count and award points
-        int commitsCount = data.length; // Total number of commits
-        int points = 0; // Points to be awarded
+        int commitsCount = data.length;
+        int commitPoints = 0;
 
-        // Award 15 points for the first 10 lines (if there are at least 10 commits)
+        // Award points based on commit count
         if (commitsCount >= 10) {
-          points += 15;
-          // Award additional 15 points for every 50 lines committed after the first 10 lines
-          points += ((commitsCount - 10) ~/ 50) * 15;
+          commitPoints += 15;
+          commitPoints += ((commitsCount - 10) ~/ 30) * 15;
         }
 
-        // Debugging output
+        totalPoints += commitPoints; // Add commit points to total
         print('Fetched Commit Count: $commitsCount');
-        print('Points awarded: $points');
+        print('Total Points awarded so far: $totalPoints');
 
-        // Set progress based on awarded points
-        const int goal = 500; // Set goal to 500 points
-        final double progress = (points / goal).clamp(0, 1); // Cap progress at 100%
-
-        // Emit loaded state with commit count and progress
-        emit(GitHubPointsLoaded(commitsCount: commitsCount, progress: progress));
+        _emitProgress(emit, commitsCount);
       } else {
-        // Handle errors by emitting an error state
         print('Failed to fetch commits: ${response.statusCode}');
         emit(GitHubPointsError('Failed to fetch repository commits'));
       }
@@ -59,5 +72,13 @@ class GitHubPointsBloc extends Bloc<GitHubPointsEvent, GitHubPointsState> {
       print('Error: $e');
       emit(GitHubPointsError('Error: $e'));
     }
+  }
+
+  // Calculate progress and emit the state
+  void _emitProgress(Emitter<GitHubPointsState> emit, int count) {
+    const int goal = 500;
+    double progress = (totalPoints / goal).clamp(0, 1);
+
+    emit(GitHubPointsLoaded(commitsCount: count, progress: progress));
   }
 }
