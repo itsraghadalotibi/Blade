@@ -315,7 +315,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                 title: const Text('Project details'),
                 centerTitle: true,
                 actions: [
-                  if (userType == 'collaborator' && (_isMember || isOwner))
+                  if (userType == 'collaborator' && idea.status != 'open' && (_isMember || isOwner))
                     IconButton(
                       icon: const Icon(Icons.mail), // Use envelope icon
                       onPressed: () {
