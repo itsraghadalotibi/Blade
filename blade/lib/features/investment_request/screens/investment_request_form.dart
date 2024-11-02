@@ -36,6 +36,7 @@ class _InvestmentRequestFormScreenState
   final _customOfferController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  String? _completePhoneNumber;
   DateTime? _validUntil;
   String? userId;
   String? userName;
@@ -107,11 +108,21 @@ class _InvestmentRequestFormScreenState
             title: const Text('Discard Changes?'),
             content: const Text('Are you sure you want to discard your changes?'),
             actions: <Widget>[
-              TextButton(
+              OutlinedButton(
+                style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 12.0),
+                    ),
                 onPressed: () => Navigator.of(context).pop(false),
                 child: const Text('Cancel'),
               ),
-              TextButton(
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 12.0),
+                    ),
                 onPressed: () => Navigator.of(context).pop(true),
                 child: const Text('Discard'),
               ),
@@ -129,7 +140,7 @@ class _InvestmentRequestFormScreenState
 
       final contactInfo = {
         if (showEmailField) 'email': _emailController.text,
-        if (showPhoneField) 'phone number': _phoneController.text,
+         if (showPhoneField && _completePhoneNumber != null) 'phone number': _completePhoneNumber!,
       };
 
       final request = InvestmentRequestModel(
@@ -446,8 +457,10 @@ class _InvestmentRequestFormScreenState
                     ),
                     initialCountryCode: 'SA',
                     onChanged: (phone) {
-                      print(phone.completeNumber);
-                    },
+                    setState(() {
+                      _completePhoneNumber = phone.completeNumber; // Capturing complete phone number
+                    });
+                  },
                     validator: (value) {
                       if (value == null) {
                         return 'Please enter a phone number';
