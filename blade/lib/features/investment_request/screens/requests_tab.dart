@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -59,6 +60,32 @@ class OffersTab extends StatelessWidget {
                                     CancelInvestmentRequest(
                                         requestId: request.id,
                                         supporterId: supporterId));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      backgroundColor: TColors.success,
+                                      behavior: SnackBarBehavior.floating,
+                                      content: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          const Icon(
+                                              CupertinoIcons
+                                                  .check_mark_circled_solid,
+                                              color: Colors
+                                                  .white), // Change icon and color as needed
+                                          const SizedBox(
+                                              width:
+                                                  8), // Space between icon and text
+                                          const Expanded(
+                                            child: Text(
+                                              'Request Cancelled',
+                                              style: TextStyle(fontSize: 16),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      showCloseIcon: true),
+                                );
                               }
                             });
                           },
@@ -69,14 +96,11 @@ class OffersTab extends StatelessWidget {
                                   ? TColors.container
                                   : TColors.white,
                               borderRadius: BorderRadius.circular(12),
-                              // boxShadow: [
-                              //   BoxShadow(
-                              //     color: Colors.grey.withOpacity(0.3),
-                              //     spreadRadius: 2,
-                              //     blurRadius: 5,
-                              //     offset: const Offset(0, 3),
-                              //   ),
-                              // ],
+                              border: isDarkMode
+                                  ? null // No border in dark mode
+                                  : Border.all(
+                                      color: TColors
+                                          .borderPrimary), // Light mode border
                             ),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -98,7 +122,6 @@ class OffersTab extends StatelessWidget {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            
                                             Text(
                                               request.projectName,
                                               style: const TextStyle(
@@ -129,6 +152,8 @@ class OffersTab extends StatelessWidget {
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 12, vertical: 6),
+                                        margin:
+                                            const EdgeInsets.only(left: 10.0),
                                         decoration: BoxDecoration(
                                           color:
                                               _getStatusColor(request.status),
@@ -162,6 +187,22 @@ class OffersTab extends StatelessWidget {
                                         child: const Text('Cancel Request'),
                                       ),
                                     ),
+                                  if (request.status == 'Rejected')
+                                    Align(
+                                      alignment: Alignment.center,
+                                      child: OutlinedButton(
+                                        onPressed: () {
+                                          _showRejectionReason(context,
+                                              request.reasonForRejection);
+                                        },
+                                        style: OutlinedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 0.0, horizontal: 8.0),
+                                        ),
+                                        child:
+                                            const Text('View Rejection Reason'),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
@@ -188,20 +229,66 @@ class OffersTab extends StatelessWidget {
           title: const Text("Cancel Request"),
           content: const Text("Are you sure you want to cancel this request?"),
           actions: [
-            TextButton(
+            OutlinedButton(
+              style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0)),
               child: const Text("No"),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
             ),
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0)),
               child: const Text("Yes"),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 context.read<InvestmentRequestBloc>().add(
                     CancelInvestmentRequest(
                         requestId: request.id, supporterId: supporterId));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      backgroundColor: TColors.success,
+                      behavior: SnackBarBehavior.floating,
+                      content: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const Icon(CupertinoIcons.check_mark_circled_solid,
+                              color: Colors
+                                  .white), // Change icon and color as needed
+                          const SizedBox(
+                              width: 8), // Space between icon and text
+                          const Expanded(
+                            child: Text(
+                              'Request Cancelled',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                      showCloseIcon: true),
+                );
               },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showRejectionReason(BuildContext context, String reason) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Rejection Reason'),
+          content: Text(reason),
+          actions: [
+            OutlinedButton(
+              style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0)),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
             ),
           ],
         );
@@ -214,13 +301,15 @@ class OffersTab extends StatelessWidget {
       case 'Accepted':
         return Colors.green;
       case 'Pending':
-        return Colors.amber[700]!;
+        return Colors.amber[800]!;
       case 'Rejected':
         return Colors.red;
       case 'Cancelled':
+        return Colors.blue;
+      case 'Expired':
         return Colors.grey[600]!;
       default:
-        return Colors.black;
+        return Colors.purple;
     }
   }
 }
@@ -239,13 +328,17 @@ class InvestmentRequestDetailScreen extends StatelessWidget {
           title: const Text("Cancel Request"),
           content: const Text("Are you sure you want to cancel this request?"),
           actions: [
-            TextButton(
+            OutlinedButton(
+              style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0)),
               child: const Text("No"),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
             ),
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0)),
               child: const Text("Yes"),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
@@ -301,11 +394,39 @@ class InvestmentRequestDetailScreen extends StatelessWidget {
                       child: const Text('Cancel Request'),
                     ),
                   ),
+                if (request.status == 'Cancelled')
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _showRejectionReason(
+                          context, request.reasonForRejection),
+                      child: const Text('View Rejection Reason'),
+                    ),
+                  ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showRejectionReason(BuildContext context, String reason) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Rejection Reason'),
+          content: Text(reason),
+          actions: [
+            OutlinedButton(
+              style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0)),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

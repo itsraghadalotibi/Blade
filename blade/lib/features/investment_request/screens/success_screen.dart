@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 class SuccessAnimationScreen extends StatefulWidget {
+  final String userId;
+
+  const SuccessAnimationScreen({Key? key, required this.userId}) : super(key: key);
+
   @override
   _SuccessAnimationScreenState createState() => _SuccessAnimationScreenState();
 }
-
 class _SuccessAnimationScreenState extends State<SuccessAnimationScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
@@ -54,10 +57,11 @@ class _SuccessAnimationScreenState extends State<SuccessAnimationScreen>
           const SizedBox(height: 10),
           ElevatedButton(
             onPressed: () {
+              int popCount = 4;
               Navigator.popUntil(
                 context,
                 (route) =>
-                    route.isFirst, // Or specify another condition if needed
+                    route.isFirst,
               );
             },
             child: Container(

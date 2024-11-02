@@ -9,11 +9,12 @@ abstract class NotificationEvent extends Equatable {
 
 class LoadNotifications extends NotificationEvent {
   final String userId;
+  final bool onlyUnread;
 
-  const LoadNotifications(this.userId);
+  const LoadNotifications(this.userId, {this.onlyUnread = false});
 
   @override
-  List<Object?> get props => [userId];
+  List<Object?> get props => [userId, onlyUnread];
 }
 
 class MarkNotificationAsRead extends NotificationEvent {

@@ -4,6 +4,7 @@ import 'package:blade_app/features/authentication/bloc/authentication_state.dart
 import 'package:blade_app/features/authentication/src/collaborator_model.dart';
 import 'package:blade_app/features/collaborator/screens/collaborator_home_screen.dart';
 import 'package:blade_app/features/newPost/screens/github_oauth.dart';
+import 'package:blade_app/features/notification/screens/NotificationCenterScreen.dart'; // Ensure this import is present
 import 'package:blade_app/features/profile/bloc/bloc/profile_view_bloc.dart';
 import 'package:blade_app/features/profile/bloc/bloc/profile_view_event.dart';
 import 'package:blade_app/features/profile/bloc/repository/profile_repository.dart';
@@ -230,7 +231,8 @@ class _NavigationState extends State<Navigation> {
                         minWidth: 30,
                         onPressed: () {
                           setState(() {
-                            currentScreen = const Settings();
+                            currentScreen =
+                                NotificationCenterScreen(userId: currentUserId);
                             currentTap = 2;
                           });
                         },

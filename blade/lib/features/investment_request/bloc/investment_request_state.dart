@@ -19,3 +19,6 @@ class InvestmentRequestsLoaded extends InvestmentRequestState {
   InvestmentRequestsLoaded({required this.requests});
 }
 class InvestmentRequestCanceled extends InvestmentRequestState {}
+class InvestmentRequestAccepted extends InvestmentRequestState {}
+
+class InvestmentRequestRejected extends InvestmentRequestState {}

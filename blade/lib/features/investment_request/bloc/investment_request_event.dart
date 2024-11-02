@@ -23,3 +23,21 @@ class CancelInvestmentRequest extends InvestmentRequestEvent {
 
   CancelInvestmentRequest({required this.requestId, required this.supporterId});
 }
+class AcceptInvestmentRequest extends InvestmentRequestEvent {
+  final String requestId;
+  final String projectId; // Add projectId here
+
+  AcceptInvestmentRequest({required this.requestId, required this.projectId});
+}
+
+class RejectInvestmentRequest extends InvestmentRequestEvent {
+  final String requestId;
+  final String reasonForRejection;
+  final String projectId; // Add projectId here
+
+  RejectInvestmentRequest({
+    required this.requestId,
+    required this.reasonForRejection,
+    required this.projectId,
+  });
+}

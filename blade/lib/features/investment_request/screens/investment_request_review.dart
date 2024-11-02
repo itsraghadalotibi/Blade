@@ -43,7 +43,7 @@ class InvestmentRequestReviewScreen extends StatelessWidget {
             // Navigate to the success animation screen on successful submission
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => SuccessAnimationScreen()),
+              MaterialPageRoute(builder: (context) => SuccessAnimationScreen(userId: request.supporterId,)),
             );
           } else if (state is InvestmentRequestFailure) {
             // Show an error message if submission fails

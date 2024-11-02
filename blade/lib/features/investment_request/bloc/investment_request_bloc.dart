@@ -13,6 +13,8 @@ class InvestmentRequestBloc
     on<FetchInvestmentRequests>(_onFetchInvestmentRequests);
     on<FetchInvestmentRequestsBySupporter>(_onFetchInvestmentRequestsBySupporter);
     on<CancelInvestmentRequest>(_onCancelInvestmentRequest);
+      on<AcceptInvestmentRequest>(_onAcceptInvestmentRequest);
+    on<RejectInvestmentRequest>(_onRejectInvestmentRequest);
   }
 
   Future<void> _onSubmitInvestmentRequest(
@@ -58,6 +60,33 @@ class InvestmentRequestBloc
 
     // Emit an event to fetch updated requests
     add(FetchInvestmentRequestsBySupporter(supporterId: event.supporterId));
+  } catch (e) {
+    emit(InvestmentRequestFailure(error: e.toString()));
+  }
+}
+Future<void> _onAcceptInvestmentRequest(
+    AcceptInvestmentRequest event, Emitter<InvestmentRequestState> emit) async {
+  emit(InvestmentRequestLoading());
+  try {
+    await repository.updateRequestStatus(event.requestId, "Accepted");
+    emit(InvestmentRequestSuccess());
+    add(FetchInvestmentRequests(projectId: event.projectId)); // Fetch updated list
+  } catch (e) {
+    emit(InvestmentRequestFailure(error: e.toString()));
+  }
+}
+
+Future<void> _onRejectInvestmentRequest(
+    RejectInvestmentRequest event, Emitter<InvestmentRequestState> emit) async {
+  emit(InvestmentRequestLoading());
+  try {
+    await repository.updateRequestStatus(
+      event.requestId,
+      "Rejected",
+      reasonForRejection: event.reasonForRejection,
+    );
+    emit(InvestmentRequestSuccess());
+    add(FetchInvestmentRequests(projectId: event.projectId)); // Fetch updated list
   } catch (e) {
     emit(InvestmentRequestFailure(error: e.toString()));
   }

@@ -62,6 +62,11 @@ class HomeScreen extends StatelessWidget {
 
   void _onLogoutButtonPressed(BuildContext context) {
     context.read<AuthenticationBloc>().add(LoggedOut());
+    Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/welcome',
+            (Route<dynamic> route) => false, // Clear all previous routes
+          );
   }
   @override
   Widget build(BuildContext context) {
