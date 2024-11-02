@@ -314,39 +314,47 @@ class ProjectIdeaRepository {
     );
   }
 
-  Stream<List<PostModel>> streamBookmarksPosts(String? uid) {
-    final posts = _firestore
-        .collection('posts')
-        .where('marks', arrayContains: uid)
-        .snapshots()
-        .map((p) => p.docs
-            .map((doc) => PostModel.fromMap(doc.data(), doc.id))
-            .toList());
+Stream<List<PostModel>> streamBookmarksPosts(String? uid) {
+  final posts = _firestore
+      .collection('posts')
+      .where('marks', arrayContains: uid)
+      .snapshots()
+      .map((p) => p.docs
+          .map((doc) => PostModel.fromMap(doc.data(), doc.id))
+          .toList());
 
-    final collaborators = _firestore
-        .collection('collaborators')
-        .where('uid', isEqualTo: uid)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Collaborator.fromMap(doc.data()))
-          .toList();
-    });
+  final collaborators = _firestore
+      .collection('collaborators')
+      .snapshots() // Fetch all collaborators to ensure that we can map each post
+      .map((snapshot) {
+    return snapshot.docs
+        .map((doc) => Collaborator.fromMap(doc.data()))
+        .toList();
+  });
 
-    // Combine both streams
-    return Rx.combineLatest2<List<PostModel>, List<Collaborator>,
-        List<PostModel>>(
-      posts,
-      collaborators,
-      (posts, collaborators) {
-        return posts.map((post) {
-          // Set isJoined flag based on join requests
-          post.user = collaborators.firstWhere((c) => c.uid == post.uid);
-          return post;
-        }).toList();
-      },
-    );
-  }
+  // Combine both streams
+  return Rx.combineLatest2<List<PostModel>, List<Collaborator>,
+      List<PostModel>>(
+    posts,
+    collaborators,
+    (posts, collaborators) {
+      return posts.map((post) {
+        // Attempt to find the collaborator based on the post's uid
+        post.user = collaborators.firstWhere(
+          (c) => c.uid == post.uid,
+          orElse: () => Collaborator(
+            uid: post.uid ?? 'unknown_uid', // Ensure a non-null uid
+            firstName: 'Unknown',
+            lastName: 'User',
+            profilePhotoUrl: '', // Optional default photo URL
+            skills: [], // Default empty skills list
+          ),
+        );
+        return post;
+      }).toList();
+    },
+  );
+}
 
   Future<void> addLikeOrMark(String postId, String field, String uid) async {
     try {
