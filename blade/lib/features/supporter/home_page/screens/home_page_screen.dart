@@ -107,8 +107,8 @@ class HomeScreen extends StatelessWidget {
                         const SizedBox(height: 30),
                         _buildSearchBar(context),
                         const SizedBox(height: 20),
-                        if (_searchController.text.isEmpty)
-                          BestCollaboratorsWidget(collaborators: state.collaborators),
+                        // if (_searchController.text.isEmpty)
+                        //   BestCollaboratorsWidget(collaborators: state.collaborators),
                         const SizedBox(height: 20),
                         ProjectsWidget(projects: state.projects),
                       ],
