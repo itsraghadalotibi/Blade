@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../announcement/src/announcement_model.dart';
 import '../../../announcement/src/announcement_repository.dart';
+import '../../../investment_request/screens/investment_request_form.dart';
 import '../../../project_info/screens/project_screen.dart';
 import '../../../../utils/constants/colors.dart';
 
@@ -16,7 +17,8 @@ class ProjectsWidget extends StatefulWidget {
 class _ProjectsWidgetState extends State<ProjectsWidget> {
   bool isExpanded = false;
 
-  bool _doesTextOverflow(String text, TextStyle style, double maxWidth, int maxLines) {
+  bool _doesTextOverflow(
+      String text, TextStyle style, double maxWidth, int maxLines) {
     final textPainter = TextPainter(
       text: TextSpan(text: text, style: style),
       maxLines: maxLines,
@@ -26,15 +28,30 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
     return textPainter.didExceedMaxLines;
   }
 
+  void _handleSendInvestment(Idea project) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => InvestmentRequestFormScreen(
+          projectId: project.id!,
+          projectTitle: project.title,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.projects.isNotEmpty)
-          Text(
+          const Text(
             'Discover Blade Projects',
-            style: TextStyle(fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+            style: TextStyle(
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600),
           ),
         const SizedBox(height: 12),
         widget.projects.isEmpty
@@ -50,17 +67,19 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                 ),
               )
             : ListView.builder(
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 itemCount: widget.projects.length,
                 itemBuilder: (context, index) {
                   final project = widget.projects[index];
                   final bool isCompleted = project.status == 'completed';
-                  final Color statusColor = isCompleted ? Color(0xFF6C757D) : Color(0xFF148fff);
+                  final Color statusColor = isCompleted
+                      ? const Color(0xFF6C757D)
+                      : const Color(0xFF148fff);
 
                   final bool exceedsMaxLines = _doesTextOverflow(
                     project.description,
-                    TextStyle(
+                    const TextStyle(
                       color: Color(0xFF060527),
                       fontSize: 12,
                       fontFamily: 'Inter',
@@ -75,12 +94,12 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => ProjectScreen(
-                              idea: project,
-                              repository: AnnouncementRepository(),
-                              canJoin: false,
-                              useInvestButton: true, // Corrected parameter name
-                            ),
+                          builder: (context) => ProjectScreen(
+                            idea: project,
+                            repository: AnnouncementRepository(),
+                            canJoin: false,
+                            useInvestButton: true, // Corrected parameter name
+                          ),
                         ),
                       );
                     },
@@ -102,7 +121,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                             children: [
                               Text(
                                 project.title,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Color(0xFF060527),
                                   fontSize: 16,
                                   fontFamily: 'Inter',
@@ -110,14 +129,15 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: statusColor,
                                   borderRadius: BorderRadius.circular(48),
                                 ),
                                 child: Text(
                                   isCompleted ? 'Completed' : 'Ongoing',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
                                     fontFamily: 'Poppins',
@@ -130,14 +150,16 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                           const SizedBox(height: 8),
                           Text(
                             project.description,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Color(0xFF060527),
                               fontSize: 12,
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w400,
                             ),
                             maxLines: isExpanded ? null : 4,
-                            overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                            overflow: isExpanded
+                                ? TextOverflow.visible
+                                : TextOverflow.ellipsis,
                           ),
                           if (exceedsMaxLines)
                             GestureDetector(
@@ -148,7 +170,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                               },
                               child: Text(
                                 isExpanded ? "Show less" : "Show more",
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.blue,
                                   fontSize: 13.5,
                                   fontWeight: FontWeight.w500,
@@ -157,26 +179,29 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                             ),
                           const SizedBox(height: 12),
                           Center(
-                            child: Container(
-                              width: 92,
-                              height: 27,
-                              decoration: BoxDecoration(
-                                color: TColors.primary,
-                                borderRadius: BorderRadius.circular(48),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  'Invest',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w500,
+                            child: GestureDetector(
+                              onTap: () => _handleSendInvestment(project), // Call the investment function here
+                              child: Container(
+                                width: 92,
+                                height: 27,
+                                decoration: BoxDecoration(
+                                  color: TColors.primary,
+                                  borderRadius: BorderRadius.circular(48),
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    'Invest',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
+                          )
                         ],
                       ),
                     ),

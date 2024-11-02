@@ -54,12 +54,12 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
           .get();
       if (userDoc.exists) {
         setState(() {
-          userType = 'collaborator'; // Assuming 'type' field exists
+          userType = 'collaborator';
         });
       }
       else{
         setState(() {
-          userType = 'supporter'; // Assuming 'type' field exists
+          userType = 'supporter';
         });
       }
     } catch (e) {

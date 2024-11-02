@@ -11,6 +11,7 @@ import '../../announcement/src/announcement_repository.dart';
 import '../../announcement/widgets/skill_tag_widget.dart';
 import '../../investment_request/bloc/investment_request_bloc.dart';
 import '../../investment_request/bloc/investment_request_event.dart';
+import '../../investment_request/screens/investment_request_form.dart';
 import '../../investment_request/screens/invsetment_request_list.dart';
 import '../bloc/project_bloc.dart';
 import '../bloc/project_event.dart';
@@ -48,10 +49,37 @@ class _ProjectScreenState extends State<ProjectScreen> {
   bool _isMember = false;
   String? _joinRequestId;
   String _buttonText = 'Join';
+  String? currentUserId;
+  String? userType; 
   @override
   void initState() {
     super.initState();
+    currentUserId = FirebaseAuth.instance.currentUser?.uid;
+     if (currentUserId != null) {
+      _fetchUserType(); // Fetch user type
+    }
     _checkJoinRequestStatus();
+  }
+  // Function to fetch the user type (collaborator or supporter)
+  void _fetchUserType() async {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('collaborators')
+          .doc(currentUserId)
+          .get();
+      if (userDoc.exists) {
+        setState(() {
+          userType = 'collaborator';
+        });
+      }
+      else{
+        setState(() {
+          userType = 'supporter';
+        });
+      }
+    } catch (e) {
+      print('Error fetching user type: $e');
+    }
   }
 
   // Check the join request status
@@ -114,14 +142,14 @@ class _ProjectScreenState extends State<ProjectScreen> {
       _joinRequestId = docRef.id;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           content: Row(
             children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 8),
-              const Expanded(
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 8),
+              Expanded(
                 child: Text(
                   'Join request sent successfully!',
                   style: TextStyle(color: Colors.white),
@@ -129,7 +157,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
               ),
             ],
           ),
-          duration: const Duration(seconds: 3),
+          duration: Duration(seconds: 3),
           showCloseIcon: true,
         ),
       );
@@ -143,6 +171,17 @@ class _ProjectScreenState extends State<ProjectScreen> {
       });
     }
   }
+  void _handleSendInvestment() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => InvestmentRequestFormScreen(
+        projectId: widget.idea.id!,
+        projectTitle: widget.idea.title,
+      ),
+    ),
+  );
+}
 
   // Function to cancel a join request.
   Future<void> _cancelJoinRequest(String requestId) async {
@@ -154,14 +193,14 @@ class _ProjectScreenState extends State<ProjectScreen> {
       print('Join request $requestId cancelled successfully');
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           backgroundColor: Colors.orange,
           behavior: SnackBarBehavior.floating,
           content: Row(
             children: [
-              const Icon(Icons.cancel, color: Colors.white),
-              const SizedBox(width: 8),
-              const Expanded(
+              Icon(Icons.cancel, color: Colors.white),
+              SizedBox(width: 8),
+              Expanded(
                 child: Text(
                   'Join request cancelled.',
                   style: TextStyle(color: Colors.white),
@@ -169,7 +208,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
               ),
             ],
           ),
-          duration: const Duration(seconds: 3),
+          duration: Duration(seconds: 3),
           showCloseIcon: true,
         ),
       );
@@ -210,14 +249,14 @@ class _ProjectScreenState extends State<ProjectScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
           content: Row(
             children: [
-              const Icon(Icons.exit_to_app, color: Colors.white),
-              const SizedBox(width: 8),
-              const Expanded(
+              Icon(Icons.exit_to_app, color: Colors.white),
+              SizedBox(width: 8),
+              Expanded(
                 child: Text(
                   'You have left the project.',
                   style: TextStyle(color: Colors.white),
@@ -225,7 +264,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
               ),
             ],
           ),
-          duration: const Duration(seconds: 3),
+          duration: Duration(seconds: 3),
         ),
       );
 
@@ -276,7 +315,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                 title: const Text('Project details'),
                 centerTitle: true,
                 actions: [
-                  if (_isMember || isOwner)
+                  if (userType == 'collaborator' && (_isMember || isOwner))
                     IconButton(
                       icon: const Icon(Icons.mail), // Use envelope icon
                       onPressed: () {
@@ -300,7 +339,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         );
                       },
                     ),
-                  if (isOwner &&
+                  if (userType == 'collaborator' && isOwner &&
                       (idea.status == 'open' || idea.status == 'ongoing'))
                     IconButton(
                       icon: const Icon(Icons.settings),
@@ -368,7 +407,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             child: Text(
                               idea.status[0].toUpperCase() +
                                   idea.status.substring(1),
-                              style: TextStyle(
+                              style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600),
                             ),
@@ -382,7 +421,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         child: SkillTagWidget(skills: idea.skills),
                       ),
                     ),
-                    if ((!isOwner && idea.status == 'open') || widget.useInvestButton) ...[
+                    if (userType == 'collaborator' && ((!isOwner && idea.status == 'open') || widget.useInvestButton)) ...[
                       const SizedBox(height: 16),
                       Center(
                         child: ElevatedButton(
@@ -407,8 +446,31 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             }
                           },
                           child: Text(
-                            widget.useInvestButton? "Invest" : _buttonText,
+                            _buttonText,
                             style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    if(userType == 'supporter')...[
+                      const SizedBox(height: 16),
+                      Center(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: TColors.primary,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 36, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: _handleSendInvestment,
+                          child: const Text(
+                            'Invest',
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -422,7 +484,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,
                       child: DefaultTabController(
-                        length: 2 + (isOwner && idea.status == "open" ? 1 : 0),
+                        length: 2 + (userType == 'collaborator' && isOwner && idea.status == "open" ? 1 : 0),
                         child: Column(
                           children: [
                             TabBar(
@@ -438,7 +500,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               tabs: [
                                 const Tab(text: 'Posts'),
                                 const Tab(text: 'Members'),
-                                if (isOwner && idea.status == "open")
+                                if (userType == 'collaborator' && isOwner && idea.status == "open")
                                   const Tab(text: 'Requests'),
                               ],
                             ),
@@ -447,7 +509,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                 children: [
                                   PostsTab(fromHome: false, idea: idea),
                                   MembersTab(idea: idea, repository: widget.repository),
-                                  if (isOwner && idea.status == "open")
+                                  if (userType == 'collaborator' && isOwner && idea.status == "open")
                                     OffersTab(
                                       idea: idea,
                                       repository: widget.repository,

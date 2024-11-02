@@ -78,7 +78,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                 ),
           ),
           centerTitle: true,
-          automaticallyImplyLeading: false,
           actions: isOwner
               ? [
                   IconButton(
