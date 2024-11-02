@@ -19,7 +19,6 @@ class ProjectIdeaRepository {
     try {
       QuerySnapshot snapshot = await _firestore
           .collection('ideas')
-          .orderBy('title', descending: false)
           .where('status', isEqualTo: status)
           .where('members',
               arrayContains: userId) // Check if the user is in the members list
