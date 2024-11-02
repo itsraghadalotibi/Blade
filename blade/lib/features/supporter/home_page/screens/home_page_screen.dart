@@ -35,6 +35,24 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 _onLogoutButtonPressed(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Logged out successfully!',
+                  style: TextStyle(color: Colors.white),
+                ),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.only(top: 10, left: 10, right: 10),
+                showCloseIcon: true,
+              ),
+            );
+
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/welcome',
+              (Route<dynamic> route) => false,
+            );
               },
               style: TextButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
