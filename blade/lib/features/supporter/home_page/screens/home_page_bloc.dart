@@ -1,5 +1,3 @@
-// home_page_bloc.dart
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'home_page_repository.dart';
 import 'home_page_event.dart';
@@ -10,25 +8,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final UserRepository userRepository;
   final ProjectRepository projectRepository;
 
-  List<Idea> _allCompletedProjects = [];
+  List<Idea> _allProjects = [];
 
   HomeBloc({required this.userRepository, required this.projectRepository}) : super(HomeLoading()) {
     on<LoadHomeData>((event, emit) async {
       try {
         final currentUser = await userRepository.getCurrentUser();
         final collaborators = await userRepository.getCollaborators();
-        final completedProjects = await projectRepository.getCompletedProjects();
-        _allCompletedProjects = completedProjects; // Cache original list
+        final projects = await projectRepository.getProjects();
+        _allProjects = projects;
 
-        if (currentUser != null) {
-          emit(HomeLoaded(
-            currentUser: currentUser,
-            collaborators: collaborators,
-            completedProjects: completedProjects,
-          ));
-        } else {
-          emit(HomeError('User not found'));
-        }
+        emit(HomeLoaded(
+          currentUser: currentUser,
+          collaborators: collaborators,
+          projects: projects,
+        ));
       } catch (e) {
         emit(HomeError(e.toString()));
       }
@@ -37,15 +31,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<SearchProjectEvent>((event, emit) async {
       if (state is HomeLoaded) {
         final currentState = state as HomeLoaded;
-
-        final filteredProjects = _allCompletedProjects.where((project) {
+        final filteredProjects = _allProjects.where((project) {
           return project.title.toLowerCase().contains(event.query.toLowerCase());
         }).toList();
 
         emit(HomeLoaded(
           currentUser: currentState.currentUser,
           collaborators: currentState.collaborators,
-          completedProjects: filteredProjects,
+          projects: filteredProjects,
         ));
       }
     });
@@ -53,11 +46,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<ClearSearchEvent>((event, emit) async {
       if (state is HomeLoaded) {
         final currentState = state as HomeLoaded;
-        
         emit(HomeLoaded(
           currentUser: currentState.currentUser,
           collaborators: currentState.collaborators,
-          completedProjects: _allCompletedProjects,
+          projects: _allProjects,
         ));
       }
     });

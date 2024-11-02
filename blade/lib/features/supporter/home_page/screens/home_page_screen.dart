@@ -7,7 +7,7 @@ import 'home_page_bloc.dart';
 import 'home_page_event.dart';
 import 'home_page_state.dart';
 import 'best_collaborators_widget.dart';
-import 'completed_projects_widget.dart';
+import 'projects_widget.dart';
 import 'home_page_repository.dart';
 import '../../../authentication/bloc/authentication_bloc.dart';
 import '../../../authentication/bloc/authentication_event.dart';
@@ -108,7 +108,7 @@ class HomeScreen extends StatelessWidget {
                       if (_searchController.text.isEmpty) // Hide collaborators if search has input
                         BestCollaboratorsWidget(collaborators: state.collaborators),
                       const SizedBox(height: 20),
-                      CompletedProjectsWidget(projects: state.completedProjects),
+                      CompletedProjectsWidget(projects: state.projects),
                     ],
                   ),
                 );
