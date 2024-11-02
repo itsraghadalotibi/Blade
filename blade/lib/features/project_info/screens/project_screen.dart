@@ -45,7 +45,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
   bool _isMember = false;
   String? _joinRequestId;
   String _buttonText = 'Join';
-
   @override
   void initState() {
     super.initState();
@@ -109,7 +108,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
 
       _joinRequestId = docRef.id;
 
-      // Show success message with an icon for joining
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.green,
@@ -150,7 +148,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
           .delete();
       print('Join request $requestId cancelled successfully');
 
-      // Show success message with an icon for cancellation
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.orange,
@@ -172,7 +169,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
         ),
       );
 
-      // Update the button state to "Join Project"
       setState(() {
         _buttonText = 'Join';
         _isRequestPending = false;
@@ -181,7 +177,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
     } catch (e) {
       print('Error cancelling join request: $e');
 
-      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.red,

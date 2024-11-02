@@ -1,4 +1,6 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:provider/provider.dart';
+import '../../GithubPoints/bloc/git_hub_points_bloc.dart';
+import '../../GithubPoints/bloc/git_hub_points_event.dart';
 import 'package:blade_app/features/profile/bloc/repository/project_idea_repository.dart';
 import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
 import 'package:blade_app/features/project_info/src/post_model.dart';
@@ -20,20 +22,22 @@ class PostWidget extends StatefulWidget {
   final Function() onEditPost;
   final Function() onDeletePost;
   final Function(PostModel)? refersh;
-  const PostWidget(
-      {super.key,
-      required this.post,
-      required this.isDarkMode,
-      required this.isPostOwner,
-      required this.onEditPost,
-      required this.onDeletePost,
-      required this.withLine,
-      required this.upPosts,
-      required this.uid,
-      this.refersh,
-      this.onNaviagte,
-      this.isStaticPost = false, 
-      required this.projectRepository});
+
+  const PostWidget({
+    super.key,
+    required this.post,
+    required this.isDarkMode,
+    required this.isPostOwner,
+    required this.onEditPost,
+    required this.onDeletePost,
+    required this.withLine,
+    required this.upPosts,
+    required this.uid,
+    this.refersh,
+    this.onNaviagte,
+    this.isStaticPost = false,
+    required this.projectRepository,
+  });
 
   @override
   State<PostWidget> createState() => _PostWidgetState();
@@ -41,6 +45,12 @@ class PostWidget extends StatefulWidget {
 
 class _PostWidgetState extends State<PostWidget> {
   bool isPress = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Dispatch FetchCommentsEvent whenever the widget is initialized
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,15 +85,14 @@ class _PostWidgetState extends State<PostWidget> {
                 ),
                 if (widget.withLine)
                   Expanded(
-                      child: Container(
-                    width: 2,
-                    color: Colors.white,
-                  ))
+                    child: Container(
+                      width: 2,
+                      color: Colors.white,
+                    ),
+                  )
               ],
             ),
-            const SizedBox(
-              width: 16,
-            ),
+            const SizedBox(width: 16),
             Expanded(
               child: GestureDetector(
                 onTap: widget.onNaviagte,
@@ -101,19 +110,17 @@ class _PostWidgetState extends State<PostWidget> {
                             fontSize: 18,
                           ),
                         ),
-                        // if(!isStaticPost)
                         timeago.Timeago(
                           builder: (context, text) {
                             return Tooltip(
-                                message: DateFormat("yyyy-MM-dd hh:mm a")
-                                    .format(widget.post.date!),
-                                child: Text(text));
+                              message: DateFormat("yyyy-MM-dd hh:mm a").format(widget.post.date!),
+                              child: Text(text),
+                            );
                           },
                           date: widget.post.date!,
                         ),
                       ],
                     ),
-                    // const SizedBox(height: 8,),
                     Text(
                       widget.post.messgae ?? "",
                       style: TextStyle(
@@ -121,82 +128,86 @@ class _PostWidgetState extends State<PostWidget> {
                       ),
                     ),
                     if (widget.post.images!.isNotEmpty) ...[
-                      const SizedBox(
-                        height: 10,
-                      ),
+                      const SizedBox(height: 10),
                       ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.network(widget.post.images!.first)),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.network(widget.post.images!.first),
+                      ),
                     ],
-                    const SizedBox(
-                      height: 8,
-                    ),
+                    const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
                           children: [
                             IconButton(
-                                onPressed: () async{
-                                  if(!isPress){
-                                    isPress = true;
-                                    PostModel copyPost = widget.post.copyWith();
-                                    if(widget.post.likes!.contains(widget.uid)){
-                                      await widget.projectRepository.removeLikeOrMark(widget.post.id!, "likes", widget.uid!);
-                                      copyPost.likes?.removeWhere((l)=>l==widget.uid);
-                                    }else{
-                                      await widget.projectRepository.addLikeOrMark(widget.post.id!, "likes", widget.uid!);
-                                      widget.post.likes!.add(widget.uid!);
-                                    }
-                                    widget.refersh?.call(copyPost);
-                                    isPress = false;
+                              onPressed: () async {
+                                if (!isPress) {
+                                  isPress = true;
+                                  PostModel copyPost = widget.post.copyWith();
+                                  if (widget.post.likes!.contains(widget.uid)) {
+                                    await widget.projectRepository.removeLikeOrMark(
+                                        widget.post.id!, "likes", widget.uid!);
+                                    copyPost.likes?.removeWhere((l) => l == widget.uid);
+                                  } else {
+                                    await widget.projectRepository.addLikeOrMark(
+                                        widget.post.id!, "likes", widget.uid!);
+                                    widget.post.likes!.add(widget.uid!);
                                   }
-                                },
-                                icon:  Icon(
-                                  widget.post.likes!.contains(widget.uid) ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
-                                  color: widget.post.likes!.contains(widget.uid) ? Colors.red : null,
-                                )),
+                                  widget.refersh?.call(copyPost);
+                                  isPress = false;
+                                }
+                              },
+                              icon: Icon(
+                                widget.post.likes!.contains(widget.uid)
+                                    ? CupertinoIcons.heart_fill
+                                    : CupertinoIcons.heart,
+                                color: widget.post.likes!.contains(widget.uid) ? Colors.red : null,
+                              ),
+                            ),
                             if (widget.post.likes?.isNotEmpty ?? false)
                               Text("${widget.post.likes?.length}"),
                           ],
                         ),
-                        const SizedBox(
-                          width: 10,
-                        ),
+                        const SizedBox(width: 10),
                         Row(
                           children: [
                             IconButton(
-                                onPressed: ()=>widget.onNaviagte?.call(),
-                                icon: const Icon(CupertinoIcons.text_bubble)),
+                              onPressed: () => widget.onNaviagte?.call(),
+                              icon: const Icon(CupertinoIcons.text_bubble),
+                            ),
                             if ((widget.post.comments ?? 0) > 0)
                               Text("${widget.post.comments}"),
                           ],
                         ),
-                        const SizedBox(
-                          width: 10,
-                        ),
+                        const SizedBox(width: 10),
                         Row(
                           children: [
                             IconButton(
-                                onPressed: () async{
-                                  if(!isPress){
-                                    isPress = true;
-                                    PostModel copyPost = widget.post.copyWith();
-                                    if(widget.post.marks!.contains(widget.uid)){
-                                      await widget.projectRepository.removeLikeOrMark(widget.post.id!, "marks", widget.uid!);
-                                      copyPost.marks?.removeWhere((l)=>l==widget.uid);
-                                    }else{
-                                      await widget.projectRepository.addLikeOrMark(widget.post.id!, "marks", widget.uid!);
-                                      widget.post.marks!.add(widget.uid!);
-                                    }
-                                    widget.refersh?.call(copyPost);
-                                    isPress = false;
+                              onPressed: () async {
+                                if (!isPress) {
+                                  isPress = true;
+                                  PostModel copyPost = widget.post.copyWith();
+                                  if (widget.post.marks!.contains(widget.uid)) {
+                                    await widget.projectRepository.removeLikeOrMark(
+                                        widget.post.id!, "marks", widget.uid!);
+                                    copyPost.marks?.removeWhere((l) => l == widget.uid);
+                                  } else {
+                                    await widget.projectRepository.addLikeOrMark(
+                                        widget.post.id!, "marks", widget.uid!);
+                                    widget.post.marks!.add(widget.uid!);
                                   }
-                                },
-                                icon: Icon(
-                                  widget.post.marks!.contains(widget.uid) ? Icons.bookmark : Icons.bookmark_outline,
-                                  color: widget.post.marks!.contains(widget.uid) ? Colors.blue : null,
-                                  )),
+                                  widget.refersh?.call(copyPost);
+                                  isPress = false;
+                                }
+                              },
+                              icon: Icon(
+                                widget.post.marks!.contains(widget.uid)
+                                    ? Icons.bookmark
+                                    : Icons.bookmark_outline,
+                                color: widget.post.marks!.contains(widget.uid) ? Colors.blue : null,
+                              ),
+                            ),
                             if (widget.post.marks?.isNotEmpty ?? false)
                               Text("${widget.post.marks?.length}"),
                           ],
@@ -209,7 +220,6 @@ class _PostWidgetState extends State<PostWidget> {
             ),
             if (widget.isPostOwner)
               PopupMenuButton(
-                // icon: Icon(Icons.more_horiz),
                 onSelected: (v) async {
                   if (v == 0) {
                     await widget.onEditPost();
@@ -228,11 +238,12 @@ class _PostWidgetState extends State<PostWidget> {
                           Text(
                             'Edit',
                             style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold),
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          Icon(Icons.edit)
+                          Icon(Icons.edit),
                         ],
                       ),
                     ),
@@ -244,14 +255,15 @@ class _PostWidgetState extends State<PostWidget> {
                           Text(
                             'Delete',
                             style: TextStyle(
-                                color: Colors.red,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold),
+                              color: Colors.red,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Icon(
                             Icons.delete,
                             color: Colors.red,
-                          )
+                          ),
                         ],
                       ),
                     ),

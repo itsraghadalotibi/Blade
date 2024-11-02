@@ -13,7 +13,12 @@ import 'package:blade_app/features/project_info/screens/new_post.dart';
 import 'package:blade_app/features/project_info/src/post_model.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:timeago_flutter/timeago_flutter.dart' as timeago;
+
+import '../../GithubPoints/bloc/git_hub_points_bloc.dart';
+import '../../GithubPoints/bloc/git_hub_points_event.dart';
+import '../../announcement/src/announcement_model.dart';
 
 // ignore: must_be_immutable
 class PostComments extends StatefulWidget {
@@ -35,6 +40,8 @@ class _PostCommentsState extends State<PostComments> {
   String? uid = FirebaseAuth.instance.currentUser?.uid;
   File? image;
   TextEditingController controller = TextEditingController();
+  List<Idea> projects = []; // Define the projects list here
+
   @override
   void initState() {
     super.initState();
@@ -221,6 +228,16 @@ class _PostCommentsState extends State<PostComments> {
       ),
     );
   }
+    Future<void> _fetchProjects() async {
+    try {
+      // Replace "currentUserId" with the actual user ID if available
+      projects = await announcementRepository.fetchIdeas("currentUserId"); 
+      setState(() {}); // Update the UI with fetched projects
+    } catch (e) {
+      print("Error fetching projects: $e");
+    }
+  }
+
   onSendPost(File? image,String message,[List<PostModel>? posts])async{
     await projectIdeaRepository.sendNewPost(PostModel(
       upPost: widget.upPost.id,
@@ -229,6 +246,7 @@ class _PostCommentsState extends State<PostComments> {
       messgae: message,
       idea: widget.upPost.idea,
     ), image == null ? [] : [image],widget.upPosts);
+
     setState(() {
       widget.upPost.comments = widget.upPost.comments! + 1;
       controller.text = "";

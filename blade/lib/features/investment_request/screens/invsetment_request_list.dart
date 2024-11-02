@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -61,19 +62,65 @@ class InvestmentRequestsListScreen extends StatelessWidget {
                     if (result is Map<String, dynamic>) {
                       if (result["status"] == "accepted") {
                         context.read<InvestmentRequestBloc>().add(
-                          AcceptInvestmentRequest(
-                            requestId: request.id,
-                            projectId: projectId,
-                          ),
+                              AcceptInvestmentRequest(
+                                requestId: request.id,
+                                projectId: projectId,
+                              ),
+                            );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              backgroundColor: TColors.success,
+                              behavior: SnackBarBehavior.floating,
+                              content: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  const Icon(
+                                      CupertinoIcons.check_mark_circled_solid,
+                                      color: Colors
+                                          .white), // Change icon and color as needed
+                                  const SizedBox(
+                                      width: 8), // Space between icon and text
+                                  const Expanded(
+                                    child: Text(
+                                      'Request Accepted',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              showCloseIcon: true),
                         );
                       } else if (result["status"] == "rejected") {
                         final rejectionReason = result["reason"];
                         context.read<InvestmentRequestBloc>().add(
-                          RejectInvestmentRequest(
-                            requestId: request.id,
-                            projectId: projectId,
-                            reasonForRejection: rejectionReason,
-                          ),
+                              RejectInvestmentRequest(
+                                requestId: request.id,
+                                projectId: projectId,
+                                reasonForRejection: rejectionReason,
+                              ),
+                            );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              backgroundColor: TColors.success,
+                              behavior: SnackBarBehavior.floating,
+                              content: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  const Icon(
+                                      CupertinoIcons.check_mark_circled_solid,
+                                      color: Colors
+                                          .white), // Change icon and color as needed
+                                  const SizedBox(
+                                      width: 8), // Space between icon and text
+                                  const Expanded(
+                                    child: Text(
+                                      'Request Rejected',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              showCloseIcon: true),
                         );
                       }
                     }
@@ -83,14 +130,11 @@ class InvestmentRequestsListScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isDarkMode ? TColors.container : TColors.white,
                       borderRadius: BorderRadius.circular(12),
-                      // boxShadow: [
-                      //   BoxShadow(
-                      //     color: Colors.grey.withOpacity(0.3),
-                      //     spreadRadius: 2,
-                      //     blurRadius: 5,
-                      //     offset: const Offset(0, 3),
-                      //   ),
-                      // ],
+                      border: isDarkMode
+                          ? null // No border in dark mode
+                          : Border.all(
+                              color:
+                                  TColors.borderPrimary), // Light mode border
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -199,6 +243,36 @@ class InvestmentRequestsListScreen extends StatelessWidget {
                                                 requestId: request.id,
                                                 projectId: projectId,
                                               ));
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                backgroundColor:
+                                                    TColors.success,
+                                                behavior:
+                                                    SnackBarBehavior.floating,
+                                                content: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    const Icon(
+                                                        CupertinoIcons
+                                                            .check_mark_circled_solid,
+                                                        color: Colors
+                                                            .white), // Change icon and color as needed
+                                                    const SizedBox(
+                                                        width:
+                                                            8), // Space between icon and text
+                                                    const Expanded(
+                                                      child: Text(
+                                                        'Request Accepted',
+                                                        style: TextStyle(
+                                                            fontSize: 16),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                showCloseIcon: true),
+                                          );
                                         },
                                         child: const Text('Accept'),
                                       ),
@@ -223,84 +297,108 @@ class InvestmentRequestsListScreen extends StatelessWidget {
     );
   }
 
-  void _showRejectDialog(BuildContext outerContext, InvestmentRequestModel request) {
-  final TextEditingController reasonController = TextEditingController();
-  bool showError = false;
+  void _showRejectDialog(
+      BuildContext outerContext, InvestmentRequestModel request) {
+    final TextEditingController reasonController = TextEditingController();
+    bool showError = false;
 
-  showDialog(
-    context: outerContext,
-    builder: (BuildContext dialogContext) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: const Text("Reject Request"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text("Are you sure you want to reject this request?"),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: reasonController,
-                  decoration: const InputDecoration(
-                    labelText: 'Rejection Reason',
-                  ),
-                  maxLength: 100,
-                ),
-                if (showError)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      'Please provide a reason.',
-                      style: TextStyle(color: Colors.red, fontSize: 12),
+    showDialog(
+      context: outerContext,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Reject Request"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text("Are you sure you want to reject this request?"),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: reasonController,
+                    decoration: const InputDecoration(
+                      labelText: 'Rejection Reason',
                     ),
+                    maxLength: 100,
                   ),
-              ],
-            ),
-            actions: [
-              OutlinedButton(
-                style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 12.0),
+                  if (showError)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'Please provide a reason.',
+                        style: TextStyle(color: Colors.red, fontSize: 12),
+                      ),
                     ),
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                },
-                child: const Text('Cancel'),
+                ],
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 12.0),
-                    ),
-                onPressed: () {
-                  final reason = reasonController.text.trim();
-                  if (reason.isNotEmpty) {
-                    outerContext.read<InvestmentRequestBloc>().add(
-                          RejectInvestmentRequest(
-                            requestId: request.id,
-                            projectId: projectId,
-                            reasonForRejection: reason,
-                          ),
-                        );
+              actions: [
+                OutlinedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0, vertical: 12.0),
+                  ),
+                  onPressed: () {
                     Navigator.of(dialogContext).pop();
-                  } else {
-                    // Show error message under the text field
-                    setState(() {
-                      showError = true;
-                    });
-                  }
-                },
-                child: const Text('Reject'),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0, vertical: 12.0),
+                  ),
+                  onPressed: () {
+                    final reason = reasonController.text.trim();
+                    if (reason.isNotEmpty) {
+                      outerContext.read<InvestmentRequestBloc>().add(
+                            RejectInvestmentRequest(
+                              requestId: request.id,
+                              projectId: projectId,
+                              reasonForRejection: reason,
+                            ),
+                          );
+                      Navigator.of(dialogContext).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            backgroundColor: TColors.success,
+                            behavior: SnackBarBehavior.floating,
+                            content: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                    CupertinoIcons.check_mark_circled_solid,
+                                    color: Colors
+                                        .white), // Change icon and color as needed
+                                const SizedBox(
+                                    width: 8), // Space between icon and text
+                                const Expanded(
+                                  child: Text(
+                                    'Request Rejected',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            showCloseIcon: true),
+                      );
+                    } else {
+                      // Show error message under the text field
+                      setState(() {
+                        showError = true;
+                      });
+                    }
+                  },
+                  child: const Text('Reject'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   Color _getStatusColor(String status) {
     switch (status) {
