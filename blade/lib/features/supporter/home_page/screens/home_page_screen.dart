@@ -53,6 +53,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _onLogoutButtonPressed(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     context.read<AuthenticationBloc>().add(LoggedOut());
   }
 
@@ -60,25 +61,25 @@ class HomeScreen extends StatelessWidget {
   final TextEditingController _searchController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false, // Disable the back navigation action
-      child: BlocListener<AuthenticationBloc, AuthenticationState>(
-        listener: (context, state) {
-          if (state is AuthenticationUnauthenticated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Logged out successfully!',
-                  style: TextStyle(color: Colors.white),
-                ),
-                backgroundColor: Colors.green,
-                behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(top: 10, left: 10, right: 10),
-                showCloseIcon: true,
+Widget build(BuildContext context) {
+  final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  return WillPopScope(
+    onWillPop: () async => false, // Disable the back navigation action
+    child: BlocListener<AuthenticationBloc, AuthenticationState>(
+      listener: (context, state) {
+        if (state is AuthenticationUnauthenticated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar( // Remove const here
+              content: Text(
+                'Logged out successfully!',
+                style: TextStyle(color: isDarkMode ? Colors.white : TColors.textPrimary),
               ),
-            );
-
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.only(top: 10, left: 10, right: 10),
+              showCloseIcon: true,
+            ),
+          );
             Navigator.pushNamedAndRemoveUntil(
               context,
               '/welcome',
@@ -103,7 +104,7 @@ class HomeScreen extends StatelessWidget {
                       children: [
                         _buildHeader(context, state.currentUser),
                         const SizedBox(height: 30),
-                        _buildIntro(),
+                        _buildIntro(context),
                         const SizedBox(height: 30),
                         _buildSearchBar(context),
                         const SizedBox(height: 20),
@@ -127,6 +128,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildSearchBar(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 345,
       height: 52,
@@ -149,7 +151,7 @@ class HomeScreen extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'Search by project name',
                 hintStyle: TextStyle(
-                  color: Color(0xFF8D8DA6),
+                  color: isDarkMode ? Colors.white70 : Color(0xFF8D8DA6),
                   fontSize: 16,
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w400,
@@ -173,6 +175,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context, Collaborator? currentUser) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 345,
       height: 70,
@@ -212,7 +215,7 @@ class HomeScreen extends StatelessWidget {
                   Text(
                     'Welcome,',
                     style: TextStyle(
-                      color: Color(0xFF7C7C7C),
+                      color: isDarkMode ? Colors.white70 : Color(0xFF7C7C7C) ,
                       fontSize: 14,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w400,
@@ -224,7 +227,7 @@ class HomeScreen extends StatelessWidget {
                         ? '${currentUser.firstName} ${currentUser.lastName}' 
                         : 'Guest',
                     style: TextStyle(
-                      color: Color(0xFF050527),
+                      color: isDarkMode ? Colors.white : TColors.textPrimary,
                       fontSize: 18,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w600,
@@ -240,7 +243,7 @@ class HomeScreen extends StatelessWidget {
             height: 70,
             alignment: Alignment.center,
             child: IconButton(
-              icon: Icon(Icons.logout, size: 24, color: Colors.grey[600]),
+              icon: Icon(Icons.logout, size: 24, color: isDarkMode ? Colors.white70 : Colors.grey[600]),
               onPressed: () => _showLogoutConfirmation(context),
             ),
           ),
@@ -249,14 +252,15 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildIntro() {
+  Widget _buildIntro(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Explore!',
           style: TextStyle(
-            color: Color(0xFF050527),
+            color: isDarkMode ? Colors.white : TColors.black,
             fontSize: 36,
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
