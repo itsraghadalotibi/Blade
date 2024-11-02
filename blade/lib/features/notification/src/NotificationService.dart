@@ -9,7 +9,8 @@ class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Declare a StreamSubscription for the notification listener
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _notificationSubscription;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _notificationSubscription;
 
   // Constructor to initialize settings
   NotificationService() {
@@ -73,7 +74,7 @@ class NotificationService {
 
   // Add a notification to Firebase for the target user
   Future<void> createFirebaseNotification(
-      String userId, String status, String projectId) async {
+      String userId, String status, String projectName) async {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     // Skip the notification if the current user is the one performing the action
@@ -84,20 +85,19 @@ class NotificationService {
     final title =
         status == 'accepted' ? 'Request Accepted' : 'Request Rejected';
     final message = status == 'accepted'
-        ? 'You have been accepted for the project with ID $projectId!'
-        : 'Your join request for the project with ID $projectId has been rejected.';
+        ? 'You have been accepted for the project $projectName!'
+        : 'Your join request for the project $projectName has been rejected.';
 
     // Create notification in Firebase with project ID for the target user
     await _firestore.collection('notifications').add({
       'userId': userId,
       'status': status,
-      'projectId': projectId, // Store the project ID
+      'projectId': projectName, // Store the project ID
       'timestamp': FieldValue.serverTimestamp(),
       'title': title,
       'message': message,
       'read': false,
     });
-
   }
 
   // Listen to changes in the notifications collection in Firebase for real-time notifications
@@ -124,7 +124,8 @@ class NotificationService {
 
             // Mark the notification as read
             doc.doc.reference.update({'read': true}).then((_) {
-              print('Notification marked as read in Firebase: ${data['title']}');
+              print(
+                  'Notification marked as read in Firebase: ${data['title']}');
             }).catchError((error) {
               print('Error marking notification as read: $error');
             });
@@ -133,6 +134,7 @@ class NotificationService {
       }
     });
   }
+
   void dispose() {
     _notificationSubscription?.cancel();
   }
