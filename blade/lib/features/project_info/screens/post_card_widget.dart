@@ -1,5 +1,6 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:blade_app/features/announcement/src/announcement_repository.dart';
+import 'package:provider/provider.dart';
+import '../../GithubPoints/bloc/git_hub_points_bloc.dart';
+import '../../GithubPoints/bloc/git_hub_points_event.dart';
 import 'package:blade_app/features/profile/bloc/repository/project_idea_repository.dart';
 import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
 import 'package:blade_app/features/project_info/screens/project_screen.dart';
@@ -47,6 +48,12 @@ class _PostWidgetState extends State<PostWidget> {
   bool isPress = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Dispatch FetchCommentsEvent whenever the widget is initialized
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -85,9 +92,7 @@ class _PostWidgetState extends State<PostWidget> {
                   ))
               ],
             ),
-            const SizedBox(
-              width: 16,
-            ),
+            const SizedBox(width: 16),
             Expanded(
               child: GestureDetector(
                 onTap: widget.onNaviagte,
@@ -105,19 +110,17 @@ class _PostWidgetState extends State<PostWidget> {
                             fontSize: 18,
                           ),
                         ),
-                        // if(!isStaticPost)
                         timeago.Timeago(
                           builder: (context, text) {
                             return Tooltip(
-                                message: DateFormat("yyyy-MM-dd hh:mm a")
-                                    .format(widget.post.date!),
-                                child: Text(text));
+                              message: DateFormat("yyyy-MM-dd hh:mm a").format(widget.post.date!),
+                              child: Text(text),
+                            );
                           },
                           date: widget.post.date!,
                         ),
                       ],
                     ),
-                    // const SizedBox(height: 8,),
                     Text(
                       widget.post.messgae ?? "",
                       style: TextStyle(
@@ -125,12 +128,11 @@ class _PostWidgetState extends State<PostWidget> {
                       ),
                     ),
                     if (widget.post.images!.isNotEmpty) ...[
-                      const SizedBox(
-                        height: 10,
-                      ),
+                      const SizedBox(height: 10),
                       ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image.network(widget.post.images!.first)),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.network(widget.post.images!.first),
+                      ),
                     ],
                     const SizedBox(
                       height: 5,
@@ -205,33 +207,31 @@ class _PostWidgetState extends State<PostWidget> {
                         const SizedBox(
                           width: 10,
                         ),
-                        Expanded(
-                          child: Row(
-                            children: [
-                              IconButton(
-                                  onPressed: () async{
-                                    if(!isPress){
-                                      isPress = true;
-                                      PostModel copyPost = widget.post.copyWith();
-                                      if(widget.post.marks!.contains(widget.uid)){
-                                        await widget.projectRepository.removeLikeOrMark(widget.post.id!, "marks", widget.uid!);
-                                        copyPost.marks?.removeWhere((l)=>l==widget.uid);
-                                      }else{
-                                        await widget.projectRepository.addLikeOrMark(widget.post.id!, "marks", widget.uid!);
-                                        widget.post.marks!.add(widget.uid!);
-                                      }
-                                      widget.refersh?.call(copyPost);
-                                      isPress = false;
+                        Row(
+                          children: [
+                            IconButton(
+                                onPressed: () async{
+                                  if(!isPress){
+                                    isPress = true;
+                                    PostModel copyPost = widget.post.copyWith();
+                                    if(widget.post.marks!.contains(widget.uid)){
+                                      await widget.projectRepository.removeLikeOrMark(widget.post.id!, "marks", widget.uid!);
+                                      copyPost.marks?.removeWhere((l)=>l==widget.uid);
+                                    }else{
+                                      await widget.projectRepository.addLikeOrMark(widget.post.id!, "marks", widget.uid!);
+                                      widget.post.marks!.add(widget.uid!);
                                     }
-                                  },
-                                  icon: Icon(
-                                    widget.post.marks!.contains(widget.uid) ? Icons.bookmark : Icons.bookmark_outline,
-                                    color: widget.post.marks!.contains(widget.uid) ? Colors.blue : null,
-                                    )),
-                              if (widget.post.marks?.isNotEmpty ?? false)
-                                Text("${widget.post.marks?.length}"),
-                            ],
-                          ),
+                                    widget.refersh?.call(copyPost);
+                                    isPress = false;
+                                  }
+                                },
+                                icon: Icon(
+                                  widget.post.marks!.contains(widget.uid) ? Icons.bookmark : Icons.bookmark_outline,
+                                  color: widget.post.marks!.contains(widget.uid) ? Colors.blue : null,
+                                  )),
+                            if (widget.post.marks?.isNotEmpty ?? false)
+                              Text("${widget.post.marks?.length}"),
+                          ],
                         ),
                       ],
                     )
@@ -241,7 +241,6 @@ class _PostWidgetState extends State<PostWidget> {
             ),
             if (widget.isPostOwner)
               PopupMenuButton(
-                // icon: Icon(Icons.more_horiz),
                 onSelected: (v) async {
                   if (v == 0) {
                     await widget.onEditPost();
@@ -263,7 +262,7 @@ class _PostWidgetState extends State<PostWidget> {
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold),
                           ),
-                          Icon(Icons.edit)
+                          Icon(Icons.edit),
                         ],
                       ),
                     ),
@@ -275,14 +274,15 @@ class _PostWidgetState extends State<PostWidget> {
                           Text(
                             'Delete',
                             style: TextStyle(
-                                color: Colors.red,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold),
+                              color: Colors.red,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Icon(
                             Icons.delete,
                             color: Colors.red,
-                          )
+                          ),
                         ],
                       ),
                     ),

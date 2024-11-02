@@ -1,10 +1,16 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Declare a StreamSubscription for the notification listener
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _notificationSubscription;
 
   // Constructor to initialize settings
   NotificationService() {
@@ -67,45 +73,69 @@ class NotificationService {
   }
 
   // Add a notification to Firebase for the target user
-  Future<void> createFirebaseNotification(String userId, String status) async {
+  Future<void> createFirebaseNotification(
+      String userId, String status, String projectName) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    // Skip the notification if the current user is the one performing the action
+    if (currentUser != null && currentUser.uid == userId) {
+      return; // Exit the function early to avoid creating notification for the project owner
+    }
+
     final title =
         status == 'accepted' ? 'Request Accepted' : 'Request Rejected';
     final message = status == 'accepted'
-        ? 'You have been accepted for the project!'
-        : 'Your join request has been rejected.';
+        ? 'You have been accepted for the project $projectName!'
+        : 'Your join request for the project $projectName has been rejected.';
 
-    // Create notification in Firebase
+    // Create notification in Firebase with project ID for the target user
     await _firestore.collection('notifications').add({
       'userId': userId,
       'status': status,
+      'projectId': projectName, // Store the project ID
       'timestamp': FieldValue.serverTimestamp(),
       'title': title,
       'message': message,
       'read': false,
     });
-
-    // Show local notification immediately
-    showLocalNotification(title, message);
   }
 
   // Listen to changes in the notifications collection in Firebase for real-time notifications
   void listenToFirebaseNotifications(String userId) {
-    _firestore
+    // Cancel any existing subscription to avoid multiple listeners
+    _notificationSubscription?.cancel();
+
+    // Set up a new subscription for real-time notifications
+    _notificationSubscription = _firestore
         .collection('notifications')
         .where('userId', isEqualTo: userId)
+        .where('read', isEqualTo: false) // Only fetch unread notifications
         .snapshots()
         .listen((snapshot) {
       for (var doc in snapshot.docChanges) {
         if (doc.type == DocumentChangeType.added) {
           final data = doc.doc.data();
           if (data != null) {
+            // Show the local notification
             showLocalNotification(
               data['title'] ?? 'Notification',
               data['message'] ?? 'You have a new notification',
             );
+
+            // Mark the notification as read
+            doc.doc.reference.update({'read': true}).then((_) {
+              print(
+                  'Notification marked as read in Firebase: ${data['title']}');
+            }).catchError((error) {
+              print('Error marking notification as read: $error');
+            });
           }
         }
       }
     });
+  }
+
+  void dispose() {
+    _notificationSubscription?.cancel();
   }
 }

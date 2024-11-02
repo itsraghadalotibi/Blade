@@ -100,18 +100,18 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
 
     // Immediately show success message on button tap
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         backgroundColor: Colors.green, // Success background color
         behavior: SnackBarBehavior.floating,
         content: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const Icon(
+            Icon(
               Icons.check_circle, // Success icon
               color: Colors.white,
             ),
-            const SizedBox(width: 8), // Space between icon and text
-            const Expanded(
+            SizedBox(width: 8), // Space between icon and text
+            Expanded(
               child: Text(
                 'Join request sent successfully!',
                 style: TextStyle(fontSize: 16, color: Colors.white),
@@ -146,18 +146,18 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
 
       // Show error SnackBar if the request fails
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           backgroundColor: Colors.red, // Error background color
           behavior: SnackBarBehavior.floating,
           content: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const Icon(
+              Icon(
                 Icons.error, // Error icon
                 color: Colors.white,
               ),
-              const SizedBox(width: 8),
-              const Expanded(
+              SizedBox(width: 8),
+              Expanded(
                 child: Text(
                   'Failed to send join request!',
                   style: TextStyle(fontSize: 16, color: Colors.white),

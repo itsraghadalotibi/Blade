@@ -21,8 +21,8 @@ class HowToEarnPage extends StatelessWidget {
               emoji: "🚀",
             ),
             _buildChallengeTile(
-              points: "50",
-              description: "Power up your progress by adding 50 lines of code across multiple commits!",
+              points: "30",
+              description: "Power up your progress by adding 30 lines of code across multiple commits!",
               icon: Icons.code,
               emoji: "💥",
             ),

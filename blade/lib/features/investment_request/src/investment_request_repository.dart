@@ -21,6 +21,7 @@ class InvestmentRequestRepository {
       String projectId) async {
     final querySnapshot = await _investmentRequests
         .where('projectId', isEqualTo: projectId)
+        .orderBy('createdAt', descending: true)
         .get();
 
     return querySnapshot.docs
@@ -34,6 +35,7 @@ class InvestmentRequestRepository {
       String supporterId) async {
     final querySnapshot = await _investmentRequests
         .where('supporterId', isEqualTo: supporterId)
+        .orderBy('createdAt', descending: true)
         .get();
 
     return querySnapshot.docs
@@ -43,5 +45,14 @@ class InvestmentRequestRepository {
   }
   Future<void> cancelInvestmentRequest(String requestId) async {
     await _investmentRequests.doc(requestId).update({'status': 'Cancelled'});
+  }
+
+  Future<void> updateRequestStatus(String requestId, String status, {String? reasonForRejection}) async {
+    final requestRef = _firestore.collection('investment_requests').doc(requestId);
+    final data = {
+      'status': status,
+      'reasonForRejection': reasonForRejection,
+    }..removeWhere((key, value) => value == null); // Only include non-null values
+    await requestRef.update(data);
   }
 }

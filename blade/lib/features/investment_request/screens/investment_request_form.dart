@@ -36,13 +36,14 @@ class _InvestmentRequestFormScreenState
   final _customOfferController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  String? _completePhoneNumber;
   DateTime? _validUntil;
   String? userId;
   String? userName;
   String? _selectedIconPath;
   bool showPhoneField = false;
-  bool showEmailField = false;
   bool showCustomOfferField = false;
+  bool _isDateError = false;
 
   // Icon paths
   final Map<String, String> _iconPaths = {
@@ -100,15 +101,60 @@ class _InvestmentRequestFormScreenState
     }
   }
 
+  Future<bool> _onWillPop() async {
+    return (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Discard Changes?'),
+            content:
+                const Text('Are you sure you want to discard your changes?'),
+            actions: <Widget>[
+              OutlinedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 12.0),
+                ),
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 12.0),
+                ),
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        )) ??
+        false;
+  }
+
   void _submitForm() {
-    if (_formKey.currentState!.validate() && _validUntil != null) {
+    final isFormValid = _formKey.currentState!.validate();
+
+    if (_validUntil == null) {
+      // Set date error if no date is selected
+      setState(() {
+        _isDateError = true;
+      });
+    } else {
+      _isDateError = false;
+    }
+
+    if (isFormValid && !_isDateError) {
+      // Proceed with form submission
       final offer = _selectedOfferOption == 'Other'
           ? _customOfferController.text.trim()
           : _selectedOfferOption;
 
       final contactInfo = {
-        if (showEmailField) 'email': _emailController.text,
-        if (showPhoneField) 'phone number': _phoneController.text,
+        'email': _emailController.text,
+        if (showPhoneField && _completePhoneNumber != null)
+          'phone number': _completePhoneNumber!,
       };
 
       final request = InvestmentRequestModel(
@@ -143,234 +189,249 @@ class _InvestmentRequestFormScreenState
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDarkMode ? TColors.dark : TColors.light;
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Investment Request'),
+        ),
+        body: GestureDetector(
+        onTap: () {
+          // Dismisses the keyboard when tapping outside of input fields
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                Text(
+                  'Project: ${widget.projectTitle}',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Investment Request'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              Text(
-                'Project: ${widget.projectTitle}',
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
+                // Offer Options Dropdown with Icons
+                DropdownButtonHideUnderline(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width *
+                        0.9, // Adjust width to fit within the screen
+                    child: DropdownButtonFormField<String>(
+                      isExpanded:
+                          true, // Expands the dropdown to avoid overflow
+                      dropdownColor: bgColor,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal:
+                                12.0), // Adds padding around the dropdown
+                        labelText: 'Select an Offer*',
 
-              // Offer Options Dropdown with Icons
-              DropdownButtonHideUnderline(
-                child: Container(
-                  width: MediaQuery.of(context).size.width *
-                      0.9, // Adjust width to fit within the screen
-                  child: DropdownButtonFormField<String>(
-                    isExpanded: true, // Expands the dropdown to avoid overflow
-                    dropdownColor: bgColor,
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12.0), // Adds padding around the dropdown
-                      labelText: 'Select an Offer*',
-                      
-                      border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(12), // Adds rounded borders
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(12), // Adds rounded borders
+                        ),
                       ),
+                      value: _selectedOfferOption,
+                      items: _offerOptions.map((offer) {
+                        return DropdownMenuItem(
+                          value: offer,
+                          child: Row(
+                            children: [
+                              if (offer != 'Other')
+                                SvgPicture.asset(
+                                  _iconPaths[offer]!,
+                                  height: 24,
+                                  width: 24,
+                                ),
+                              if (offer != 'Other') const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  offer,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedOfferOption = value;
+                          showCustomOfferField = value == 'Other';
+                          _selectedIconPath = value == 'Other'
+                              ? 'assets/icons/money.svg'
+                              : _iconPaths[value];
+                        });
+                      },
+                      validator: (value) =>
+                          value == null ? 'Please select an offer' : null,
                     ),
-                    value: _selectedOfferOption,
-                    items: _offerOptions.map((offer) {
-                      return DropdownMenuItem(
-                        value: offer,
-                        child: Row(
-                          children: [
-                            if (offer != 'Other')
-                              SvgPicture.asset(
-                                _iconPaths[offer]!,
-                                height: 24,
-                                width: 24,
-                              ),
-                            if (offer != 'Other') const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                offer,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Custom Offer Input and Icon Selection
+                if (showCustomOfferField) ...[
+                  TextFormField(
+                    controller: _customOfferController,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    onTapOutside: (event) {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    },
+                    decoration: const InputDecoration(
+                        labelText: 'Custom Offer Description'),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please describe your offer'
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Choose an Icon for Custom Offer',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: _iconPaths.values.map((iconPath) {
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedIconPath = iconPath;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: _selectedIconPath == iconPath
+                                  ? Colors.blue
+                                  : Colors.grey,
+                              width: _selectedIconPath == iconPath ? 3 : 1,
                             ),
-                          ],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: SvgPicture.asset(
+                            iconPath,
+                            height: 60,
+                            width: 60,
+                          ),
                         ),
                       );
                     }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedOfferOption = value;
-                        showCustomOfferField = value == 'Other';
-                        _selectedIconPath = value == 'Other'
-                            ? 'assets/icons/money.svg'
-                            : _iconPaths[value];
-                      });
-                    },
-                    validator: (value) =>
-                        value == null ? 'Please select an offer' : null,
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Custom Offer Input and Icon Selection
-              if (showCustomOfferField) ...[
+                ],
+                const SizedBox(height: 16),
+                // Reason for Interest
                 TextFormField(
-                  controller: _customOfferController,
-                  decoration: const InputDecoration(
-                      labelText: 'Custom Offer Description'),
+                  controller: _reasonController,
+                  maxLength: 300,
+                  maxLines: 3,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  onTapOutside: (event) {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    },
+                  decoration:
+                      const InputDecoration(labelText: 'Reason for Interest*'),
                   validator: (value) => value == null || value.isEmpty
-                      ? 'Please describe your offer'
+                      ? 'Please enter your reason for interest'
                       : null,
                 ),
                 const SizedBox(height: 16),
-                const Text('Choose an Icon for Custom Offer',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: _iconPaths.values.map((iconPath) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedIconPath = iconPath;
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: _selectedIconPath == iconPath
-                                ? Colors.blue
-                                : Colors.grey,
-                            width: _selectedIconPath == iconPath
-                              ? 3: 1,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: SvgPicture.asset(
-                          iconPath,
-                          height: 60,
-                          width: 60,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-              const SizedBox(height: 16),
-              // Reason for Interest
-              TextFormField(
-                controller: _reasonController,
-                maxLength: 300,
-                maxLines: 3,
-                decoration:
-                    const InputDecoration(labelText: 'Reason for Interest*'),
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter your reason for interest'
-                    : null,
-              ),
-              const SizedBox(height: 16),
 
-              // Date Selection Field
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: TColors.grey, width: 1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ListTile(
-                  title: Text(
-                    _validUntil == null
-                        ? 'Select Validity Date'
-                        : '${_validUntil!.toLocal()}'.split(' ')[0],
-                    style: const TextStyle(
-                      fontSize: 16,
-                    ),
+                // Date Selection Field
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                        color: _isDateError ? TColors.error : TColors.grey,
+                        width: 1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  trailing: const Icon(Icons.calendar_today),
-                  onTap: () async {
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: _validUntil ??
-                          DateTime.now().add(const Duration(days: 1)),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                      builder: (context, child) {
-                        return Theme(
-                          data: Theme.of(context).copyWith(
-                            colorScheme: isDarkMode
-                                ? ColorScheme.dark(
-                                    primary: Colors.blue[300]!,
-                                    onPrimary: Colors.black,
-                                    onSurface: Colors.white,
-                                  )
-                                : const ColorScheme.light(
-                                    primary: Colors.blue,
-                                    onPrimary: Colors.white,
-                                    onSurface: Colors.black,
-                                  ),
-                            textButtonTheme: TextButtonThemeData(
-                              style: TextButton.styleFrom(
-                                foregroundColor: isDarkMode
-                                    ? Colors.blue[200]!
-                                    : Colors.blue,
+                  child: ListTile(
+                    title: Text(
+                      _validUntil == null
+                          ? 'Select Validity Date'
+                          : '${_validUntil!.toLocal()}'.split(' ')[0],
+                      style: const TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.calendar_today),
+                    onTap: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: _validUntil ??
+                            DateTime.now().add(const Duration(days: 1)),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: isDarkMode
+                                  ? ColorScheme.dark(
+                                      primary: Colors.blue[300]!,
+                                      onPrimary: Colors.black,
+                                      onSurface: Colors.white,
+                                    )
+                                  : const ColorScheme.light(
+                                      primary: Colors.blue,
+                                      onPrimary: Colors.white,
+                                      onSurface: Colors.black,
+                                    ),
+                              textButtonTheme: TextButtonThemeData(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: isDarkMode
+                                      ? Colors.blue[200]!
+                                      : Colors.blue,
+                                ),
                               ),
                             ),
-                          ),
-                          child: Container(
-                            color: Colors.grey.withOpacity(0.1),
-                            child: child,
-                          ),
-                        );
-                      },
-                    );
-                    if (pickedDate != null) {
-                      setState(() {
-                        _validUntil = pickedDate;
-                      });
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Contact Information Section
-                const Text('Contact Information',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        showEmailField = !showEmailField;
-                      });
+                            child: Container(
+                              color: Colors.grey.withOpacity(0.1),
+                              child: child,
+                            ),
+                          );
+                        },
+                      );
+                      if (pickedDate != null) {
+                        setState(() {
+                          _validUntil = pickedDate;
+                          _isDateError =
+                              false; // Reset date error if a date is selected
+                        });
+                      }
                     },
+                  ),
+                ),
+                if (_isDateError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0, left: 12.0),
                     child: Text(
-                      showEmailField ? '− Remove Email' : '+ Add Email',
-                      style: TextStyle(color: isDarkMode? Colors.blue[300]! :  Colors.blue, fontWeight: FontWeight.w500, fontSize: 14.0),
+                      'Please select a validity date.',
+                      style: TextStyle(color: Colors.red[900]!, fontSize: TSizes.fontSizeSm, fontWeight: FontWeight.w500),
                     ),
                   ),
-                  
-                ],
-              ),
-              //const SizedBox(height: 16),
-              if (showEmailField)
+                const SizedBox(height: 16),
+
+                // Contact Information Section
+                const Text('Contact Information',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 16),
                 Column(
                   children: [
                     //const SizedBox(height: 16),
                     TextFormField(
                       controller: _emailController,
                       decoration:
-                          const InputDecoration(labelText: 'Email Address'),
+                          const InputDecoration(labelText: 'Email Address*'),
                       keyboardType: TextInputType.emailAddress,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
+                      onTapOutside: (event) {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter an email address';
@@ -387,61 +448,70 @@ class _InvestmentRequestFormScreenState
                 ),
                 Row(
                   children: [
-                TextButton(
-                    onPressed: () {
-                      setState(() {
-                        showPhoneField = !showPhoneField;
-                      });
-                    },
-                    child: Text(
-                      showPhoneField
-                          ? '− Remove Phone Number'
-                          : '+ Add Phone Number',
-                      style: TextStyle(color: isDarkMode? Colors.blue[300]! :  Colors.blue, fontWeight: FontWeight.w500, fontSize: 14.0),
-                    ),
-                  ),
-                  ],
-                  ),
-              if (showPhoneField)
-                Theme(
-                  data: Theme.of(context).copyWith(
-                    dialogBackgroundColor: bgColor,
-                    dialogTheme: DialogTheme(
-                      insetPadding: const EdgeInsets.all(20.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          showPhoneField = !showPhoneField;
+                        });
+                      },
+                      child: Text(
+                        showPhoneField
+                            ? '− Remove Phone Number'
+                            : '+ Add Phone Number',
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.blue[300]! : Colors.blue,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14.0),
                       ),
-                      elevation: 5,
                     ),
-                    primaryColor: isDarkMode? Colors.blue[300]! : Colors.blue,
-                  ),
-                  child: IntlPhoneField(
-                    controller: _phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone Number',
-                      border: OutlineInputBorder(),
-                    ),
-                    initialCountryCode: 'SA',
-                    onChanged: (phone) {
-                      print(phone.completeNumber);
-                    },
-                    validator: (value) {
-                      if (value == null) {
-                        return 'Please enter a phone number';
-                      }
-                      return null;
-                    },
-                  ),
+                  ],
                 ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text('Review Request'),
-              ),
-            ],
+                if (showPhoneField)
+                  Theme(
+                    data: Theme.of(context).copyWith(
+                      dialogBackgroundColor: bgColor,
+                      dialogTheme: DialogTheme(
+                        insetPadding: const EdgeInsets.all(20.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 5,
+                      ),
+                      primaryColor:
+                          isDarkMode ? Colors.blue[300]! : Colors.blue,
+                    ),
+                    child: IntlPhoneField(
+                      controller: _phoneController,
+                      decoration: const InputDecoration(
+                        labelText: 'Phone Number',
+                        border: OutlineInputBorder(),
+                      ),
+                      initialCountryCode: 'SA',
+                      onChanged: (phone) {
+                        setState(() {
+                          _completePhoneNumber = phone
+                              .completeNumber; // Capturing complete phone number
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Please enter a phone number';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _submitForm,
+                  child: const Text('Review Request'),
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    ),
     );
   }
 }
