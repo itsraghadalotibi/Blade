@@ -55,7 +55,7 @@ class GitHubPointsBloc extends Bloc<GitHubPointsEvent, GitHubPointsState> {
 
         // Award points based on commit count
         if (commitsCount >= 10) {
-          commitPoints += 15;
+          commitPoints += 30;
           commitPoints += ((commitsCount - 10) ~/ 30) * 15;
         }
 

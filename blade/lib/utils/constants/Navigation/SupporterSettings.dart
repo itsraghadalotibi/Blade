@@ -12,12 +12,12 @@ class _SupporterSettingsState extends State<SupporterSettings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Supporter Settings'),
+        title: const Text('Notification Center'),
         centerTitle: true,
       ),
       body: const Center(
         child:
-            Text('Supporter Settings Screen', style: TextStyle(fontSize: 40)),
+            Center(child: Text('Notification Center', style: TextStyle(fontSize: 20))),
       ),
     );
   }

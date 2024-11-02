@@ -410,7 +410,7 @@ class _InvestmentRequestFormScreenState
                     padding: const EdgeInsets.only(top: 8.0, left: 12.0),
                     child: Text(
                       'Please select a validity date.',
-                      style: TextStyle(color: Colors.red[900]!, fontSize: TSizes.fontSizeSm, fontWeight: FontWeight.w500),
+                      style: TextStyle(color: isDarkMode? Colors.red[200]! : Colors.red[900]!, fontSize: TSizes.fontSizeSm, fontWeight: FontWeight.w500),
                     ),
                   ),
                 const SizedBox(height: 16),
