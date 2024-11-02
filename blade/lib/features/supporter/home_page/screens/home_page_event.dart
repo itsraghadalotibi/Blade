@@ -1,4 +1,4 @@
-// event.dart
+// home_page_event.dart
 import 'package:equatable/equatable.dart';
 
 abstract class HomeEvent extends Equatable {
@@ -16,3 +16,5 @@ class SearchProjectEvent extends HomeEvent {
   @override
   List<Object> get props => [query];
 }
+
+class ClearSearchEvent extends HomeEvent {}

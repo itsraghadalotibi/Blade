@@ -1,3 +1,5 @@
+// home_screen.dart
+
 import 'package:blade_app/features/announcement/src/announcement_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +14,7 @@ import '../../../authentication/bloc/authentication_event.dart';
 import '../../../authentication/bloc/authentication_state.dart';
 
 class HomeScreen extends StatelessWidget {
+  
   void _showLogoutConfirmation(BuildContext context) {
     showDialog(
       context: context,
@@ -51,6 +54,10 @@ class HomeScreen extends StatelessWidget {
   void _onLogoutButtonPressed(BuildContext context) {
     context.read<AuthenticationBloc>().add(LoggedOut());
   }
+
+
+  final FocusNode _searchFocusNode = FocusNode();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -92,13 +99,14 @@ class HomeScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: ListView(
                     children: [
-                      _buildHeader(context, state.currentUser), // currentUser can be null
+                      _buildHeader(context, state.currentUser),
                       const SizedBox(height: 30),
                       _buildIntro(),
                       const SizedBox(height: 30),
                       _buildSearchBar(context),
                       const SizedBox(height: 20),
-                      BestCollaboratorsWidget(collaborators: state.collaborators),
+                      if (_searchController.text.isEmpty) // Hide collaborators if search has input
+                        BestCollaboratorsWidget(collaborators: state.collaborators),
                       const SizedBox(height: 20),
                       CompletedProjectsWidget(projects: state.completedProjects),
                     ],
@@ -111,6 +119,52 @@ class HomeScreen extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return Container(
+      width: 345,
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: ShapeDecoration(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(100),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.search, color: Color(0xFF8D8DA6)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: TextField(
+              focusNode: _searchFocusNode,
+              controller: _searchController,
+              style: TextStyle(fontSize: 16),
+              decoration: InputDecoration(
+                hintText: 'Search by project name',
+                hintStyle: TextStyle(
+                  color: Color(0xFF8D8DA6),
+                  fontSize: 16,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w400,
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+              ),
+              onChanged: (query) {
+                if (query.isNotEmpty) {
+                  context.read<HomeBloc>().add(SearchProjectEvent(query));
+                } else {
+                  context.read<HomeBloc>().add(ClearSearchEvent());
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -194,46 +248,6 @@ class HomeScreen extends StatelessWidget {
             child: IconButton(
               icon: Icon(Icons.logout, size: 24, color: Colors.grey[600]),
               onPressed: () => _showLogoutConfirmation(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(BuildContext context) {
-    return Container(
-      width: 345,
-      height: 52,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: ShapeDecoration(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(100),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.search, color: Color(0xFF8D8DA6)),
-          const SizedBox(width: 16),
-          Expanded(
-            child: TextField(
-              style: TextStyle(fontSize: 16),
-              decoration: InputDecoration(
-                hintText: 'Search by project name',
-                hintStyle: TextStyle(
-                  color: Color(0xFF8D8DA6),
-                  fontSize: 16,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w400,
-                ),
-                border: InputBorder.none, // Removes all borders
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-              ),
-              onChanged: (query) {
-                context.read<HomeBloc>().add(SearchProjectEvent(query));
-              },
             ),
           ),
         ],
