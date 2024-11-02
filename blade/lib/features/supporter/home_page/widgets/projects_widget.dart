@@ -42,6 +42,8 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -59,7 +61,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                 child: Text(
                   'No result found',
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: isDarkMode ? Colors.white70 : Colors.grey[100],
                     fontSize: 16,
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w400,
@@ -79,8 +81,8 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
 
                   final bool exceedsMaxLines = _doesTextOverflow(
                     project.description,
-                    const TextStyle(
-                      color: Color(0xFF060527),
+                    TextStyle(
+                      color: isDarkMode ? Colors.white : TColors.black,
                       fontSize: 12,
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w400,
@@ -106,11 +108,12 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                     child: Container(
                       width: 345,
                       margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      decoration: ShapeDecoration(
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? TColors.container : TColors.white,
+                        border: isDarkMode
+                            ? null // No border in dark mode
+                            : Border.all(color: TColors.borderPrimary), // Light mode border
+                        borderRadius: BorderRadius.circular(23), // in the announcement screen the border radius is 23 and here it is 16, choose the best
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -121,8 +124,8 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                             children: [
                               Text(
                                 project.title,
-                                style: const TextStyle(
-                                  color: Color(0xFF060527),
+                                style: TextStyle(
+                                  color: isDarkMode ? Colors.white : TColors.black,
                                   fontSize: 16,
                                   fontFamily: 'Inter',
                                   fontWeight: FontWeight.w600,
@@ -150,8 +153,8 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                           const SizedBox(height: 8),
                           Text(
                             project.description,
-                            style: const TextStyle(
-                              color: Color(0xFF060527),
+                            style: TextStyle(
+                              color: isDarkMode ? Colors.white : TColors.black,
                               fontSize: 12,
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w400,
