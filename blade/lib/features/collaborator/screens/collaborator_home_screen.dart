@@ -66,6 +66,10 @@ class CollaboratorHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode ? Colors.grey[850] : Colors.white;
+    final textColor = isDarkMode ? Colors.white : Colors.black87;
+
     return BlocListener<AuthenticationBloc, AuthenticationState>(
       listener: (context, state) {
         if (state is AuthenticationUnauthenticated) {
@@ -108,12 +112,12 @@ class CollaboratorHomeScreen extends StatelessWidget {
         ),
         body: Column(
           children: [
-            // Reward Points Container
+            // Monthly Challenge Container with Dark and Light mode support
             Container(
               padding: const EdgeInsets.all(20.0),
               margin: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: backgroundColor,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
@@ -123,115 +127,31 @@ class CollaboratorHomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.star, color: Colors.amber, size: 30),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Text(
                         "Monthly Challenge",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: textColor,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
                     "500 Points", // Example points; replace with dynamic data if needed
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Row for Activity and How to Earn Containers
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Activity Container
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(20.0),
-                      margin: const EdgeInsets.only(right: 10.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.leaderboard_rounded, color: Colors.green),
-                          SizedBox(width: 8),
-                          Text(
-                            "Leaderboard",
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // How to Earn Container
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HowToEarnPage(),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(20.0),
-                        margin: const EdgeInsets.only(left: 10.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.local_fire_department, color: Colors.purple),
-                            SizedBox(width: 8),
-                            Text(
-                              "How to Earn",
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      color: textColor,
                     ),
                   ),
                 ],
@@ -245,7 +165,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
                   builder: (context, state) {
                     if (state is AuthenticationAuthenticated &&
                         state.user is CollaboratorModel) {
-                      return const PostsTab(fromHome: true,);
+                      return const PostsTab(fromHome: true);
                     } else {
                       return const CircularProgressIndicator();
                     }
