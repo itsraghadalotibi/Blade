@@ -18,7 +18,6 @@ import '../bloc/project_state.dart';
 import 'posts_tab.dart';
 import 'members_tab.dart';
 import 'project_settings_screen.dart';
-import 'package:blade_app/features/invesment_request/screen/invesment_request_screen.dart';
 import 'dollar.dart'; // Import the DollarIcon class
 
 class ProjectScreen extends StatefulWidget {
@@ -438,10 +437,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             Expanded(
                               child: TabBarView(
                                 children: [
-                                  PostsTab(idea: idea),
-                                  MembersTab(
-                                      idea: idea,
-                                      repository: widget.repository),
+                                  PostsTab(fromHome: false, idea: idea),
+                                  MembersTab(idea: idea, repository: widget.repository),
                                   if (isOwner && idea.status == "open")
                                     OffersTab(
                                       idea: idea,
