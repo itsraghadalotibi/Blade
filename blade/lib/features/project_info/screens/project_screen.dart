@@ -22,14 +22,18 @@ class ProjectScreen extends StatefulWidget {
   final AnnouncementRepository repository;
   final bool canJoin;
   final Function()? refershIdeasInProfile;
+  final Function()? onJoinRequestSent;
+  final bool useInvestButton;
+
 
   const ProjectScreen({
     super.key,
     required this.idea,
     required this.repository,
     required this.canJoin,
-    required onJoinRequestSent,
+    this.onJoinRequestSent, //Make it optional BC the supporter call does not provide it
     this.refershIdeasInProfile,
+      this.useInvestButton = false, // For supporter
   });
 
   @override
@@ -78,11 +82,12 @@ class _ProjectScreenState extends State<ProjectScreen> {
   Color get _buttonBackgroundColor {
     if (_isRequestPending) {
       return Colors.amber[800]!; // Grey for pending state
-    } else {
+    } else if(widget.useInvestButton){
+      return Color(0xFF4fe3c2);
+    }else {
       return TColors.primary; // Red for join project
     }
   }
-
 
   // Send join request
   Future<void> _sendJoinRequest() async {
@@ -356,19 +361,19 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         child: SkillTagWidget(skills: idea.skills),
                       ),
                     ),
-                    if (!isOwner && idea.status == 'open') ...[
+                    if ((!isOwner && idea.status == 'open') || widget.useInvestButton) ...[
                       const SizedBox(height: 16),
                       Center(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _buttonBackgroundColor, // Red button background
+                            backgroundColor: _buttonBackgroundColor,
                             padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           onPressed: () {
-                            if (_isRequestPending && _joinRequestId != null) {
+                            if ((_isRequestPending && _joinRequestId != null) || widget.useInvestButton) {
                               // Cancel the join request
                               _cancelJoinRequest(_joinRequestId!);
                             } else if (_isMember) {
@@ -380,7 +385,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             }
                           },
                           child: Text(
-                            _buttonText,
+                            widget.useInvestButton? "Invest" : _buttonText,
                             style: const TextStyle(
                               //color: Colors.black, // Black text for contrast
                               fontSize: 16,
@@ -390,6 +395,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         ),
                       ),
                     ],
+
+
                     const SizedBox(height: 16),
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,

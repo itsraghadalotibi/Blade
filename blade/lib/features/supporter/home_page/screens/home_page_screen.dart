@@ -55,68 +55,70 @@ class HomeScreen extends StatelessWidget {
     context.read<AuthenticationBloc>().add(LoggedOut());
   }
 
-
   final FocusNode _searchFocusNode = FocusNode();
   final TextEditingController _searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthenticationBloc, AuthenticationState>(
-      listener: (context, state) {
-        if (state is AuthenticationUnauthenticated) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Logged out successfully!',
-                style: TextStyle(color: Colors.white),
+    return WillPopScope(
+      onWillPop: () async => false, // Disable the back navigation action
+      child: BlocListener<AuthenticationBloc, AuthenticationState>(
+        listener: (context, state) {
+          if (state is AuthenticationUnauthenticated) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Logged out successfully!',
+                  style: TextStyle(color: Colors.white),
+                ),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.only(top: 10, left: 10, right: 10),
+                showCloseIcon: true,
               ),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(top: 10, left: 10, right: 10),
-              showCloseIcon: true,
-            ),
-          );
+            );
 
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            '/welcome',
-            (Route<dynamic> route) => false,
-          );
-        }
-      },
-      child: Scaffold(
-        body: BlocProvider(
-          create: (context) => HomeBloc(
-            userRepository: UserRepository(),
-            projectRepository: ProjectRepository(),
-          )..add(LoadHomeData()),
-          child: BlocBuilder<HomeBloc, HomeState>(
-            builder: (context, state) {
-              if (state is HomeLoading) {
-                return Center(child: CircularProgressIndicator());
-              } else if (state is HomeLoaded) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: ListView(
-                    children: [
-                      _buildHeader(context, state.currentUser),
-                      const SizedBox(height: 30),
-                      _buildIntro(),
-                      const SizedBox(height: 30),
-                      _buildSearchBar(context),
-                      const SizedBox(height: 20),
-                      if (_searchController.text.isEmpty) // Hide collaborators if search has input
-                        BestCollaboratorsWidget(collaborators: state.collaborators),
-                      const SizedBox(height: 20),
-                      CompletedProjectsWidget(projects: state.projects),
-                    ],
-                  ),
-                );
-              } else if (state is HomeError) {
-                return Center(child: Text(state.message));
-              }
-              return Container();
-            },
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/welcome',
+              (Route<dynamic> route) => false,
+            );
+          }
+        },
+        child: Scaffold(
+          body: BlocProvider(
+            create: (context) => HomeBloc(
+              userRepository: UserRepository(),
+              projectRepository: ProjectRepository(),
+            )..add(LoadHomeData()),
+            child: BlocBuilder<HomeBloc, HomeState>(
+              builder: (context, state) {
+                if (state is HomeLoading) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (state is HomeLoaded) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: ListView(
+                      children: [
+                        _buildHeader(context, state.currentUser),
+                        const SizedBox(height: 30),
+                        _buildIntro(),
+                        const SizedBox(height: 30),
+                        _buildSearchBar(context),
+                        const SizedBox(height: 20),
+                        if (_searchController.text.isEmpty)
+                          BestCollaboratorsWidget(collaborators: state.collaborators),
+                        const SizedBox(height: 20),
+                        ProjectsWidget(projects: state.projects),
+                      ],
+                    ),
+                  );
+                } else if (state is HomeError) {
+                  return Center(child: Text(state.message));
+                }
+                return Container();
+              },
+            ),
           ),
         ),
       ),
@@ -169,7 +171,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, Collaborator? currentUser) { // currentUser can be null
+  Widget _buildHeader(BuildContext context, Collaborator? currentUser) {
     return Container(
       width: 345,
       height: 70,
@@ -179,7 +181,6 @@ class HomeScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              // Profile Picture Container
               Container(
                 width: 70,
                 height: 70,
@@ -194,7 +195,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(48),
                 ),
-                child: currentUser != null // Check if currentUser is not null
+                child: currentUser != null
                     ? Container(
                         margin: const EdgeInsets.all(2),
                         width: 66,
@@ -207,10 +208,9 @@ class HomeScreen extends StatelessWidget {
                           shape: OvalBorder(),
                         ),
                       )
-                    : Icon(Icons.person, size: 40), // Show a default icon if currentUser is null
+                    : Icon(Icons.person, size: 40),
               ),
               const SizedBox(width: 12),
-              // Welcome Text and User Name
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -228,7 +228,7 @@ class HomeScreen extends StatelessWidget {
                   Text(
                     currentUser != null 
                         ? '${currentUser.firstName} ${currentUser.lastName}' 
-                        : 'Guest', // Show 'Guest' if currentUser is null
+                        : 'Guest',
                     style: TextStyle(
                       color: Color(0xFF050527),
                       fontSize: 18,
