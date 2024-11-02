@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../announcement/src/announcement_model.dart';
 import '../../../announcement/src/announcement_repository.dart';
 import '../../../project_info/screens/project_screen.dart';
+import '../../../../utils/constants/colors.dart';
 
 class ProjectsWidget extends StatefulWidget {
   final List<Idea> projects;
@@ -160,14 +161,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                               width: 92,
                               height: 27,
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Color(0xFF4fe3c2),
-                                    Color(0xFF6febf4),
-                                  ],
-                                  begin: Alignment.center,
-                                  end: Alignment.bottomRight,
-                                ),
+                                color: TColors.primary,
                                 borderRadius: BorderRadius.circular(48),
                               ),
                               child: Center(

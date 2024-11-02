@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'home_page_repository.dart';
+import '../src/home_page_repository.dart';
 import 'home_page_event.dart';
 import 'home_page_state.dart';
 import '../../../announcement/src/announcement_model.dart';

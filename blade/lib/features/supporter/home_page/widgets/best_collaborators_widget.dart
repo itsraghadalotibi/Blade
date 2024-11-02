@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../announcement/src/announcement_model.dart';
 import 'package:blade_app/features/profile/bloc/screens/collaborator_profile_screen.dart';
+import '../../../../utils/constants/colors.dart';
 
 class BestCollaboratorsWidget extends StatelessWidget {
   final List<Collaborator> collaborators;
@@ -138,14 +139,7 @@ class GroupCard extends StatelessWidget {
                 width: 115,
                 height: 27,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0xFF4fe3c2),
-                      Color(0xFF6febf4),
-                    ],
-                    begin: Alignment.center,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: TColors.primary,
                   borderRadius: BorderRadius.circular(48),
                 ),
                 child: Center(

@@ -2,13 +2,14 @@
 
 import 'package:blade_app/features/announcement/src/announcement_model.dart';
 import 'package:flutter/material.dart';
+import '../../../../utils/constants/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'home_page_bloc.dart';
-import 'home_page_event.dart';
-import 'home_page_state.dart';
-import 'best_collaborators_widget.dart';
-import 'projects_widget.dart';
-import 'home_page_repository.dart';
+import '../bloc/home_page_bloc.dart';
+import '../bloc/home_page_event.dart';
+import '../bloc/home_page_state.dart';
+import '../widgets/best_collaborators_widget.dart';
+import '../widgets/projects_widget.dart';
+import '../src/home_page_repository.dart';
 import '../../../authentication/bloc/authentication_bloc.dart';
 import '../../../authentication/bloc/authentication_event.dart';
 import '../../../authentication/bloc/authentication_state.dart';
@@ -185,14 +186,7 @@ class HomeScreen extends StatelessWidget {
                 width: 70,
                 height: 70,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0xFF4fe3c2),
-                      Color(0xFF6febf4),
-                    ],
-                    begin: Alignment.center,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: TColors.primary,
                   borderRadius: BorderRadius.circular(48),
                 ),
                 child: currentUser != null

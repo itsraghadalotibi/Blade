@@ -83,7 +83,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
     if (_isRequestPending) {
       return Colors.amber[800]!; // Grey for pending state
     } else if(widget.useInvestButton){
-      return Color(0xFF4fe3c2);
+      return TColors.primary;
     }else {
       return TColors.primary; // Red for join project
     }
