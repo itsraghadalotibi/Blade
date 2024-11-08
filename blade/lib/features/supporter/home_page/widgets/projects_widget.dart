@@ -52,7 +52,6 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
             'Discover Blade Projects',
             style: TextStyle(
                 fontSize: 16,
-                fontFamily: 'Poppins',
                 fontWeight: FontWeight.w600),
           ),
         const SizedBox(height: 12),
@@ -62,8 +61,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                   'No result found',
                   style: TextStyle(
                     color: isDarkMode ? Colors.white70 : Colors.grey[100],
-                    fontSize: 16,
-                    fontFamily: 'Poppins',
+                    fontSize: 18,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -83,7 +81,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                     project.description,
                     TextStyle(
                       color: isDarkMode ? Colors.white : TColors.black,
-                      fontSize: 12,
+                      fontSize: 14,
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w400,
                     ),
@@ -113,7 +111,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                         border: isDarkMode
                             ? null // No border in dark mode
                             : Border.all(color: TColors.borderPrimary), // Light mode border
-                        borderRadius: BorderRadius.circular(23), // in the announcement screen the border radius is 23 and here it is 16, choose the best
+                        borderRadius: BorderRadius.circular(23), // Border radius
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -142,8 +140,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                                   isCompleted ? 'Completed' : 'Ongoing',
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 10,
-                                    fontFamily: 'Poppins',
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -155,7 +152,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                             project.description,
                             style: TextStyle(
                               color: isDarkMode ? Colors.white : TColors.black,
-                              fontSize: 12,
+                              fontSize: 13.9,
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w400,
                             ),
@@ -175,7 +172,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                                 isExpanded ? "Show less" : "Show more",
                                 style: const TextStyle(
                                   color: Colors.blue,
-                                  fontSize: 13.5,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -183,28 +180,30 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                           const SizedBox(height: 12),
                           Center(
                             child: GestureDetector(
-                              onTap: () => _handleSendInvestment(project), // Call the investment function here
+                              onTap: () => _handleSendInvestment(project),
                               child: Container(
-                                width: 92,
-                                height: 27,
+                                width: 120, // Increased width to accommodate longer text
+                                height: 35,
                                 decoration: BoxDecoration(
                                   color: TColors.primary,
-                                  borderRadius: BorderRadius.circular(48),
+                                  borderRadius: BorderRadius.circular(24),
                                 ),
-                                child: const Center(
-                                  child: Text(
-                                    'Invest',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w500,
+                                child: Center(
+                                  child: FittedBox(
+                                    child: Text(
+                                      'Request Invest',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          )
+                          ),
+
                         ],
                       ),
                     ),

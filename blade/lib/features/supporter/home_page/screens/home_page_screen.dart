@@ -126,8 +126,8 @@ Widget build(BuildContext context) {
                         const SizedBox(height: 30),
                         _buildSearchBar(context),
                         const SizedBox(height: 20),
-                        // if (_searchController.text.isEmpty)
-                        //   BestCollaboratorsWidget(collaborators: state.collaborators),
+                        if (_searchController.text.isEmpty)
+                          BestCollaboratorsWidget(collaborators: state.collaborators),
                         const SizedBox(height: 20),
                         ProjectsWidget(projects: state.projects),
                       ],
@@ -171,7 +171,6 @@ Widget build(BuildContext context) {
                 hintStyle: TextStyle(
                   color: isDarkMode ? Colors.white70 : Color(0xFF8D8DA6),
                   fontSize: 16,
-                  fontFamily: 'Poppins',
                   fontWeight: FontWeight.w400,
                 ),
                 border: InputBorder.none,
@@ -235,7 +234,6 @@ Widget build(BuildContext context) {
                     style: TextStyle(
                       color: isDarkMode ? Colors.white70 : Color(0xFF7C7C7C) ,
                       fontSize: 14,
-                      fontFamily: 'Poppins',
                       fontWeight: FontWeight.w400,
                       height: 1.5,
                     ),
@@ -247,7 +245,6 @@ Widget build(BuildContext context) {
                     style: TextStyle(
                       color: isDarkMode ? Colors.white : TColors.textPrimary,
                       fontSize: 18,
-                      fontFamily: 'Poppins',
                       fontWeight: FontWeight.w600,
                       height: 1.5,
                     ),
@@ -280,7 +277,6 @@ Widget build(BuildContext context) {
           style: TextStyle(
             color: isDarkMode ? Colors.white : TColors.black,
             fontSize: 36,
-            fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -290,7 +286,6 @@ Widget build(BuildContext context) {
           style: TextStyle(
             color: isDarkMode ? Colors.white70 : Color(0xFF8D8DA6),
             fontSize: 16,
-            fontFamily: 'Poppins',
             fontWeight: FontWeight.w400,
           ),
         ),

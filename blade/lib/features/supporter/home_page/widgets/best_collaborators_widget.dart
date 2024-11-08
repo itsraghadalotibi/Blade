@@ -18,12 +18,11 @@ class BestCollaboratorsWidget extends StatelessWidget {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            fontFamily: 'Poppins',
           ),
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 240,
+          height: 200,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: collaborators.length,
@@ -50,30 +49,32 @@ class GroupCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CollaboratorProfileScreen(
-              userId: collaborator.uid,
-              showBackButton: true, // Pass true to show back button
-            ),
-          ),
-        );
-      },
-      child: Container(
-        width: 164,
-        height: 211,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
+    return Container(
+      width: 164,
+      height: 211,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Wrap the profile image with GestureDetector for navigation
+          GestureDetector(
+            onTap: () {
+              // Navigate to the Collaborator Profile when the image is tapped
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CollaboratorProfileScreen(
+                    userId: collaborator.uid,
+                    showBackButton: true, // Pass true to show back button
+                  ),
+                ),
+              );
+            },
+            child: Container(
               width: 69,
               height: 69,
               decoration: BoxDecoration(
@@ -84,80 +85,42 @@ class GroupCard extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Column(
-                children: [
-                  Text(
-                    collaborator.firstName,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF050527),
-                      fontSize: 16,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    collaborator.lastName,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF050527),
-                      fontSize: 16,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '1500 Scored',
-                    style: TextStyle(
-                      color: Color(0xFF8D8DA6),
-                      fontSize: 14,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () {
-                // Navigate to the Collaborator Profile
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CollaboratorProfileScreen(
-                      userId: collaborator.uid,
-                      showBackButton: true,
-                    ),
-                  ),
-                );
-              },
-              child: Container(
-                width: 115,
-                height: 27,
-                decoration: BoxDecoration(
-                  color: TColors.primary,
-                  borderRadius: BorderRadius.circular(48),
-                ),
-                child: Center(
-                  child: Text(
-                    'Contact',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w500,
-                    ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Column(
+              children: [
+                Text(
+                  collaborator.firstName,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFF050527),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              ),
+                Text(
+                  collaborator.lastName,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFF050527),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '1500 Scored',
+                  style: TextStyle(
+                    color: Color(0xFF8D8DA6),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
