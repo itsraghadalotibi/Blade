@@ -122,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onChanged: (query) {
                 setState(() {
                   _searchQuery = query;
-                  _selectedTab = 'Projects'; // Reset tab to Projects when new query is entered
+                  // Keep the selected tab as is when the user types in the search bar
                 });
                 if (query.isNotEmpty) {
                   context.read<HomeBloc>().add(SearchEvent(query));
@@ -132,6 +132,17 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ),
+          if (_searchQuery.isNotEmpty)
+            IconButton(
+              icon: Icon(Icons.close, color: isDarkMode ? Colors.white70 : Color(0xFF8D8DA6)),
+              onPressed: () {
+                setState(() {
+                  _searchQuery = '';
+                  _searchController.clear();
+                });
+                context.read<HomeBloc>().add(ClearSearchEvent());
+              },
+            ),
         ],
       ),
     );
