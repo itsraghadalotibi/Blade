@@ -55,92 +55,98 @@ class MembersScreen extends StatelessWidget {
 
           final collaborators = snapshot.data!;
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: collaborators.length,
-            itemBuilder: (context, index) {
-              final collaborator = collaborators[index];
+          return Column(
+            children: [
+              // Use Flexible to allow ListView to have bounded height.
+              Flexible(
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: collaborators.length,
+                  shrinkWrap: true, // Prevents ListView from taking infinite space
+                  physics: const ClampingScrollPhysics(), // Constrains scroll physics
+                  itemBuilder: (context, index) {
+                    final collaborator = collaborators[index];
 
-              // For the first member, show "Idea owner"
-              final isIdeaOwner = index == 0;
-              final matchingSkills = isIdeaOwner
-                  ? ["Idea owner"]
-                  : collaborator.skills
-                      .where((skill) => ideaSkills.contains(skill))
-                      .toList();
+                    // For the first member, show "Idea owner"
+                    final isIdeaOwner = index == 0;
+                    final matchingSkills = isIdeaOwner
+                        ? ["Idea owner"]
+                        : collaborator.skills
+                            .where((skill) => ideaSkills.contains(skill))
+                            .toList();
 
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CollaboratorProfileScreen(
-                        userId: collaborator.uid,
-                        showBackButton: true, // Show back button
-                      ),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: isDarkMode
-                        ?  TColors.container // Dark mode container color
-                        : TColors.white, // Light mode container color
-                    borderRadius: BorderRadius.circular(10),
-                    border: isDarkMode
-                        ? null // No border in dark mode
-                        : Border.all(color: TColors.borderPrimary), // Light mode border
-                  ),
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(collaborator.profilePhotoUrl),
-                          radius: 30,
-                        ),
-                        title: Text(
-                          '${collaborator.firstName} ${collaborator.lastName}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isDarkMode
-                                ? Colors.white // Dark mode text color
-                                : TColors.textPrimary, // Light mode text color
-                            fontSize: 18,
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CollaboratorProfileScreen(
+                              userId: collaborator.uid,
+                              showBackButton: true, // Show back button
+                            ),
                           ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: isDarkMode
+                              ? TColors.container // Dark mode container color
+                              : TColors.white, // Light mode container color
+                          borderRadius: BorderRadius.circular(10),
+                          border: isDarkMode
+                              ? null // No border in dark mode
+                              : Border.all(color: TColors.borderPrimary), // Light mode border
                         ),
-                        subtitle: matchingSkills.isNotEmpty
-                            ? GestureDetector(
-                                onTap: () {}, // Prevent skill tag scroll from navigating
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: matchingSkills.map((skill) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(right: 8.0),
-                                        child: SkillTagWidget(skills: [skill]),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                              )
-                            : Text(
-                                'No matching skills',
+                        child: Column(
+                          children: [
+                            ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: NetworkImage(collaborator.profilePhotoUrl),
+                                radius: 30,
+                              ),
+                              title: Text(
+                                '${collaborator.firstName} ${collaborator.lastName}',
                                 style: TextStyle(
+                                  fontWeight: FontWeight.bold,
                                   color: isDarkMode
-                                      ? Colors.white70 // Dark mode secondary text color
-                                      : TColors.textSecondary, // Light mode secondary text color
+                                      ? Colors.white // Dark mode text color
+                                      : TColors.textPrimary, // Light mode text color
+                                  fontSize: 18,
                                 ),
                               ),
+                              subtitle: matchingSkills.isNotEmpty
+                                  ? SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        children: matchingSkills.map((skill) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(right: 8.0),
+                                            child: SkillTagWidget(skills: [skill]),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    )
+                                  : Text(
+                                      'No matching skills',
+                                      style: TextStyle(
+                                        color: isDarkMode
+                                            ? Colors.white70 // Dark mode secondary text color
+                                            : TColors.textSecondary, // Light mode secondary text color
+                                      ),
+                                    ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
+                  separatorBuilder: (context, index) {
+                    return const SizedBox(height: 10);
+                  },
                 ),
-              );
-            },
-            separatorBuilder: (context, index) {
-              return const SizedBox(height: 10);
-            },
+              ),
+            ],
           );
         },
       ),

@@ -10,6 +10,7 @@ class BestCollaboratorsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -49,13 +50,18 @@ class GroupCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: 164,
       height: 211,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+          border: isDarkMode
+          ? null // No border in dark mode
+          : Border.all(color: TColors.borderPrimary), // Light mode border
+        borderRadius: BorderRadius.circular(23), // Border radius
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
