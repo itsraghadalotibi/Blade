@@ -1,4 +1,6 @@
-
+import 'package:blade_app/features/announcement/src/announcement_model.dart';
+import 'package:blade_app/features/notification/cloud_messaging.dart';
+import 'package:blade_app/features/profile/bloc/repository/project_idea_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../src/investment_request_repository.dart';
 import 'investment_request_event.dart';
@@ -22,6 +24,10 @@ class InvestmentRequestBloc
     emit(InvestmentRequestLoading());
     try {
       await repository.createInvestmentRequest(event.request);
+      ProjectIdeaRepository projectRepository = ProjectIdeaRepository();
+      Collaborator? collaborator = await projectRepository.fetchOwnerToken(event.request.projectId); 
+      if(collaborator ==null || collaborator.token == null)return;
+      await PushNotificationService.sendNotification(deviceToken: collaborator.token!,userId: collaborator.uid, title: "Investment Request", messageBody: "You have a new invest request for ${event.request.projectName} ");
       emit(InvestmentRequestSuccess());
     } catch (e) {
       emit(InvestmentRequestFailure(error: e.toString()));

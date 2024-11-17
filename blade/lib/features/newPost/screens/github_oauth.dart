@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:line_icons/line_icons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_web_auth/flutter_web_auth.dart';
+// import 'package:flutter_web_auth/flutter_web_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class GithubAuthentication extends StatefulWidget {
@@ -142,17 +142,17 @@ class _GithubAuthenticationState extends State<GithubAuthentication> {
     final String redirectUri = 'com.example.blade://callback';
 
     // Step 1: Open the GitHub authorization page.
-    final result = await FlutterWebAuth.authenticate(
-      url: 'https://github.com/login/oauth/authorize?client_id=$clientId&scope=public_repo&redirect_uri=$redirectUri',
-      callbackUrlScheme: 'com.example.blade',
-    );
+    // final result = await FlutterWebAuth.authenticate(
+    //   url: 'https://github.com/login/oauth/authorize?client_id=$clientId&scope=public_repo&redirect_uri=$redirectUri',
+    //   callbackUrlScheme: 'com.example.blade',
+    // );
 
     // Step 2: Extract the code from the result.
-    final code = Uri.parse(result).queryParameters['code'];
+    // final code = Uri.parse(result).queryParameters['code'];
 
-    if (code == null) {
-      throw Exception('Failed to obtain authorization code.');
-    }
+    // if (code == null) {
+    //   throw Exception('Failed to obtain authorization code.');
+    // }
 
     // Step 3: Exchange the code for an access token.
     final response = await http.post(
@@ -163,7 +163,7 @@ class _GithubAuthenticationState extends State<GithubAuthentication> {
       body: {
         'client_id': clientId,
         'client_secret': clientSecret,
-        'code': code,
+        // 'code': code,
         'redirect_uri': redirectUri,
       },
     );

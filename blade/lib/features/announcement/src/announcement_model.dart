@@ -86,6 +86,7 @@ class Collaborator {
   final String lastName;
   final String profilePhotoUrl;
   final List<String> skills;
+  final String? token;
   
 
   Collaborator({
@@ -94,6 +95,7 @@ class Collaborator {
     required this.lastName,
     required this.profilePhotoUrl,
     required this.skills,
+    required this.token,
   });
 
   factory Collaborator.fromMap(Map<String, dynamic> data) {
@@ -102,6 +104,7 @@ class Collaborator {
       firstName: data['firstName'] ?? '',
       lastName: data['lastName'] ?? '',
       profilePhotoUrl: data['profilePhotoUrl'] ?? '',
+      token: data['token'],
       skills: data['skills'] != null && data['skills'] is List
           ? List<String>.from(data['skills'])
           : [],

@@ -40,7 +40,7 @@ class NotificationModel {
       'title': title,
       'message': message,
       'timestamp': Timestamp.fromDate(timestamp),
-      'read': read,
+      'read': read ?? false,
       'status': status,
       'userId': userId,
       'projectName': projectName, // Include project name in map
