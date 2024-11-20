@@ -64,6 +64,7 @@ class _PostCommentsState extends State<PostComments> {
       });
     }
   }
+
   List<PostModel> threedPosts = [];
   List<PostModel> posts = [];
   @override
@@ -73,26 +74,35 @@ class _PostCommentsState extends State<PostComments> {
     // return FutureBuilder<List<PostModel>>(
     // future: _fetchPostModels(),
     return Scaffold(
+      backgroundColor: isDarkMode ? Colors.grey[990] : TColors.white,
       appBar: AppBar(
-        title: const Text("post"),
-        actions:(widget.upPost.idea != null)? [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 5,horizontal: 10)
-            ),
-            onPressed: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (context){
-              return ProjectScreen(idea: widget.upPost.idea!, repository: AnnouncementRepository(), canJoin: false, onJoinRequestSent: null);
-            }));
-          },child: Text("Project Card"),),
-          // IconButton(
-          // tooltip: "Move to project card",
-          // onPressed: (){
-          //                   Navigator.of(context).push(MaterialPageRoute(builder: (context){
-          //                     return ProjectScreen(idea: widget.upPost.idea!, repository: AnnouncementRepository(), canJoin: false, onJoinRequestSent: null);
-          //                   }));
-          //                 }, icon: const Icon(Icons.open_in_new))
-                          ]:null,
+        title: const Text("Post"),
+        actions: (widget.upPost.idea != null)
+            ? [
+                // ElevatedButton(
+                //   style: ElevatedButton.styleFrom(
+                //     padding: EdgeInsets.symmetric(vertical: 5,horizontal: 10)
+                //   ),
+                //   onPressed: (){
+                //   Navigator.of(context).push(MaterialPageRoute(builder: (context){
+                //     return ProjectScreen(idea: widget.upPost.idea!, repository: AnnouncementRepository(), canJoin: false, onJoinRequestSent: null);
+                //   }));
+                // },child: Text("Project Card"),),
+                IconButton(
+                    tooltip: "Project Card",
+                    onPressed: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (context) {
+                        return ProjectScreen(
+                            idea: widget.upPost.idea!,
+                            repository: AnnouncementRepository(),
+                            canJoin: false,
+                            onJoinRequestSent: null);
+                      }));
+                    },
+                    icon: const Icon(Icons.open_in_new))
+              ]
+            : null,
       ),
       body: StreamBuilder<List<PostModel>>(
         stream: projectIdeaRepository.streamPosts(null, uid, widget.upPost),
@@ -120,11 +130,11 @@ class _PostCommentsState extends State<PostComments> {
                   child: Column(
                     children: [
                       PostWidget(
-                        fromHome: true,
-                        refersh: (post)=> setState((){
-                          widget.upPost.likes = post.likes;
-                          widget.upPost.marks = post.marks;
-                        }),
+                          fromHome: true,
+                          refersh: (post) => setState(() {
+                                widget.upPost.likes = post.likes;
+                                widget.upPost.marks = post.marks;
+                              }),
                           projectRepository: projectIdeaRepository,
                           uid: uid,
                           isStaticPost: true,
@@ -133,7 +143,8 @@ class _PostCommentsState extends State<PostComments> {
                           post: widget.upPost,
                           isDarkMode: isDarkMode,
                           isPostOwner: widget.upPost.uid == uid,
-                          onEditPost: () async => await onEditPost(widget.upPost),
+                          onEditPost: () async =>
+                              await onEditPost(widget.upPost),
                           onDeletePost: () async =>
                               await onDeletePost(widget.upPost)),
                       if (snapshot.connectionState == ConnectionState.waiting)
@@ -146,25 +157,27 @@ class _PostCommentsState extends State<PostComments> {
                         itemCount: threedPosts.length,
                         itemBuilder: (context, index) {
                           final post = threedPosts[index];
-                
+
                           final isPostOwner = post.uid == uid;
-                
+
                           return Container(
                               decoration: BoxDecoration(
-                                color: isDarkMode ? Colors.grey[990] : TColors.white,
+                                color: isDarkMode
+                                    ? Colors.grey[990]
+                                    : TColors.white,
                                 borderRadius: BorderRadius.circular(10),
                                 border: isDarkMode
                                     ? null
                                     : Border.all(
-                                        color:
-                                            const Color.fromARGB(255, 238, 238, 238)),
+                                        color: const Color.fromARGB(
+                                            255, 238, 238, 238)),
                               ),
                               child: PostWidget(
                                 fromHome: false,
                                 projectRepository: projectIdeaRepository,
                                 uid: uid,
                                 upPosts: widget.upPosts,
-                                withLine: index != threedPosts.length-1,
+                                withLine: index != threedPosts.length - 1,
                                 onNaviagte: () {
                                   Navigator.push(
                                       context,
@@ -176,7 +189,8 @@ class _PostCommentsState extends State<PostComments> {
                                               )));
                                 },
                                 onEditPost: () async => await onEditPost(post),
-                                onDeletePost: () async => await onDeletePost(post),
+                                onDeletePost: () async =>
+                                    await onDeletePost(post),
                                 post: post,
                                 isDarkMode: isDarkMode,
                                 isPostOwner: isPostOwner,
@@ -193,19 +207,22 @@ class _PostCommentsState extends State<PostComments> {
                         itemCount: posts.length,
                         itemBuilder: (context, index) {
                           final post = posts[index];
-                
+
                           final isPostOwner = post.uid == uid;
-                
+
                           return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
                               decoration: BoxDecoration(
-                                color: isDarkMode ? Colors.grey[990] : TColors.white,
+                                color: isDarkMode
+                                    ? Colors.grey[990]
+                                    : TColors.white,
                                 borderRadius: BorderRadius.circular(10),
                                 border: isDarkMode
                                     ? null
                                     : Border.all(
-                                        color:
-                                            const Color.fromARGB(255, 238, 238, 238)),
+                                        color: const Color.fromARGB(
+                                            255, 238, 238, 238)),
                               ),
                               child: PostWidget(
                                 fromHome: false,
@@ -224,7 +241,8 @@ class _PostCommentsState extends State<PostComments> {
                                               )));
                                 },
                                 onEditPost: () async => await onEditPost(post),
-                                onDeletePost: () async => await onDeletePost(post),
+                                onDeletePost: () async =>
+                                    await onDeletePost(post),
                                 post: post,
                                 isDarkMode: isDarkMode,
                                 isPostOwner: isPostOwner,
@@ -241,33 +259,39 @@ class _PostCommentsState extends State<PostComments> {
                 ),
               ),
               ReplayWidget(
-                controller: controller,
-                image: image,
-                profile: profile,onPressed: (image,message)async=>onSendPost(image, message)),
+                  controller: controller,
+                  image: image,
+                  profile: profile,
+                  onPressed: (image, message) async =>
+                      onSendPost(image, message)),
             ],
           );
         },
       ),
     );
   }
-    Future<void> _fetchProjects() async {
+
+  Future<void> _fetchProjects() async {
     try {
       // Replace "currentUserId" with the actual user ID if available
-      projects = await announcementRepository.fetchIdeas("currentUserId"); 
+      projects = await announcementRepository.fetchIdeas("currentUserId");
       setState(() {}); // Update the UI with fetched projects
     } catch (e) {
       print("Error fetching projects: $e");
     }
   }
 
-  onSendPost(File? image,String message,[List<PostModel>? posts])async{
-    await projectIdeaRepository.sendNewPost(PostModel(
-      upPost: widget.upPost.id,
-      upPosts: widget.upPosts,
-      uid: uid,
-      messgae: message,
-      idea: widget.upPost.idea,
-    ), image == null ? [] : [image],widget.upPosts);
+  onSendPost(File? image, String message, [List<PostModel>? posts]) async {
+    await projectIdeaRepository.sendNewPost(
+        PostModel(
+          upPost: widget.upPost.id,
+          upPosts: widget.upPosts,
+          uid: uid,
+          messgae: message,
+          idea: widget.upPost.idea,
+        ),
+        image == null ? [] : [image],
+        widget.upPosts);
 
     setState(() {
       widget.upPost.comments = widget.upPost.comments! + 1;
@@ -299,7 +323,8 @@ class _PostCommentsState extends State<PostComments> {
         builder: (context) {
           return DeleteDialog(onPressed: () async {
             Navigator.pop(context);
-            int count = await projectIdeaRepository.deletePost(post,widget.upPosts);
+            int count =
+                await projectIdeaRepository.deletePost(post, widget.upPosts);
             widget.upPost.comments = widget.upPost.comments! - count;
             setState(() {});
             // setState(() {});
@@ -341,7 +366,7 @@ class _PostCommentsState extends State<PostComments> {
 
 class ReplayWidget extends StatefulWidget {
   final CollaboratorProfileModel? profile;
-  final Function(File?,String) onPressed;
+  final Function(File?, String) onPressed;
   File? image;
   TextEditingController controller;
   ReplayWidget({
@@ -357,9 +382,7 @@ class ReplayWidget extends StatefulWidget {
 }
 
 class _ReplayWidgetState extends State<ReplayWidget> {
-
   final ImagePicker picker = ImagePicker();
-  
 
   Future<void> pickImage() async {
     final pickedFile = await picker.pickImage(
@@ -372,89 +395,125 @@ class _ReplayWidgetState extends State<ReplayWidget> {
       });
     }
   }
+
   bool isPress = false;
   @override
   Widget build(BuildContext context) {
-    return  Padding(
+    return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
-          const Divider(height: 0,),
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 25,
-                backgroundImage: widget.profile?.profilePhotoUrl != null &&
-                        widget.profile!.profilePhotoUrl!.isNotEmpty
-                    ? NetworkImage(widget.profile!.profilePhotoUrl!)
-                    : const AssetImage('assets/images/content/user.png')
-                        as ImageProvider,
-              ),
-              const SizedBox(
-                width: 5,
-              ),
-              Expanded(
-                  child: TextField(
-                    maxLines: 3,
-                    minLines: 1,
-                    maxLength: 500,
-                    buildCounter: (context, {required currentLength, required isFocused, required maxLength}) => const SizedBox(),
-                    controller: widget.controller,
-                    onTapOutside: (event) {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                    },
-                decoration:  InputDecoration(
-                  hintText: "Post your replay",
-                  hintStyle: const TextStyle(color: Colors.grey,fontSize: 14),
-                  enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
-                  focusedBorder: const OutlineInputBorder(borderSide: BorderSide.none),
-                  suffixIconConstraints: const BoxConstraints(maxHeight: 80,maxWidth: 80),
-                  suffixIcon: Padding(
-                    padding: const EdgeInsets.only(top: 7),
-                    child: Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: widget.image == null ? 
-                          IconButton(onPressed: pickImage, icon: const Icon(Icons.image_outlined,)):
-                            Image.file(widget.image!,errorBuilder: (context, error, stackTrace) => const SizedBox(),)),
-                        if(widget.image != null)
-                        Positioned(top:-10,left: -10, child: IconButton(onPressed: (){
-                          setState(() {
-                            widget.image = null;
-                          });
-                        }, icon: const Icon(Icons.cancel,color: Colors.red,))),
-                      ],
-                    ),
-                  )
-                ),
-              )),
-              const SizedBox(
-                width: 5,
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  disabledBackgroundColor: Theme.of(context).primaryColor,
-                  padding: const EdgeInsets.symmetric(horizontal: 10)
-                ),
-                onPressed: () async{
-                  if(widget.image == null && widget.controller.text.trim() == ""){
-                    widget.controller.text = "";
-                    return;
-                  }
-                  setState(() {
-                    isPress = true;
-                  });
-                  await widget.onPressed(widget.image,widget.controller.text);
-                  try{
-                    setState(() {
-                      isPress = false;
-                    });
-                  }catch(e){}
-                }, child: isPress ? const Center(child: CircularProgressIndicator(),): const Text("Replay"))
-            ],
+          const Divider(
+            height: 0,
           ),
-          // const Divider(),      
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 25,
+                  backgroundImage: widget.profile?.profilePhotoUrl != null &&
+                          widget.profile!.profilePhotoUrl!.isNotEmpty
+                      ? NetworkImage(widget.profile!.profilePhotoUrl!)
+                      : const AssetImage('assets/images/content/user.png')
+                          as ImageProvider,
+                ),
+                const SizedBox(
+                  width: 5,
+                ),
+                Expanded(
+                    child: TextField(
+                  maxLines: 3,
+                  minLines: 1,
+                  maxLength: 500,
+                  buildCounter: (context,
+                          {required currentLength,
+                          required isFocused,
+                          required maxLength}) =>
+                      const SizedBox(),
+                  controller: widget.controller,
+                  onTapOutside: (event) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                  },
+                  decoration: InputDecoration(
+                      hintText: "Post your replay",
+                      hintStyle:
+                          const TextStyle(color: Colors.grey, fontSize: 14),
+                      enabledBorder:
+                          const OutlineInputBorder(borderSide: BorderSide.none),
+                      focusedBorder:
+                          const OutlineInputBorder(borderSide: BorderSide.none),
+                      suffixIconConstraints:
+                          const BoxConstraints(maxHeight: 80, maxWidth: 80),
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(top: 7),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: widget.image == null
+                                    ? IconButton(
+                                        onPressed: pickImage,
+                                        icon: const Icon(
+                                          Icons.image_outlined,
+                                        ))
+                                    : Image.file(
+                                        widget.image!,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const SizedBox(),
+                                      )),
+                            if (widget.image != null)
+                              Positioned(
+                                  top: -10,
+                                  left: -10,
+                                  child: IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          widget.image = null;
+                                        });
+                                      },
+                                      icon: const Icon(
+                                        Icons.cancel,
+                                        color: Colors.red,
+                                      ))),
+                          ],
+                        ),
+                      )),
+                )),
+                const SizedBox(
+                  width: 5,
+                ),
+                ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        disabledBackgroundColor: Theme.of(context).primaryColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 10)),
+                    onPressed: () async {
+                      if (widget.image == null &&
+                          widget.controller.text.trim() == "") {
+                        widget.controller.text = "";
+                        return;
+                      }
+                      setState(() {
+                        isPress = true;
+                      });
+                      await widget.onPressed(
+                          widget.image, widget.controller.text);
+                      try {
+                        setState(() {
+                          isPress = false;
+                        });
+                      } catch (e) {}
+                    },
+                    child: isPress
+                        ? const Center(
+                            child: CircularProgressIndicator(),
+                          )
+                        : const Text("Replay"))
+              ],
+            ),
+            // const Divider(),
+          )
         ],
       ),
     );
