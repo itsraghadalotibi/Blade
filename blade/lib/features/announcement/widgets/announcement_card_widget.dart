@@ -32,19 +32,20 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
   bool exceedsMaxLines = false;
   String? currentUserId;
   bool isJoinPending = false;
-  String? userType; 
+  String? userType;
 
   @override
   void initState() {
     super.initState();
     currentUserId = FirebaseAuth.instance.currentUser?.uid;
-     if (currentUserId != null) {
+    if (currentUserId != null) {
       _fetchUserType(); // Fetch user type
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkTextOverflow();
     });
   }
+
   // Function to fetch the user type (collaborator or supporter)
   void _fetchUserType() async {
     try {
@@ -56,8 +57,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
         setState(() {
           userType = 'collaborator';
         });
-      }
-      else{
+      } else {
         setState(() {
           userType = 'supporter';
         });
@@ -69,7 +69,8 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
 
   void _checkTextOverflow() {
     final textStyle = TextStyle(
-      color: Theme.of(context).textTheme.bodyLarge?.color ?? TColors.textPrimary,
+      color:
+          Theme.of(context).textTheme.bodyLarge?.color ?? TColors.textPrimary,
       fontSize: MediaQuery.of(context).size.width *
           0.04 *
           MediaQuery.of(context).textScaleFactor,
@@ -135,9 +136,9 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
       if (!mounted) return; // Ensure the widget is still mounted after async
 
       widget.fetchAll(); // Refresh the list after the join request
-
     } catch (e) {
-      if (!mounted) return; // Ensure widget is still mounted before showing error
+      if (!mounted)
+        return; // Ensure widget is still mounted before showing error
 
       setState(() {
         isJoinPending = false;
@@ -170,17 +171,18 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
       );
     }
   }
+
   void _handleSendInvestment() {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => InvestmentRequestFormScreen(
-        projectId: widget.idea.id!,
-        projectTitle: widget.idea.title,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => InvestmentRequestFormScreen(
+          projectId: widget.idea.id!,
+          projectTitle: widget.idea.title,
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -223,11 +225,18 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
           child: Container(
             width: screenWidth * 0.9,
             decoration: BoxDecoration(
-              color: isDarkMode ? TColors.container : TColors.white,
+              // **Change here: Replace the `color` property with the `gradient` property**
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 120, 215, 219), // Gradient start color
+                  Color.fromARGB(255, 12, 107, 89), // Gradient end color
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(23),
-              border: isDarkMode
-                  ? null // No border in dark mode
-                  : Border.all(color: TColors.borderPrimary), // Light mode border
+              border:
+                  isDarkMode ? null : Border.all(color: TColors.borderPrimary),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -240,7 +249,8 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                         child: Text(
                           widget.idea.title,
                           style: TextStyle(
-                            color: isDarkMode ? TColors.textWhite : TColors.black,
+                            color:
+                                isDarkMode ? TColors.textWhite : TColors.black,
                             fontSize: screenWidth * 0.055 * textScaleFactor,
                             fontWeight: FontWeight.bold,
                           ),
@@ -284,7 +294,9 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                       color: isDarkMode ? TColors.textWhite : TColors.black,
                     ),
                     maxLines: isExpanded ? null : 4,
-                    overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                    overflow: isExpanded
+                        ? TextOverflow.visible
+                        : TextOverflow.ellipsis,
                   ),
                   if (exceedsMaxLines)
                     GestureDetector(
@@ -309,8 +321,11 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                       '$membersNeeded members needed',
                       style: TextStyle(
                         color: isDarkMode ? TColors.grey : TColors.darkerGrey,
-                        fontSize: screenWidth * 0.035 * textScaleFactor, // Small font size
-                        fontStyle: FontStyle.italic, // Italic for subtle emphasis
+                        fontSize: screenWidth *
+                            0.035 *
+                            textScaleFactor, // Small font size
+                        fontStyle:
+                            FontStyle.italic, // Italic for subtle emphasis
                         fontWeight: FontWeight.w400,
                       ),
                     )
@@ -342,8 +357,9 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                   ),
                   SizedBox(height: screenHeight * 0.005),
 
-                   // Conditional Button based on userType
-                  if (userType != null) // Only show button after userType is fetched
+                  // Conditional Button based on userType
+                  if (userType !=
+                      null) // Only show button after userType is fetched
                     if (userType == 'collaborator' && canJoin)
                       // Show Join button for collaborators
                       Center(
@@ -359,8 +375,10 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isJoinPending
                                   ? Colors.grey // Grey color for waiting status
-                                  : TColors.primary, // Regular color for join button
-                              padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                                  : TColors
+                                      .primary, // Regular color for join button
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 18.0),
                             ),
                             child: Text(isJoinPending ? 'Waiting' : 'Join'),
                           ),
@@ -380,7 +398,8 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                             onPressed: _handleSendInvestment,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: TColors.primary,
-                              padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 18.0),
                             ),
                             child: const Text('Send Investment'),
                           ),
