@@ -18,3 +18,20 @@ class SearchProjectEvent extends HomeEvent {
 }
 
 class ClearSearchEvent extends HomeEvent {}
+class SearchEvent extends HomeEvent {
+  final String query;
+
+  SearchEvent(this.query);
+
+  @override
+  List<Object> get props => [query];
+}
+
+class FilterTabChangedEvent extends HomeEvent {
+  final String selectedTab;
+
+  FilterTabChangedEvent(this.selectedTab);
+
+  @override
+  List<Object> get props => [selectedTab];
+}

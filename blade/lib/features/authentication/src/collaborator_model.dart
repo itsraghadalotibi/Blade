@@ -7,6 +7,7 @@ class CollaboratorModel {
   final String bio;
   final Map<String, String> socialMediaLinks; // Changed to Map<String, String>
   final String profilePhotoUrl;
+  final String? token;
 
   // Constructor
   CollaboratorModel({
@@ -18,6 +19,7 @@ class CollaboratorModel {
     required this.bio,
     required this.socialMediaLinks,
     required this.profilePhotoUrl,
+    required this.token,
   });
 
   // Implement copyWith method
@@ -30,6 +32,7 @@ class CollaboratorModel {
     String? bio,
     Map<String, String>? socialMediaLinks,
     String? profilePhotoUrl,
+    String? token,
   }) {
     return CollaboratorModel(
       uid: uid ?? this.uid,
@@ -40,6 +43,7 @@ class CollaboratorModel {
       bio: bio ?? this.bio,
       socialMediaLinks: socialMediaLinks ?? this.socialMediaLinks,
       profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
+      token: token ?? this.token,
     );
   }
 
@@ -54,6 +58,7 @@ class CollaboratorModel {
       'bio': bio,
       'socialMediaLinks': socialMediaLinks,
       'profilePhotoUrl': profilePhotoUrl,
+      'token': token,
     };
   }
 
@@ -68,6 +73,7 @@ class CollaboratorModel {
       bio: map['bio'],
       socialMediaLinks: Map<String, String>.from(map['socialMediaLinks'] ?? {}),
       profilePhotoUrl: map['profilePhotoUrl'] ?? '',
+      token: map['token'],
     );
   }
 }

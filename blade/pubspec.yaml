@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter # Declares dependency on the Flutter SDK
-  flutter_local_notifications: ^13.0.0
+  flutter_local_notifications: ^18.0.0
   http: ^1.2.2 #Updated http version
   cupertino_icons: ^1.0.6
   uuid: ^4.5.0
@@ -41,12 +41,14 @@ dependencies:
   introduction_screen: ^3.1.14
   line_icons: ^2.0.3
   flutter_secure_storage: ^9.2.2
-  flutter_web_auth: ^0.5.0
+  flutter_web_auth: ^0.6.0
   webview_flutter: ^4.10.0
   rxdart: ^0.28.0
   flutter_svg: ^2.0.10+1
   intl_phone_field: ^3.2.0
   timeago_flutter: ^3.7.0
+  firebase_messaging: 
+  googleapis_auth: ^1.6.0
 
 dev_dependencies:
   flutter_test:

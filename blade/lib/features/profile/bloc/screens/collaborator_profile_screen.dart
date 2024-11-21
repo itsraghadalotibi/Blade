@@ -241,16 +241,17 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                   // Skills Chips (if available)
                   if (profile.skills != null && profile.skills!.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24), // Add horizontal padding
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: SizedBox(
                         height: 50,
                         child: SingleChildScrollView(
-                          child: Wrap(
-                            spacing: 8.0,
-                            runSpacing: 8.0,
+                          scrollDirection: Axis.horizontal, // Change to horizontal scroll
+                          child: Row(
                             children: profile.skills!.map((skill) {
-                              return SkillTagWidget(skills: [skill]);
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: SkillTagWidget(skills: [skill]),
+                              );
                             }).toList(),
                           ),
                         ),
@@ -296,7 +297,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.center, // Centering the entire content horizontally
                               children: [
-                                Center( // Centering the bio text
+                                Center(
                                   child: Text(
                                     profile.bio ?? 'No bio available',
                                     style: Theme.of(context).textTheme.bodyMedium,
@@ -304,7 +305,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                     overflow: isBioExpanded
                                         ? TextOverflow.visible
                                         : TextOverflow.ellipsis,
-                                    textAlign: TextAlign.center, // Ensure text itself is centered within the Text widget
+                                    textAlign: TextAlign.start, // Change to start for alignment
                                   ),
                                 ),
                                 if (exceedsMaxLines)
@@ -314,10 +315,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                         isBioExpanded = !isBioExpanded;
                                       });
                                     },
-                                    child: Text(
-                                      isBioExpanded ? 'Show less' : 'Show more',
-                                      style: const TextStyle(color: TColors.info),
-                                      textAlign: TextAlign.center, // Center the "Show more" text
+                                    child: Align(
+                                      alignment: Alignment.centerLeft, // Align "Show more" to the left
+                                      child: Text(
+                                        isBioExpanded ? 'Show less' : 'Show more',
+                                        style: const TextStyle(color: TColors.info),
+                                      ),
                                     ),
                                   ),
                               ],

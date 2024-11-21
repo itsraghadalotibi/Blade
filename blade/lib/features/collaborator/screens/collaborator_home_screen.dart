@@ -7,7 +7,6 @@ import '../../authentication/bloc/authentication_bloc.dart';
 import '../../authentication/bloc/authentication_event.dart';
 import '../../authentication/bloc/authentication_state.dart';
 import '../../authentication/src/collaborator_model.dart';
-import 'screens/HowToEarnPage.dart';
 
 class CollaboratorHomeScreen extends StatelessWidget {
   const CollaboratorHomeScreen({super.key});
