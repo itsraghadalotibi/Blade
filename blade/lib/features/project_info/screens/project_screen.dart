@@ -20,6 +20,9 @@ import 'posts_tab.dart';
 import 'members_tab.dart';
 import 'project_settings_screen.dart';
 import 'dollar.dart'; // Import the DollarIcon class
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ProjectScreen extends StatefulWidget {
   final Idea idea;
@@ -29,7 +32,6 @@ class ProjectScreen extends StatefulWidget {
   final Function()? onJoinRequestSent;
   final bool useInvestButton;
 
-
   const ProjectScreen({
     super.key,
     required this.idea,
@@ -37,7 +39,7 @@ class ProjectScreen extends StatefulWidget {
     required this.canJoin,
     this.onJoinRequestSent, //Make it optional BC the supporter call does not provide it
     this.refershIdeasInProfile,
-      this.useInvestButton = false, // For supporter
+    this.useInvestButton = false, // For supporter
   });
 
   @override
@@ -50,16 +52,17 @@ class _ProjectScreenState extends State<ProjectScreen> {
   String? _joinRequestId;
   String _buttonText = 'Join';
   String? currentUserId;
-  String? userType; 
+  String? userType;
   @override
   void initState() {
     super.initState();
     currentUserId = FirebaseAuth.instance.currentUser?.uid;
-     if (currentUserId != null) {
+    if (currentUserId != null) {
       _fetchUserType(); // Fetch user type
     }
     _checkJoinRequestStatus();
   }
+
   // Function to fetch the user type (collaborator or supporter)
   void _fetchUserType() async {
     try {
@@ -71,8 +74,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
         setState(() {
           userType = 'collaborator';
         });
-      }
-      else{
+      } else {
         setState(() {
           userType = 'supporter';
         });
@@ -113,9 +115,9 @@ class _ProjectScreenState extends State<ProjectScreen> {
   Color get _buttonBackgroundColor {
     if (_isRequestPending) {
       return Colors.amber[800]!; // Grey for pending state
-    } else if(widget.useInvestButton){
+    } else if (widget.useInvestButton) {
       return TColors.primary;
-    }else {
+    } else {
       return TColors.primary; // Red for join project
     }
   }
@@ -171,17 +173,18 @@ class _ProjectScreenState extends State<ProjectScreen> {
       });
     }
   }
+
   void _handleSendInvestment() {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => InvestmentRequestFormScreen(
-        projectId: widget.idea.id!,
-        projectTitle: widget.idea.title,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => InvestmentRequestFormScreen(
+          projectId: widget.idea.id!,
+          projectTitle: widget.idea.title,
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // Function to cancel a join request.
   Future<void> _cancelJoinRequest(String requestId) async {
@@ -315,7 +318,9 @@ class _ProjectScreenState extends State<ProjectScreen> {
                 title: const Text('Project details'),
                 centerTitle: true,
                 actions: [
-                  if (userType == 'collaborator' && idea.status != 'open' && (_isMember || isOwner))
+                  if (userType == 'collaborator' &&
+                      idea.status != 'open' &&
+                      (_isMember || isOwner))
                     IconButton(
                       icon: const Icon(Icons.mail), // Use envelope icon
                       onPressed: () {
@@ -339,7 +344,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         );
                       },
                     ),
-                  if (userType == 'collaborator' && isOwner &&
+                  if (userType == 'collaborator' &&
+                      isOwner &&
                       (idea.status == 'open' || idea.status == 'ongoing'))
                     IconButton(
                       icon: const Icon(Icons.settings),
@@ -396,7 +402,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               ],
                             ),
                           ),
-                          
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
@@ -421,7 +426,9 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         child: SkillTagWidget(skills: idea.skills),
                       ),
                     ),
-                    if (userType == 'collaborator' && ((!isOwner && idea.status == 'open') || widget.useInvestButton)) ...[
+                    if (userType == 'collaborator' &&
+                        ((!isOwner && idea.status == 'open') ||
+                            widget.useInvestButton)) ...[
                       const SizedBox(height: 16),
                       Center(
                         child: ElevatedButton(
@@ -455,7 +462,87 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         ),
                       ),
                     ],
-                    if(userType == 'supporter')...[
+                    if (userType == 'collaborator' &&
+                        ((!isOwner && idea.status == 'open') ||
+                            widget.useInvestButton)) ...[
+                      const SizedBox(height: 16),
+                      Center(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _buttonBackgroundColor,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 36, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            if ((_isRequestPending && _joinRequestId != null)) {
+                              // Cancel the join request
+                              _cancelJoinRequest(_joinRequestId!);
+                            } else if (_isMember) {
+                              // Leave the project
+                              _leaveProject();
+                            } else {
+                              // Send a join request
+                              _sendJoinRequest();
+                            }
+                          },
+                          child: Text(
+                            _buttonText,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (idea.status == 'ongoing') ...[
+                      const SizedBox(height: 16),
+                      Center(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                TColors.primary, // Match your app's style
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 36, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: idea.repoUrl != null
+                              ? () async {
+                                  final url = idea.repoUrl!;
+                                  if (await canLaunchUrl(Uri.parse(url))) {
+                                    await launchUrl(Uri.parse(url));
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Could not open GitHub repository.'),
+                                      ),
+                                    );
+                                  }
+                                }
+                              : null,
+                          icon: const FaIcon(
+                            FontAwesomeIcons.github, // Official GitHub icon
+                            size: 20, // Adjust the size if necessary
+                            color: Colors.white, // Match the text color
+                          ),
+                          label: const Text(
+                            'GitHub',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (userType == 'supporter') ...[
                       const SizedBox(height: 16),
                       Center(
                         child: ElevatedButton(
@@ -478,13 +565,39 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         ),
                       ),
                     ],
-
-
+                    if (userType == 'supporter') ...[
+                      const SizedBox(height: 16),
+                      Center(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: TColors.primary,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 36, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: _handleSendInvestment,
+                          child: const Text(
+                            'Invest',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,
                       child: DefaultTabController(
-                        length: 2 + (userType == 'collaborator' && isOwner && idea.status == "open" ? 1 : 0),
+                        length: 2 +
+                            (userType == 'collaborator' &&
+                                    isOwner &&
+                                    idea.status == "open"
+                                ? 1
+                                : 0),
                         child: Column(
                           children: [
                             TabBar(
@@ -500,7 +613,9 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               tabs: [
                                 const Tab(text: 'Posts'),
                                 const Tab(text: 'Members'),
-                                if (userType == 'collaborator' && isOwner && idea.status == "open")
+                                if (userType == 'collaborator' &&
+                                    isOwner &&
+                                    idea.status == "open")
                                   const Tab(text: 'Requests'),
                               ],
                             ),
@@ -508,8 +623,12 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               child: TabBarView(
                                 children: [
                                   PostsTab(fromHome: false, idea: idea),
-                                  MembersTab(idea: idea, repository: widget.repository),
-                                  if (userType == 'collaborator' && isOwner && idea.status == "open")
+                                  MembersTab(
+                                      idea: idea,
+                                      repository: widget.repository),
+                                  if (userType == 'collaborator' &&
+                                      isOwner &&
+                                      idea.status == "open")
                                     OffersTab(
                                       idea: idea,
                                       repository: widget.repository,
