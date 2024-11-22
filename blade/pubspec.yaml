@@ -91,3 +91,7 @@ flutter:
     - assets/icons/money.svg
     - assets/icons/program.svg
     - assets/icons/rocket.svg
+    - assets/images/badges/gold.png
+    - assets/images/badges/silver.png
+    - assets/images/badges/bronz.png
+

@@ -70,6 +70,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+            leading: IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () {},
+            ),
           title: Text(
             'Profile',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(

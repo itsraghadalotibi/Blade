@@ -167,6 +167,8 @@ class _PostWidgetState extends State<PostWidget> {
                             children: [
                               IconButton(
                                   onPressed: () async{
+                                  print("IconButton pressed!"); // Add this line to confirm the button press
+
                                     if(!isPress){
                                       isPress = true;
                                       PostModel copyPost = widget.post.copyWith();
@@ -179,6 +181,9 @@ class _PostWidgetState extends State<PostWidget> {
                                       }
                                       widget.refersh?.call(copyPost);
                                       isPress = false;
+                                                                                // Log the likes count for each ongoing project
+                                    await widget.projectRepository.logLikesForOngoingProjects();
+
                                     }
                                   },
                                   icon:  Icon(

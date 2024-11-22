@@ -1,42 +1,40 @@
+import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'git_hub_points_event.dart';
 import 'git_hub_points_state.dart';
 
 class GitHubPointsBloc extends Bloc<GitHubPointsEvent, GitHubPointsState> {
-  final _secureStorage = const FlutterSecureStorage(); // Secure storage instance
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final _secureStorage = const FlutterSecureStorage();
   int totalPoints = 0;
+  int postPoints = 0;
+  int commitPoints = 0;
 
   GitHubPointsBloc() : super(GitHubPointsInitial()) {
     on<FetchGitHubPointsEvent>(_onFetchGitHubPoints);
+    on<NewPostCreatedEvent>(_onNewPostCreated);
+    on<UpdatePointsEvent>(_onUpdatePoints); // Event to handle dynamic point updates
   }
 
-  // Fetch commits and calculate points
+  // Fetch GitHub commits and calculate commit points
   Future<void> _onFetchGitHubPoints(
       FetchGitHubPointsEvent event, Emitter<GitHubPointsState> emit) async {
-    print("Event received in Bloc with URL: ${event.repoUrl}");
     emit(GitHubPointsLoading());
-
     try {
-      // Retrieve the GitHub access token
       final accessToken = await _secureStorage.read(key: 'github_access_token');
       if (accessToken == null || accessToken.isEmpty) {
         emit(GitHubPointsError("GitHub access token not available"));
         return;
       }
 
-      // Parse repo owner and name from the provided URL
       final repoDetails = event.repoUrl.split("github.com/")[1].split("/");
       final owner = repoDetails[0];
       final repo = repoDetails[1];
 
-      print("Owner: $owner, Repo: $repo - Preparing API request...");
       final url = Uri.parse('https://api.github.com/repos/$owner/$repo/commits');
-
-      // Include token in the request headers
       final response = await http.get(
         url,
         headers: {
@@ -45,40 +43,93 @@ class GitHubPointsBloc extends Bloc<GitHubPointsEvent, GitHubPointsState> {
         },
       );
 
-      print("API response status: ${response.statusCode}");
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-
-        // Calculate commit count and award points
         int commitsCount = data.length;
-        int commitPoints = 0;
 
-        // Award points based on commit count
-        if (commitsCount >= 10) {
-          commitPoints += 30;
-          commitPoints += ((commitsCount - 10) ~/ 30) * 15;
-        }
+        // Calculate commit points
+        commitPoints = _calculateCommitPoints(commitsCount);
+        totalPoints = commitPoints + postPoints;
 
-        totalPoints += commitPoints; // Add commit points to total
-        print('Fetched Commit Count: $commitsCount');
-        print('Total Points awarded so far: $totalPoints');
-
-        _emitProgress(emit, commitsCount);
+        _emitProgress(emit, commitsCount, postPoints, totalPoints, event.projectId);
       } else {
-        print('Failed to fetch commits: ${response.statusCode}');
         emit(GitHubPointsError('Failed to fetch repository commits'));
       }
     } catch (e) {
-      print('Error: $e');
       emit(GitHubPointsError('Error: $e'));
     }
   }
 
-  // Calculate progress and emit the state
-  void _emitProgress(Emitter<GitHubPointsState> emit, int count) {
+  // Handle new post event
+  Future<void> _onNewPostCreated(
+      NewPostCreatedEvent event, Emitter<GitHubPointsState> emit) async {
+    try {
+      final postsSnapshot = await _firestore
+          .collection('posts')
+          .where('ideaId', isEqualTo: event.projectId)
+          .get();
+
+      int postCount = postsSnapshot.docs.length;
+
+      // Award points for each post
+      postPoints = postCount * 10; // e.g., 10 points per post
+      totalPoints = commitPoints + postPoints;
+
+      _emitProgress(emit, commitPoints, postCount, totalPoints, event.projectId);
+    } catch (e) {
+      emit(GitHubPointsError('Failed to fetch posts for project: $e'));
+    }
+  }
+
+  // Handle dynamic point updates
+  Future<void> _onUpdatePoints(
+      UpdatePointsEvent event, Emitter<GitHubPointsState> emit) async {
+    try {
+      // Update points dynamically based on event values
+      totalPoints = event.newCommitPoints + event.newPostPoints;
+      commitPoints = event.newCommitPoints;
+      postPoints = event.newPostPoints;
+
+      _emitProgress(
+          emit, commitPoints, postPoints, totalPoints, event.projectId);
+    } catch (e) {
+      emit(GitHubPointsError('Failed to update points: $e'));
+    }
+  }
+
+  // Emit progress and save points to Firestore
+  void _emitProgress(
+      Emitter<GitHubPointsState> emit,
+      int commitsCount,
+      int postCount,
+      int totalPoints,
+      String projectId) {
     const int goal = 500;
     double progress = (totalPoints / goal).clamp(0, 1);
 
-    emit(GitHubPointsLoaded(commitsCount: count, progress: progress));
+    // Save total points to Firestore
+    _firestore.collection('ideas').doc(projectId).update({
+      'points': totalPoints,
+      'progress': progress,
+    }).catchError((e) {
+      emit(GitHubPointsError('Failed to update points in Firestore: $e'));
+    });
+
+    emit(GitHubPointsLoaded(
+      commitsCount: commitsCount,
+      postCount: postCount,
+      progress: progress,
+      totalPoints: totalPoints,
+    ));
+  }
+
+  // Helper to calculate commit points
+  int _calculateCommitPoints(int commitsCount) {
+    int points = 0;
+    if (commitsCount >= 10) {
+      points += 30;
+      points += ((commitsCount - 10) ~/ 30) * 15;
+    }
+    return points;
   }
 }

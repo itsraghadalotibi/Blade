@@ -223,7 +223,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
           child: Container(
             width: screenWidth * 0.9,
             decoration: BoxDecoration(
-              color: isDarkMode ? TColors.container : TColors.white,
+              color: isDarkMode ? const Color.fromARGB(255, 51, 51, 51) : TColors.white,
               borderRadius: BorderRadius.circular(23),
               border: isDarkMode
                   ? null // No border in dark mode

@@ -6,12 +6,16 @@ import 'package:blade_app/features/project_info/src/post_model.dart';
 import 'package:blade_app/utils/constants/sizes.dart';
 import 'package:blade_app/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../../GithubPoints/bloc/git_hub_points_bloc.dart';
 
 class NewPost extends StatefulWidget {
   final List<Idea>? ideas;
   final PostModel? post;
-  const NewPost({super.key, this.ideas, this.post});
+
+  const NewPost({Key? key, this.ideas, this.post}) : super(key: key);
 
   @override
   State<NewPost> createState() => _NewPostState();
@@ -20,28 +24,28 @@ class NewPost extends StatefulWidget {
 class _NewPostState extends State<NewPost> {
   Idea? selectedIdea;
   late ProjectIdeaRepository projectIdeaRepository;
+  final ImagePicker picker = ImagePicker();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  late TextEditingController title;
+  late TextEditingController caption;
+
+  List<File> imagesFile = [];
+  List<String> currentImages = [];
+  List<String> deletedImages = [];
+  bool isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
     projectIdeaRepository = ProjectIdeaRepository();
     selectedIdea = widget.ideas?.first;
-    currentImages = widget.post?.images??[];
-    title = TextEditingController(text:widget.post?.title ?? "");
-    caption = TextEditingController(text:widget.post?.messgae ?? "");
+    currentImages = widget.post?.images ?? [];
+    title = TextEditingController(text: widget.post?.title ?? "");
+    caption = TextEditingController(text: widget.post?.messgae ?? "");
   }
-  final ImagePicker picker = ImagePicker();
-  GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  late TextEditingController title; 
-  late TextEditingController caption; 
-  List<File> imagesFile = [];
-  List<String> currentImages = [];
-  List<String> deletedImages = [];
-  bool isPress = false;
 
   Future<void> pickImage() async {
-    final pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-    );
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() {
@@ -52,15 +56,77 @@ class _NewPostState extends State<NewPost> {
 
   String? validateTitle(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Please enter post title';
+      return 'Please enter a post title';
     }
     return null;
+  }
+
+  Future<void> submitPost() async {
+    if (!formKey.currentState!.validate()) return;
+
+    if (selectedIdea == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a project")),
+      );
+      return;
+    }
+
+    setState(() {
+      isSubmitting = true;
+    });
+
+    try {
+      if (widget.post == null) {
+        // Creating a new post
+        await projectIdeaRepository.sendNewPost(
+          PostModel(
+            images: currentImages,
+            title: title.text,
+            messgae: caption.text,
+            upPosts: [],
+            idea: selectedIdea,
+            ideaId: selectedIdea?.id,
+          ),
+          imagesFile,
+          [],
+          BlocProvider.of<GitHubPointsBloc>(context),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Post created successfully!")),
+        );
+      } else {
+        // Updating an existing post
+        await projectIdeaRepository.updatePost(
+          widget.post!.copyWith(
+            images: currentImages,
+            title: title.text,
+            messgae: caption.text,
+          ),
+          imagesFile,
+          deletedImages,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Post updated successfully!")),
+        );
+      }
+
+      Navigator.pop(context, "DONE");
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    } finally {
+      setState(() {
+        isSubmitting = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text("Post"),
       ),
@@ -75,25 +141,26 @@ class _NewPostState extends State<NewPost> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if(selectedIdea!= null)...[
-                        
-                        lable("Select Project*"),
+                      if (selectedIdea != null) ...[
+                        label("Select Project*"),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(TSizes.inputFieldRadius)),
+                            border: Border.all(color: Colors.grey),
+                            borderRadius:
+                                BorderRadius.circular(TSizes.inputFieldRadius),
+                          ),
                           child: DropdownButton<Idea>(
                             value: selectedIdea,
                             items: widget.ideas!
-                                .map((i) => DropdownMenuItem(
-                                      value: i,
-                                      child: Text(i.title),
+                                .map((idea) => DropdownMenuItem(
+                                      value: idea,
+                                      child: Text(idea.title),
                                     ))
                                 .toList(),
-                            onChanged: (i) {
+                            onChanged: (idea) {
                               setState(() {
-                                selectedIdea = i;
+                                selectedIdea = idea;
                               });
                             },
                             isExpanded: true,
@@ -102,50 +169,31 @@ class _NewPostState extends State<NewPost> {
                           ),
                         ),
                       ],
-                      lable("Images (Optional)"),
+                      label("Images (Optional)"),
                       SizedBox(
                         height: 100,
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
-                              ...currentImages.map((i) {
-                                return Stack(
-                                  children: [
-                                    Container(
-                                      constraints: const BoxConstraints(maxWidth: 100),
-                                      padding: const EdgeInsets.only(right: 10),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(15),
-                                        child: Image.network(i,errorBuilder: (context, error, stackTrace) => const SizedBox(),)),
-                                    ),
-                                    Positioned(top:-10,left: -10, child: IconButton(onPressed: (){
+                              ...currentImages.map((url) => buildImagePreview(
+                                    url,
+                                    onRemove: () {
                                       setState(() {
-                                        deletedImages.add(i);
-                                        currentImages.removeWhere((f) => i==f,);
+                                        deletedImages.add(url);
+                                        currentImages.remove(url);
                                       });
-                                    }, icon: const Icon(Icons.cancel,color: Colors.red,))),
-                                  ],
-                                );
-                              }),
-                              ...imagesFile.map((i) {
-                                return Stack(
-                                  children: [
-                                    Container(
-                                      constraints: const BoxConstraints(maxWidth: 100),
-                                      padding: const EdgeInsets.only(right: 10),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(15),
-                                        child: Image.file(i,errorBuilder: (context, error, stackTrace) => const SizedBox(),)),
-                                    ),
-                                    Positioned(top:-10,left: -10, child: IconButton(onPressed: (){
+                                    },
+                                  )),
+                              ...imagesFile.map((file) => buildImagePreview(
+                                    file.path,
+                                    isLocalFile: true,
+                                    onRemove: () {
                                       setState(() {
-                                        imagesFile.removeWhere((f) => i==f,);
+                                        imagesFile.remove(file);
                                       });
-                                    }, icon: const Icon(Icons.cancel,color: Colors.red,))),
-                                  ],
-                                );
-                              }),
+                                    },
+                                  )),
                               GestureDetector(
                                 onTap: pickImage,
                                 child: Container(
@@ -153,25 +201,24 @@ class _NewPostState extends State<NewPost> {
                                   height: 100,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(15),
-                                    border: Border.all(color: Colors.grey)
+                                    border: Border.all(color: Colors.grey),
                                   ),
                                   child: const Icon(Icons.add),
                                 ),
                               )
                             ],
-                          ))
+                          ),
+                        ),
                       ),
-                      // lable("Title*"),
-                      // CustomTextField(
-                      //   hint: "Add a title",
-                      //   validator: validateTitle,
-                      //   label: null, controller: title),
-                      lable("Description"),
+                      label("Description"),
                       CustomTextField(
-                        showCounter: true,
+                        controller: caption,
+                        hint:
+                            "What is the latest update for ${selectedIdea?.title}?",
+                        maxLines: 7,
                         maxLength: 500,
-                        hint: "What is the latest update for ${selectedIdea?.title}?",
-                        label: null, controller: caption,maxLines: 7,),
+                        showCounter: true, label: '',
+                      ),
                     ],
                   ),
                 ),
@@ -179,49 +226,72 @@ class _NewPostState extends State<NewPost> {
             ),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   disabledBackgroundColor: Theme.of(context).primaryColor,
-                  padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 12)
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
                 ),
-                // icon: Icon(widget.post == null ? Icons.add : Icons.edit),
-                onPressed: isPress?null:()async{
-                  if(formKey.currentState!.validate()){
-                    setState(() {
-                      isPress = true;
-                    });
-                    if(widget.post == null){
-                      await projectIdeaRepository.sendNewPost(PostModel(
-                        images: currentImages,
-                        title: title.text,
-                        messgae: caption.text,
-                        upPosts: [],
-                        idea: selectedIdea,
-                      ), imagesFile,[]);
-                      Navigator.pop(context,"DONE");
-                    }
-                    else{
-                      await projectIdeaRepository.updatePost(widget.post!.copyWith(
-                        images: currentImages,
-                        title: title.text,
-                        messgae: caption.text,
-                      ), imagesFile,deletedImages);
-                      Navigator.pop(context,"DONE");
-                    }
-                  }
-                }, label: isPress ? const Center(child: CircularProgressIndicator(),): Text(widget.post != null ? "Save changes": "Post")))
+                onPressed: isSubmitting ? null : submitPost,
+                child: isSubmitting
+                    ? const CircularProgressIndicator()
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(widget.post != null ? "Save Changes" : "Post"),
+                          const SizedBox(width: 8), // Space between text and icon
+                          const Icon(Icons.send),
+                        ],
+                      ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget lable(String text) => Container(
-    margin: const EdgeInsets.only(top: 10,bottom: 10),
-    child: Text(
-          text,
-          textAlign: TextAlign.start,
-          style: const TextStyle(fontSize: 20),
+  Widget label(String text) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 20),
+      ),
+    );
+  }
+
+  Widget buildImagePreview(String imagePath,
+      {bool isLocalFile = false, required VoidCallback onRemove}) {
+    return Stack(
+      children: [
+        Container(
+          margin: const EdgeInsets.only(right: 10),
+          constraints: const BoxConstraints(maxWidth: 100),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(15),
+            child: isLocalFile
+                ? Image.file(
+                    File(imagePath),
+                    fit: BoxFit.cover,
+                  )
+                : Image.network(
+                    imagePath,
+                    fit: BoxFit.cover,
+                  ),
+          ),
         ),
-  );
+        Positioned(
+          top: -10,
+          left: -10,
+          child: IconButton(
+            onPressed: onRemove,
+            icon: const Icon(Icons.cancel, color: Colors.red),
+          ),
+        ),
+      ],
+    );
+  }
 }

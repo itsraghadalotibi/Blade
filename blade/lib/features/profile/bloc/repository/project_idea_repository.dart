@@ -8,12 +8,64 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
+import '../../../GithubPoints/bloc/git_hub_points_bloc.dart';
+import '../../../GithubPoints/bloc/git_hub_points_event.dart';
 import '../src/collaborator_profile_model.dart';
 
 class ProjectIdeaRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
+    Future<List<Idea>> fetchOngoingIdeas() async {
+    try {
+      // Fetch all projects with the "ongoing" status
+      final projectSnapshot = await _firestore
+          .collection('ideas')
+          .where('status', isEqualTo: 'ongoing')
+          .get();
 
+      // Map the Firestore documents to a list of `Idea` objects
+      return projectSnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Idea.fromMap(data, doc.id);
+      }).toList();
+    } catch (e) {
+      print("Error fetching ongoing ideas: $e");
+      return [];
+    }
+  }
+
+  Future<void> logLikesForOngoingProjects() async {
+    try {
+      // Fetch all ongoing projects
+      final projectSnapshot = await _firestore
+          .collection('ideas')
+          .where('status', isEqualTo: 'ongoing') // Adjust 'status' if needed
+          .get();
+
+      for (var project in projectSnapshot.docs) {
+        final projectId = project.id;
+        print("Project ID: $projectId, Project Title: ${project.data()['title']}");
+
+        // Fetch all posts related to this project
+        final postsSnapshot = await _firestore
+            .collection('posts')
+            .where('ideaId', isEqualTo: projectId)
+            .get();
+
+        int totalLikes = 0;
+
+        for (var postDoc in postsSnapshot.docs) {
+          final List<dynamic> likes = postDoc.data()['likes'] ?? [];
+          totalLikes += likes.length;
+          print("Post ID: ${postDoc.id}, Likes Count: ${likes.length}");
+        }
+
+        print("Total Likes for Project $projectId: $totalLikes");
+      }
+    } catch (e) {
+      print("Error logging likes for ongoing projects: $e");
+    }
+  }
   // Fetch ideas where the user is the owner (i.e., userId is the first member in the 'members' array)
   Future<List<Idea>> fetchIdeasByOwner(String userId, String status) async {
     try {
@@ -145,11 +197,13 @@ class ProjectIdeaRepository {
 
   // Send New Post
   Future<void> sendNewPost(
-      PostModel post, List<File> imageFiles, List<String> upPosts) async {
+      PostModel post, List<File> imageFiles, List<String> upPosts, GitHubPointsBloc gitHubPointsBloc) async {
     try {
       post.images ??= [];
       post.images?.addAll((await uploadPostImages(imageFiles)));
       await _firestore.collection('posts').add(post.toMap());
+          // Dispatch the event to update points
+        gitHubPointsBloc.add(NewPostCreatedEvent(post.ideaId!));
       if (upPosts.isNotEmpty) {
         await plusMinuseCommentsNumber(upPosts, 1);
       }
@@ -375,4 +429,5 @@ Stream<List<PostModel>> streamBookmarksPosts(String? uid) {
       throw Exception('Failed to remove $field: $e');
     }
   }
+  
 }
