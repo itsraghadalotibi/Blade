@@ -306,7 +306,7 @@ class ProjectIdeaRepository {
       (posts, collaborators, ideas) {
         return posts.map((post) {
           // Set isJoined flag based on join requests
-          post.user = collaborators.firstWhere((c) => c.uid == post.uid);
+          post.user = collaborators.firstWhere((c) => c.uid == post.uid,orElse: ()=>collaborators.first);
           post.idea = ideas.firstWhere((i) => i.id == post.ideaId);
           return post;
         }).toList();
