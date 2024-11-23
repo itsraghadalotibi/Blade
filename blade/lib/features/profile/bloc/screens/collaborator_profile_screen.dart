@@ -2,6 +2,9 @@ import 'dart:async';
 import 'package:blade_app/features/announcement/src/announcement_model.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:blade_app/features/announcement/widgets/skill_tag_widget.dart';
+import 'package:blade_app/features/authentication/bloc/authentication_bloc.dart';
+import 'package:blade_app/features/authentication/bloc/authentication_event.dart';
+import 'package:blade_app/features/authentication/bloc/authentication_state.dart';
 import 'package:blade_app/features/profile/bloc/screens/edit_collaborator_profile_screen.dart';
 import 'package:blade_app/utils/constants/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -159,9 +162,29 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   Widget build(BuildContext context) {
     final bool isOwner = _currentUserId == widget.userId;
 
-    return BlocProvider(
-      create: (context) => ProfileViewBloc(profileRepository: context.read())
-        ..add(LoadProfile(widget.userId)),
+    return BlocListener<AuthenticationBloc, AuthenticationState>(
+      listener: (context, state) {
+        if (state is AuthenticationUnauthenticated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Logged out successfully!',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(top: 10, left: 10, right: 10),
+              showCloseIcon: true,
+            ),
+          );
+
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/',
+            (Route<dynamic> route) => false,
+          );
+        }
+      },
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
@@ -181,6 +204,21 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                   children: [
                     SvgPicture.asset(
                       'assets/icons/investment_request.svg',
+          leading: IconButton(
+            icon: Icon(
+              Icons.logout,
+              color:
+                  Theme.of(context).iconTheme.color, // Match theme icon color
+            ),
+            onPressed: () {
+              _showLogoutConfirmation(context);
+            },
+          ),
+          actions: isOwner
+              ? [
+                  IconButton(
+                    icon: Icon(
+                      Icons.edit,
                       color: Theme.of(context).iconTheme.color,
                       width: 30,
                       height: 30,
@@ -300,7 +338,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             as ImageProvider,
                   ),
                   const SizedBox(height: 8),
-// Name and Social Icons Section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -312,12 +349,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(width: 3), // Space between name and icons
-
-                      // Social Media Links (GitHub and LinkedIn) next to the name
+                      const SizedBox(width: 3),
                       Row(
                         children: [
-                          // GitHub Icon
                           IconButton(
                             icon: FaIcon(
                               FontAwesomeIcons.github,
@@ -327,7 +361,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                   ? TColors.primary
                                   : Colors.grey,
                             ),
-                            padding: EdgeInsets.zero, // Remove default padding
+                            padding: EdgeInsets.zero,
                             onPressed: () async {
                               final githubUrl =
                                   profile.socialMediaLinks?['GitHub'];
@@ -339,10 +373,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                               }
                             },
                           ),
-                          const SizedBox(
-                              width: 0), // Reduce the width between icons here
-
-                          // LinkedIn Icon
+                          const SizedBox(width: 0),
                           IconButton(
                             icon: FaIcon(
                               FontAwesomeIcons.linkedin,
@@ -352,7 +383,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                   ? TColors.primary
                                   : Colors.grey,
                             ),
-                            padding: EdgeInsets.zero, // Remove default padding
+                            padding: EdgeInsets.zero,
                             onPressed: () async {
                               final linkedinUrl =
                                   profile.socialMediaLinks?['LinkedIn'];
@@ -369,34 +400,27 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Skills Chips (if available)
                   if (profile.skills != null && profile.skills!.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24), // Add horizontal padding
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: SizedBox(
                         height: 50,
                         child: SingleChildScrollView(
-                          child: Wrap(
-                            spacing: 8.0,
-                            runSpacing: 8.0,
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
                             children: profile.skills!.map((skill) {
-                              return SkillTagWidget(skills: [skill]);
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: SkillTagWidget(skills: [skill]),
+                              );
                             }).toList(),
                           ),
                         ),
                       ),
                     ),
-
-                  // const SizedBox(height: 10),
-
-                  // About Section with Show More/Show Less
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24.0), // Add padding on both sides
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -404,7 +428,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                           child: const Text(
                             'About',
                             style: TextStyle(
-                              fontSize: 18, 
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -428,17 +452,19 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                             final exceedsMaxLines = tp.didExceedMaxLines;
 
                             return Column(
-                              crossAxisAlignment: CrossAxisAlignment.center, // Centering the entire content horizontally
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Center( // Centering the bio text
+                                Center(
                                   child: Text(
                                     profile.bio ?? 'No bio available',
-                                    style: Theme.of(context).textTheme.bodyMedium,
-                                    maxLines: isBioExpanded ? null : maxBioLines,
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
+                                    maxLines:
+                                        isBioExpanded ? null : maxBioLines,
                                     overflow: isBioExpanded
                                         ? TextOverflow.visible
                                         : TextOverflow.ellipsis,
-                                    textAlign: TextAlign.center, // Ensure text itself is centered within the Text widget
+                                    textAlign: TextAlign.start,
                                   ),
                                 ),
                                 if (exceedsMaxLines)
@@ -448,10 +474,15 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                                         isBioExpanded = !isBioExpanded;
                                       });
                                     },
-                                    child: Text(
-                                      isBioExpanded ? 'Show less' : 'Show more',
-                                      style: const TextStyle(color: TColors.info),
-                                      textAlign: TextAlign.center, // Center the "Show more" text
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        isBioExpanded
+                                            ? 'Show less'
+                                            : 'Show more',
+                                        style: const TextStyle(
+                                            color: TColors.info),
+                                      ),
                                     ),
                                   ),
                               ],
@@ -490,21 +521,36 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           child: TabBarView(
             controller: _tabController,
             children: [
-              buildProjectTab("open", LinearGradient(
-              colors: [Color.fromARGB(255, 120, 215, 219), Color.fromARGB(255, 12, 107, 89)], // Example gradient with #e0fbfc and another color
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )),
-              buildProjectTab("ongoing", LinearGradient(
-                colors: [Color.fromARGB(255, 14, 97, 176), Color.fromARGB(255, 69, 142, 187)], // Gradient for Ideas tab
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )),
-              buildProjectTab("completed", LinearGradient(
-                colors: [Color(0xFFFD5336), Color.fromARGB(255, 237, 122, 70)], // Gradient for Completed tab
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )),
+              buildProjectTab(
+                  "open",
+                  LinearGradient(
+                    colors: [
+                      Color.fromARGB(255, 120, 215, 219),
+                      Color.fromARGB(255, 12, 107, 89)
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )),
+              buildProjectTab(
+                  "ongoing",
+                  LinearGradient(
+                    colors: [
+                      Color.fromARGB(255, 14, 97, 176),
+                      Color.fromARGB(255, 69, 142, 187)
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )),
+              buildProjectTab(
+                  "completed",
+                  LinearGradient(
+                    colors: [
+                      Color(0xFFFD5336),
+                      Color.fromARGB(255, 237, 122, 70)
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )),
             ],
           ),
         ),
@@ -546,7 +592,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
               refreshIdeasInProfile: () {
                 context.read<ProfileViewBloc>().add(LoadProfile(widget.userId));
               },
-              cardGradient: cardGradient, // Pass the gradient to the card
+              cardGradient: cardGradient,
             );
           },
         );
@@ -554,7 +600,70 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     );
   }
 
-  // Limit the text for long names
+  // Method for showing logout confirmation dialog
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            "Logout Confirmation",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text(
+            "Are you sure you want to log out from Blade?",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+              ),
+              child: const Text("Cancel"),
+            ),
+            const SizedBox(width: 2),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+                _onLogoutButtonPressed(context); // Perform logout
+              },
+              style: TextButton.styleFrom(
+                backgroundColor:
+                    Theme.of(context).colorScheme.error, // Red background
+              ),
+              child: Text(
+                "Logout",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onError, // White text
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+// Logout button action
+  void _onLogoutButtonPressed(BuildContext context) {
+    context.read<AuthenticationBloc>().add(LoggedOut());
+
+    // Ensure proper navigation after logout
+    Future.delayed(const Duration(milliseconds: 500), () {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/', // Route name for your login or welcome screen
+        (route) => false, // Remove all previous routes
+      );
+    });
+  }
+
   String _limitText(String text, int maxLength) {
     if (text.length <= maxLength) {
       return text;

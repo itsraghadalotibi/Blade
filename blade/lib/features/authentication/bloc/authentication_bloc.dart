@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:blade_app/features/authentication/src/collaborator_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../src/authentication_repository.dart';
@@ -89,6 +90,11 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
     // If sign-in was successful, get the user
     final user = await authenticationRepository.getUser();
+
+    // update firebase token for notifications
+    if(user is CollaboratorModel){
+      await authenticationRepository.updateCollaboratorToken(user.uid);
+    }
 
     // Check user type against the expected user type
     if (userType != event.userType) {

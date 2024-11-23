@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:blade_app/features/notification/firbase_api.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -297,6 +298,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
         bio: bioController.text.trim(),
         socialMediaLinks: socialMediaLinks,
         profilePhotoUrl: profileImageUrl,
+        token: await FirebaseApi.getFirebaseToken()
       );
 
       // Dispatch the sign-up event

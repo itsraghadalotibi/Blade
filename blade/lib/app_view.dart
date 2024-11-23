@@ -36,6 +36,7 @@ class AppView extends StatelessWidget {
       final user = await authRepo.getUser();
 
       if (user is CollaboratorModel) {
+        await authRepo.updateCollaboratorToken(user.uid);
         return const Navigation();
       } else if (user is SupporterModel) {
         return const SupporterNavigation();

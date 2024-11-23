@@ -55,7 +55,7 @@ class _PostsTabState extends State<PostsTab> {
           }
       
           final posts = snapshot.data!;
-      
+          posts.sort((a, b) => b.date!.compareTo(a.date!));    
           return ListView.separated(
             padding: const EdgeInsets.all(16.0),
             itemCount: posts.length,
@@ -256,7 +256,12 @@ class MyCustomMessages implements timeago.LookupMessages {
   @override String lessThanOneMinute(int seconds) => 'now';
   @override String aboutAMinute(int minutes) => '${minutes}m';
   @override String minutes(int minutes) => '${minutes}m';
-  @override String aboutAnHour(int minutes) => '${minutes}m';
+  @override String aboutAnHour(int minutes) {
+    if(minutes >= 60) {
+      return '${minutes ~/ 60}h';
+    }
+    return '${minutes}m';
+  }
   @override String hours(int hours) => '${hours}h';
   @override String aDay(int hours) => '${hours}h';
   @override String days(int days) => '${days}d';
