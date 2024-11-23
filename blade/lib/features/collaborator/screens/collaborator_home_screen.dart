@@ -8,13 +8,13 @@ import '../../authentication/bloc/authentication_bloc.dart';
 import '../../authentication/bloc/authentication_event.dart';
 import '../../authentication/bloc/authentication_state.dart';
 import '../../authentication/src/collaborator_model.dart';
-import '../../announcement/src/announcement_repository.dart';
 import '../../chat/screens/chat_list_screen.dart';
+import '../../announcement/src/announcement_repository.dart';
 import 'screens/HowToEarnPage.dart';
 import 'screens/Leaderboard.dart';
 
 class CollaboratorHomeScreen extends StatelessWidget {
-  const CollaboratorHomeScreen({Key? key}) : super(key: key);
+  const CollaboratorHomeScreen({super.key});
 
   void _showLogoutConfirmation(BuildContext context) {
     showDialog(
@@ -23,9 +23,13 @@ class CollaboratorHomeScreen extends StatelessWidget {
         return AlertDialog(
           title: const Text(
             "Logout Confirmation",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          content: const Text("Are you sure you want to log out from Blade?"),
+          content: const Text(
+            "Are you sure you want to log out from Blade?",
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -38,6 +42,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
               ),
               child: const Text("Cancel"),
             ),
+            const SizedBox(width: 2),
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
@@ -80,7 +85,8 @@ class CollaboratorHomeScreen extends StatelessWidget {
               ),
               backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              margin: EdgeInsets.only(top: 10, left: 10, right: 10),
+              showCloseIcon: true,
             ),
           );
 
@@ -170,47 +176,170 @@ class CollaboratorHomeScreen extends StatelessWidget {
         ),
         body: Column(
           children: [
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        LeaderboardScreen(
-                      repository: AnnouncementRepository(),
-                          ),
+            // Monthly Challenge Container
+            Container(
+              padding: const EdgeInsets.all(20.0),
+              margin: const EdgeInsets.all(20.0),
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
                   ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(20.0),
-                margin: const EdgeInsets.all(20.0),
-                decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.star, color: Colors.amber, size: 30),
+                      const SizedBox(width: 10),
+                      Text(
+                        "Monthly Challenge",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "500 Points",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.leaderboard_rounded, color: Colors.green),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Leaderboard",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Leaderboard Container
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LeaderboardScreen(
+                              repository: AnnouncementRepository(),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20.0),
+                        margin: const EdgeInsets.only(right: 10.0),
+                        decoration: BoxDecoration(
+                          color: backgroundColor,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.leaderboard_rounded, color: Colors.green),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Leaderboard",
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  // Blueprint AI Container
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HowToEarnPage(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20.0),
+                        margin: const EdgeInsets.only(left: 10.0),
+                        decoration: BoxDecoration(
+                          color: backgroundColor,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.assistant, color: Colors.blue),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Blueprint AI",
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Posts Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Posts",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.bookmarks),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const PostBookmarks(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -235,20 +364,15 @@ class CollaboratorHomeScreen extends StatelessWidget {
 
   Stream<int> _getUnreadMessagesCount(String userId) {
     final chatRoomsCollection = FirebaseFirestore.instance.collection('chatRooms');
-
-    // Get chat rooms where the user is a participant
-    final userChatRoomsQuery =
-        chatRoomsCollection.where('members', arrayContains: userId);
+    final userChatRoomsQuery = chatRoomsCollection.where('members', arrayContains: userId);
 
     return userChatRoomsQuery.snapshots().map((chatRoomsSnapshot) {
       int totalUnreadMessages = 0;
-
       for (var chatRoomDoc in chatRoomsSnapshot.docs) {
         final unreadCounts = chatRoomDoc['unreadCounts'] as Map<String, dynamic>? ?? {};
         final userUnreadCount = unreadCounts[userId] as int? ?? 0;
         totalUnreadMessages += userUnreadCount;
       }
-
       return totalUnreadMessages;
     });
   }

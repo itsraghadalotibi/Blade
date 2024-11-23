@@ -201,16 +201,16 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                 ),
           ),
           centerTitle: true,
-          leading: IconButton(
-            icon: Icon(
-              Icons.logout,
-              color:
-                  Theme.of(context).iconTheme.color, // Match theme icon color
-            ),
-            onPressed: () {
-              _showLogoutConfirmation(context);
-            },
-          ),
+          // leading: IconButton(
+          //   icon: Icon(
+          //     Icons.logout,
+          //     color:
+          //         Theme.of(context).iconTheme.color, // Match theme icon color
+          //   ),
+          //   onPressed: () {
+          //     _showLogoutConfirmation(context);
+          //   },
+          // ),
           actions: [
                   IconButton(
                 icon: Stack(
