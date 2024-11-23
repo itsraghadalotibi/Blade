@@ -498,7 +498,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         ),
                       ),
                     ],
-                    if (idea.status == 'ongoing') ...[
+                    if (userType == 'collaborator' &&
+                        (_isMember || isOwner)) ...[
                       const SizedBox(height: 16),
                       Center(
                         child: ElevatedButton.icon(
@@ -537,29 +538,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                    if (userType == 'supporter') ...[
-                      const SizedBox(height: 16),
-                      Center(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: TColors.primary,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 36, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: _handleSendInvestment,
-                          child: const Text(
-                            'Invest',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
