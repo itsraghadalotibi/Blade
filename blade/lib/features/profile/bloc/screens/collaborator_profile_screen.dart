@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:blade_app/features/announcement/src/announcement_model.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:blade_app/features/announcement/widgets/skill_tag_widget.dart';
@@ -7,8 +8,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart'; // Add this import
+import '../../../investment_request/bloc/investment_request_bloc.dart';
+import '../../../investment_request/screens/invsetment_request_list.dart';
+import '../../../investment_request/src/investment_request_repository.dart';
 import '../bloc/edit_collaborator_profile_bloc.dart';
 import '../bloc/profile_view_bloc.dart';
 import '../bloc/profile_view_event.dart';
@@ -43,6 +48,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   bool isBioExpanded = false;
   static const int maxBioLines = 3; // Limit bio to 3 lines initially
   String? _currentUserId;
+  int totalPendingRequestsCount = 0;
+  StreamSubscription<QuerySnapshot>? _pendingRequestsSubscription;
+
+
+  List<StreamSubscription<QuerySnapshot>> _pendingRequestsSubscriptions = [];
+  List<String> _ownerProjectIds = [];
 
   @override
   void initState() {
@@ -51,13 +62,98 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     _projectIdeaRepository = ProjectIdeaRepository();
     _announcementRepository = AnnouncementRepository();
     _currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (_currentUserId != null) {
+      _subscribeToPendingRequests();
+    }
+  }
+
+  Future<List<String>> _fetchOwnedProjectIds() async {
+    final projectsSnapshot = await FirebaseFirestore.instance
+        .collection('ideas')
+        .where('members', arrayContains: _currentUserId)
+        .get();
+
+    List<String> ownerProjectIds = [];
+
+    for (var doc in projectsSnapshot.docs) {
+      List<dynamic> members = doc['members'];
+      if (members.isNotEmpty && members[0] == _currentUserId) {
+        ownerProjectIds.add(doc.id);
+      }
+    }
+
+    return ownerProjectIds;
+  }
+
+  void _subscribeToPendingRequests() async {
+    _ownerProjectIds = await _fetchOwnedProjectIds();
+
+    // Cancel any existing subscriptions
+    for (var subscription in _pendingRequestsSubscriptions) {
+      subscription.cancel();
+    }
+    _pendingRequestsSubscriptions.clear();
+
+    // Set up new subscriptions
+    for (String projectId in _ownerProjectIds) {
+      final subscription = FirebaseFirestore.instance
+          .collection('investment_requests')
+          .where('projectId', isEqualTo: projectId)
+          .where('status', isEqualTo: 'Pending')
+          .snapshots()
+          .listen((snapshot) {
+        _recalculateTotalPendingRequests();
+      });
+
+      _pendingRequestsSubscriptions.add(subscription);
+    }
+
+    // Initial calculation
+    _recalculateTotalPendingRequests();
+  }
+
+  void _recalculateTotalPendingRequests() async {
+    int count = 0;
+
+    for (String projectId in _ownerProjectIds) {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('investment_requests')
+          .where('projectId', isEqualTo: projectId)
+          .where('status', isEqualTo: 'Pending')
+          .get();
+
+      count += snapshot.docs.length;
+    }
+
+    setState(() {
+      totalPendingRequestsCount = count;
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    for (var subscription in _pendingRequestsSubscriptions) {
+      subscription.cancel();
+    }
     super.dispose();
   }
+
+  void _navigateToInvestmentRequests() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => BlocProvider(
+        create: (context) => InvestmentRequestBloc(
+          repository: context.read<InvestmentRequestRepository>(),
+        ),
+        child: InvestmentRequestsListScreen(
+          userId: widget.userId,
+        ),
+      ),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -78,13 +174,51 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                 ),
           ),
           centerTitle: true,
-          actions: isOwner
-              ? [
-                  IconButton(
-                    icon: Icon(
-                      Icons.edit,
+          actions: [
+                  if (isOwner)
+       IconButton(
+                icon: Stack(
+                  children: [
+                    SvgPicture.asset(
+                      'assets/icons/investment_request.svg',
                       color: Theme.of(context).iconTheme.color,
+                      width: 30,
+                      height: 30,
                     ),
+                    if (totalPendingRequestsCount > 0)
+                      Positioned(
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(1),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.all(Radius.circular(6)),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 12,
+                            minHeight: 12,
+                          ),
+                          child: Text(
+                            '$totalPendingRequestsCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                onPressed: _navigateToInvestmentRequests,
+              ),
+    if (isOwner)
+      IconButton(
+        icon: Icon(
+          Icons.edit,
+          color: Theme.of(context).iconTheme.color,
+        ),
                     onPressed: () async {
                       final state =
                           BlocProvider.of<ProfileViewBloc>(context).state;
@@ -120,7 +254,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                     },
                   ),
                 ]
-              : null,
+              
         ),
         body: BlocBuilder<ProfileViewBloc, ProfileViewState>(
           builder: (context, state) {

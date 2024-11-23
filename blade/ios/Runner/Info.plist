@@ -30,6 +30,10 @@
 	<string>This app requires access to your camera.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires access to your photo library.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+    <string>We need access to your documents for file uploads and downloads.</string>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

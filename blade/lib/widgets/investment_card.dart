@@ -26,7 +26,7 @@ class InvestmentRequestCard extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.blue[100]!, Colors.blue[300]!],
+                        colors: [Colors.blue[200]!, Colors.blue[500]!],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),

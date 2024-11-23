@@ -15,6 +15,7 @@ class InvestmentRequestBloc
     on<CancelInvestmentRequest>(_onCancelInvestmentRequest);
       on<AcceptInvestmentRequest>(_onAcceptInvestmentRequest);
     on<RejectInvestmentRequest>(_onRejectInvestmentRequest);
+    on<FetchInvestmentRequestsForUserProjects>(_onFetchInvestmentRequestsForUserProjects);
   }
 
   Future<void> _onSubmitInvestmentRequest(
@@ -46,6 +47,19 @@ class InvestmentRequestBloc
     emit(InvestmentRequestLoading());
     try {
       final requests = await repository.getInvestmentRequestsBySupporter(event.supporterId);
+      emit(InvestmentRequestsLoaded(requests: requests));
+    } catch (e) {
+      emit(InvestmentRequestFailure(error: e.toString()));
+    }
+  }
+
+  Future<void> _onFetchInvestmentRequestsForUserProjects(
+      FetchInvestmentRequestsForUserProjects event,
+      Emitter<InvestmentRequestState> emit) async {
+    emit(InvestmentRequestLoading());
+    try {
+      final requests =
+          await repository.getInvestmentRequestsForUserProjects(event.userId);
       emit(InvestmentRequestsLoaded(requests: requests));
     } catch (e) {
       emit(InvestmentRequestFailure(error: e.toString()));

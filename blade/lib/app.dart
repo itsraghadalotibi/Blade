@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app_view.dart';
@@ -5,6 +6,7 @@ import 'features/authentication/bloc/authentication_bloc.dart';
 import 'features/authentication/bloc/authentication_event.dart';
 import 'features/authentication/bloc/authentication_state.dart';
 import 'features/authentication/src/authentication_repository.dart';
+import 'features/chat/src/chat_repository.dart';
 import 'features/investment_request/src/investment_request_repository.dart';
 import 'features/notification/src/NotificationService.dart';
 import 'features/profile/bloc/repository/profile_repository.dart';
@@ -19,6 +21,7 @@ class App extends StatelessWidget {
     final investmentRequestRepository = InvestmentRequestRepository();
     final NotificationService notificationService =
         NotificationService();
+    final chatRepository = ChatRepository(firestore: FirebaseFirestore.instance);
 
     return MultiRepositoryProvider(
       providers: [
@@ -26,6 +29,7 @@ class App extends StatelessWidget {
         RepositoryProvider.value(
             value: profileRepository), // Provide ProfileRepository
         RepositoryProvider.value(value: investmentRequestRepository),
+        RepositoryProvider.value(value: chatRepository),
       ],
       child: BlocProvider(
         create: (context) => AuthenticationBloc(
