@@ -213,6 +213,7 @@ class _NewPostState extends State<NewPost> {
                         label: null,
                         controller: caption,
                         maxLines: 7,
+                        onChanged: (_) {},
                       ),
                     ],
                   ),
