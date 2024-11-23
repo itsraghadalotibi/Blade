@@ -231,15 +231,85 @@ class AnnouncementRepository {
 
   // Update idea status
   Future<void> updateIdeaStatus(String ideaId, String newStatus) async {
-    try {
-      await firestore.collection('ideas').doc(ideaId).update({
+  try {
+    final ideaRef = firestore.collection('ideas').doc(ideaId);
+    final ideaDoc = await ideaRef.get();
+
+    if (ideaDoc.exists) {
+      final data = ideaDoc.data() as Map<String, dynamic>;
+      final currentStatus = data['status'];
+
+      // Update the status
+      await ideaRef.update({
         'status': newStatus,
       });
-    } catch (e) {
-      print('Error updating idea status: $e');
-      throw Exception('Failed to update idea status');
+
+      // If status changed from 'open' to 'ongoing', create the chat room
+      if (currentStatus == 'open' && newStatus == 'ongoing') {
+        final members = List<String>.from(data['members'] ?? []);
+
+        // Create the chat room
+        await _createChatRoomForProject(ideaId, data['title'], members);
+      }
+    } else {
+      throw Exception('Idea not found');
     }
+  } catch (e) {
+    print('Error updating idea status: $e');
+    throw Exception('Failed to update idea status');
   }
+}
+
+// Add this method inside AnnouncementRepository
+Future<void> _createChatRoomForProject(String ideaId, String ideaTitle, List<String> members) async {
+  try {
+    final chatRoomData = {
+      'name': '$ideaTitle Group',
+      'members': members, // Use 'members' to match the ChatRoom model
+      'projectId': ideaId,
+      'createdAt': FieldValue.serverTimestamp(),
+      'lastMessage': null, // Initialize as null
+      'lastMessageTime': null, // Initialize as null
+      'unreadCounts': {}, // Initialize as an empty map
+    };
+
+    // Check if a chat room for this project already exists
+    final existingChatRoom = await firestore
+        .collection('chatRooms')
+        .where('projectId', isEqualTo: ideaId)
+        .limit(1)
+        .get();
+
+    if (existingChatRoom.docs.isEmpty) {
+      // Create the chat room
+      final chatRoomRef = await firestore.collection('chatRooms').add(chatRoomData);
+
+      // Optionally, send a system message
+      final messageData = {
+        'senderId': 'system',
+        'text': 'Welcome to the $ideaTitle Group chat!',
+        'timestamp': FieldValue.serverTimestamp(),
+        'readBy': [],
+      };
+
+      // Add the message to the messages subcollection
+      await chatRoomRef.collection('messages').add(messageData);
+
+      // Update lastMessage and lastMessageTime in chatRoomData
+      await chatRoomRef.update({
+        'lastMessage': messageData['text'],
+        'lastMessageTime': FieldValue.serverTimestamp(),
+      });
+    } else {
+      print('Chat room for this project already exists.');
+    }
+  } catch (e) {
+    print('Error creating chat room: $e');
+    // Handle the error as needed
+  }
+}
+
+
 
   Stream<List<Idea>> streamIdeas(String currentUserId) {
     final ideasStream = firestore

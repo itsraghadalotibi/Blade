@@ -1,4 +1,7 @@
 // lib/features/collaborator/presentation/screens/collaborator_home_screen.dart
+import 'package:blade_app/features/project_info/screens/post_bookmarks.dart';
+import 'package:blade_app/features/project_info/screens/posts_tab.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../authentication/bloc/authentication_bloc.dart';
@@ -6,8 +9,8 @@ import '../../authentication/bloc/authentication_event.dart';
 import '../../authentication/bloc/authentication_state.dart';
 import '../../authentication/src/collaborator_model.dart';
 import '../../announcement/src/announcement_repository.dart';
-import '../../project_info/screens/post_bookmarks.dart';
-import '../../project_info/screens/posts_tab.dart';
+import '../../chat/screens/chat_list_screen.dart';
+import 'screens/HowToEarnPage.dart';
 import 'screens/Leaderboard.dart';
 
 class CollaboratorHomeScreen extends StatelessWidget {
@@ -93,16 +96,75 @@ class CollaboratorHomeScreen extends StatelessWidget {
           title: const Text('Collaborator Home'),
           centerTitle: true,
           automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: const Icon(Icons.bookmarks),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => const PostBookmarks()),
-            ),
-          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
               onPressed: () => _showLogoutConfirmation(context),
+            ),
+            BlocBuilder<AuthenticationBloc, AuthenticationState>(
+              builder: (context, state) {
+                if (state is AuthenticationAuthenticated) {
+                  return StreamBuilder<int>(
+                    stream: _getUnreadMessagesCount(state.user.uid),
+                    builder: (context, snapshot) {
+                      int unreadCount = snapshot.data ?? 0;
+
+                      return Stack(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.chat_bubble),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatListScreen(userId: state.user.uid),
+                                ),
+                              );
+                            },
+                          ),
+                          if (unreadCount > 0)
+                            Positioned(
+                              right: 11,
+                              top: 11,
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 14,
+                                  minHeight: 14,
+                                ),
+                                child: Text(
+                                  '$unreadCount',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  return IconButton(
+                    icon: const Icon(Icons.chat_bubble),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("User not authenticated"),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
             ),
           ],
         ),
@@ -110,10 +172,13 @@ class CollaboratorHomeScreen extends StatelessWidget {
           children: [
             GestureDetector(
               onTap: () {
-                Navigator.of(context).push(
+                Navigator.push(
+                  context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        LeaderboardScreen(repository: AnnouncementRepository()),
+                        LeaderboardScreen(
+                      repository: AnnouncementRepository(),
+                          ),
                   ),
                 );
               },
@@ -131,29 +196,15 @@ class CollaboratorHomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 30),
-                        const SizedBox(width: 10),
-                        Text(
-                          "Monthly Challenge",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
+                    Icon(Icons.leaderboard_rounded, color: Colors.green),
+                    const SizedBox(width: 8),
                     Text(
-                      "500 Points", // Example points; replace with dynamic data if needed
+                      "Leaderboard",
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: textColor,
                       ),
@@ -180,5 +231,25 @@ class CollaboratorHomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Stream<int> _getUnreadMessagesCount(String userId) {
+    final chatRoomsCollection = FirebaseFirestore.instance.collection('chatRooms');
+
+    // Get chat rooms where the user is a participant
+    final userChatRoomsQuery =
+        chatRoomsCollection.where('members', arrayContains: userId);
+
+    return userChatRoomsQuery.snapshots().map((chatRoomsSnapshot) {
+      int totalUnreadMessages = 0;
+
+      for (var chatRoomDoc in chatRoomsSnapshot.docs) {
+        final unreadCounts = chatRoomDoc['unreadCounts'] as Map<String, dynamic>? ?? {};
+        final userUnreadCount = unreadCounts[userId] as int? ?? 0;
+        totalUnreadMessages += userUnreadCount;
+      }
+
+      return totalUnreadMessages;
+    });
   }
 }

@@ -29,9 +29,13 @@ class CustomTextField extends StatefulWidget {
     this.keyboardType,
     this.showCounter = false, // Counter is hidden by default
     this.suffixIcon,
-    this.prefixIcon, 
+    this.prefixIcon,
     this.hint,
+    this.onChanged, // Make onChanged optional to avoid unnecessary errors
   }) : super(key: key);
+
+  final void Function(String)?
+      onChanged; // Correct the type to match TextField's onChanged
 
   @override
   _CustomTextFieldState createState() => _CustomTextFieldState();
@@ -43,7 +47,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   void initState() {
     super.initState();
-    _obscureText = widget.obscureText; // Initialize with the passed obscureText value
+    _obscureText =
+        widget.obscureText; // Initialize with the passed obscureText value
   }
 
   void _toggleObscureText() {
@@ -74,7 +79,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       maxLength: widget.maxLength,
       decoration: InputDecoration(
         hintText: widget.hint,
-        hintStyle: const TextStyle(color: Colors.grey,fontSize: 14),
+        hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
         labelText: widget.label,
         errorText: widget.errorText,
         contentPadding: const EdgeInsets.symmetric(

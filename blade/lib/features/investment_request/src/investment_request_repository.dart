@@ -55,4 +55,37 @@ class InvestmentRequestRepository {
     }..removeWhere((key, value) => value == null); // Only include non-null values
     await requestRef.update(data);
   }
+
+  Future<List<InvestmentRequestModel>> getInvestmentRequestsForUserProjects(String userId) async {
+  // Fetch projects where the user is a member
+  final projectsSnapshot = await FirebaseFirestore.instance
+      .collection('ideas')
+      .where('members', arrayContains: userId)
+      .get();
+
+  final projectIds = projectsSnapshot.docs.map((doc) => doc.id).toList();
+
+  // Handle Firestore limitation of 10 elements in `whereIn`
+  List<InvestmentRequestModel> allRequests = [];
+  int batchSize = 10;
+  for (int i = 0; i < projectIds.length; i += batchSize) {
+    final batchIds = projectIds.sublist(
+      i,
+      i + batchSize > projectIds.length ? projectIds.length : i + batchSize,
+    );
+
+    final requestsSnapshot = await _investmentRequests
+        .where('projectId', whereIn: batchIds)
+        .orderBy('createdAt', descending: true)
+        .get();
+
+    final requests = requestsSnapshot.docs
+        .map((doc) => InvestmentRequestModel.fromMap(doc.data() as Map<String, dynamic>))
+        .toList();
+
+    allRequests.addAll(requests);
+  }
+
+  return allRequests;
+}
 }

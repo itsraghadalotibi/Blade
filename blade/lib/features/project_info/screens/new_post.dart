@@ -199,6 +199,7 @@ await projectIdeaRepository.sendNewPost(
                         label: null,
                         controller: caption,
                         maxLines: 7,
+                        onChanged: (_) {},
                       ),
                     ],
                   ),

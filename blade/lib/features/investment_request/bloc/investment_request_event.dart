@@ -41,3 +41,7 @@ class RejectInvestmentRequest extends InvestmentRequestEvent {
     required this.projectId,
   });
 }
+class FetchInvestmentRequestsForUserProjects extends InvestmentRequestEvent {
+  final String userId;
+  FetchInvestmentRequestsForUserProjects({required this.userId});
+}
