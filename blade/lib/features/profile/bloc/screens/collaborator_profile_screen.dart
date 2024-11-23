@@ -54,7 +54,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   int totalPendingRequestsCount = 0;
   StreamSubscription<QuerySnapshot>? _pendingRequestsSubscription;
 
-
   List<StreamSubscription<QuerySnapshot>> _pendingRequestsSubscriptions = [];
   List<String> _ownerProjectIds = [];
 
@@ -68,6 +67,9 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     if (_currentUserId != null) {
       _subscribeToPendingRequests();
     }
+
+    // Dispatch the LoadProfile event with the provided userId
+    context.read<ProfileViewBloc>().add(LoadProfile(widget.userId));
   }
 
   Future<List<String>> _fetchOwnedProjectIds() async {
@@ -143,20 +145,20 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   }
 
   void _navigateToInvestmentRequests() {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => BlocProvider(
-        create: (context) => InvestmentRequestBloc(
-          repository: context.read<InvestmentRequestRepository>(),
-        ),
-        child: InvestmentRequestsListScreen(
-          userId: widget.userId,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider(
+          create: (context) => InvestmentRequestBloc(
+            repository: context.read<InvestmentRequestRepository>(),
+          ),
+          child: InvestmentRequestsListScreen(
+            userId: widget.userId,
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -188,31 +190,33 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-            leading: IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () {},
+            backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+            leading: isOwner
+            ? IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: () {
+                  _showLogoutConfirmation(context);
+                },
+              )
+            : BackButton(),
+            title: Text(
+              'Profile',
+              
             ),
-          title: Text(
-            'Profile',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          centerTitle: true,
-          // leading: IconButton(
-          //   icon: Icon(
-          //     Icons.logout,
-          //     color:
-          //         Theme.of(context).iconTheme.color, // Match theme icon color
-          //   ),
-          //   onPressed: () {
-          //     _showLogoutConfirmation(context);
-          //   },
-          // ),
-          actions: [
-                  IconButton(
+            centerTitle: true,
+            // leading: IconButton(
+            //   icon: Icon(
+            //     Icons.logout,
+            //     color:
+            //         Theme.of(context).iconTheme.color, // Match theme icon color
+            //   ),
+            //   onPressed: () {
+            //     _showLogoutConfirmation(context);
+            //   },
+            // ),
+            actions: [
+              if (isOwner)
+              IconButton(
                 icon: Stack(
                   children: [
                     SvgPicture.asset(
@@ -249,50 +253,47 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                 ),
                 onPressed: _navigateToInvestmentRequests,
               ),
-                
-    if (isOwner)
-      IconButton(
-        icon: Icon(
-          Icons.edit,
-          color: Theme.of(context).iconTheme.color,
-        ),
-                    onPressed: () async {
-                      final state =
-                          BlocProvider.of<ProfileViewBloc>(context).state;
-                      if (state is ProfileLoaded &&
-                          state.profile is CollaboratorProfileModel) {
-                        final profile = _updatedProfile ??
-                            state.profile as CollaboratorProfileModel;
-
-                        final updatedProfile = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BlocProvider(
-                              create: (context) => EditCollaboratorProfileBloc(
-                                profileRepository: context.read(),
-                              ),
-                              child: EditCollaboratorProfileScreen(
-                                  profile: profile),
-                            ),
-                          ),
-                        );
-
-                        if (updatedProfile != null &&
-                            updatedProfile is CollaboratorProfileModel) {
-                          setState(() {
-                            _updatedProfile = updatedProfile;
-                          });
-
-                          context
-                              .read<ProfileViewBloc>()
-                              .add(LoadProfile(widget.userId));
-                        }
-                      }
-                    },
+              if (isOwner)
+                IconButton(
+                  icon: Icon(
+                    Icons.edit,
+                    color: Theme.of(context).iconTheme.color,
                   ),
-                ]
-              
-        ),
+                  onPressed: () async {
+                    final state =
+                        BlocProvider.of<ProfileViewBloc>(context).state;
+                    if (state is ProfileLoaded &&
+                        state.profile is CollaboratorProfileModel) {
+                      final profile = _updatedProfile ??
+                          state.profile as CollaboratorProfileModel;
+
+                      final updatedProfile = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BlocProvider(
+                            create: (context) => EditCollaboratorProfileBloc(
+                              profileRepository: context.read(),
+                            ),
+                            child:
+                                EditCollaboratorProfileScreen(profile: profile),
+                          ),
+                        ),
+                      );
+
+                      if (updatedProfile != null &&
+                          updatedProfile is CollaboratorProfileModel) {
+                        setState(() {
+                          _updatedProfile = updatedProfile;
+                        });
+
+                        context
+                            .read<ProfileViewBloc>()
+                            .add(LoadProfile(widget.userId));
+                      }
+                    }
+                  },
+                ),
+            ]),
         body: BlocBuilder<ProfileViewBloc, ProfileViewState>(
           builder: (context, state) {
             final profile = _updatedProfile ??
