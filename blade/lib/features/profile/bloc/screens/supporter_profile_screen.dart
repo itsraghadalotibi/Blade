@@ -12,6 +12,7 @@ import '../src/supporter_profile_model.dart';
 import 'edit_supporter_profile_screen.dart';
 import '../bloc/edit_supporter_profile_bloc.dart'; // Import EditSupporterProfileBloc
 import '../repository/profile_repository.dart'; // Import ProfileRepository
+
 class SupporterProfileScreen extends StatefulWidget {
   final String userId;
   final bool showBackButton;
@@ -35,7 +36,8 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 1, vsync: this); // Two tabs: Investing and Invested
+    _tabController =
+        TabController(length: 1, vsync: this); // One tab: My requests
     _currentUserId = FirebaseAuth.instance.currentUser?.uid;
   }
 
@@ -43,6 +45,64 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  // Method to show logout confirmation dialog
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            "Logout Confirmation",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text("Are you sure you want to log out from Blade?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+                _onLogoutButtonPressed(context); // Perform logout
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: Text(
+                "Logout",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onError,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Perform logout and navigate to login screen
+  void _onLogoutButtonPressed(BuildContext context) {
+    FirebaseAuth.instance.signOut().then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Logged out successfully!'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(top: 10, left: 10, right: 10),
+        ),
+      );
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/',
+        (Route<dynamic> route) => false, // Clear navigation stack
+      );
+    });
   }
 
   @override
@@ -65,8 +125,16 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Profile'),
-          automaticallyImplyLeading: widget.showBackButton,
-          actions: isOwner ? [_buildEditButton(context)] : null,
+          automaticallyImplyLeading: false, // Disable default back button
+          leading: IconButton(
+            icon: const Icon(Icons.logout), // Logout icon on the left
+            onPressed: () {
+              _showLogoutConfirmation(context);
+            },
+          ),
+          actions: isOwner
+              ? [_buildEditButton(context)]
+              : null, // Edit button on the right
         ),
         body: _buildProfileContent(),
       ),
@@ -79,7 +147,8 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
       onPressed: () async {
         final state = BlocProvider.of<ProfileViewBloc>(context).state;
         if (state is ProfileLoaded && state.profile is SupporterProfileModel) {
-          final profile = _updatedProfile ?? state.profile as SupporterProfileModel;
+          final profile =
+              _updatedProfile ?? state.profile as SupporterProfileModel;
           final updatedProfile = await Navigator.push(
             context,
             MaterialPageRoute(
@@ -92,7 +161,8 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
             ),
           );
 
-          if (updatedProfile != null && updatedProfile is SupporterProfileModel) {
+          if (updatedProfile != null &&
+              updatedProfile is SupporterProfileModel) {
             setState(() {
               _updatedProfile = updatedProfile;
             });
@@ -135,12 +205,14 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
                   radius: 70,
                   backgroundImage: profile.profilePhotoUrl != null
                       ? NetworkImage(profile.profilePhotoUrl!)
-                      : const AssetImage('assets/images/user.png') as ImageProvider,
+                      : const AssetImage('assets/images/user.png')
+                          as ImageProvider,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   '${profile.firstName} ${profile.lastName}',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -162,7 +234,6 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
             unselectedLabelColor: Theme.of(context).textTheme.bodyLarge?.color,
             tabs: const [
               Tab(text: 'My requests'),
-              //Tab(text: 'Invested'),
             ],
           ),
           Expanded(
@@ -170,7 +241,6 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
               controller: _tabController,
               children: [
                 OffersTab(supporterId: widget.userId),
-                //const Center(child: Text('No completed projects yet.')),
               ],
             ),
           ),
