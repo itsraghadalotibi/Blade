@@ -26,11 +26,29 @@ android {
         versionCode = 1
         versionName = "1.0"
         multiDexEnabled true
-    }
 
+        // Add ABI filters to ensure compatibility with different architectures
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+        }
+    }
     buildTypes {
         release {
-            signingConfig = signingConfigs.debug
+            // Enable code shrinking (minification) and resource shrinking
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.debug
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            // Optional: Disable shrinking for debug builds to speed up development
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
         }
     }
 }
@@ -42,8 +60,8 @@ flutter {
 // Add your dependencies here
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:32.0.0') // Adjust version as needed
-    implementation 'com.google.firebase:firebase-analytics-ktx' // Example Firebase library
-    implementation 'com.google.firebase:firebase-auth-ktx' // Example Firebase Auth library
-    implementation 'com.google.android.material:material:1.8.0' // Example Material Components library
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.android.material:material:1.8.0'
     // Add other dependencies as needed
 }

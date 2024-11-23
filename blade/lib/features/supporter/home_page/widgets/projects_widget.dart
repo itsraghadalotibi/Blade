@@ -4,11 +4,16 @@ import '../../../announcement/src/announcement_repository.dart';
 import '../../../investment_request/screens/investment_request_form.dart';
 import '../../../project_info/screens/project_screen.dart';
 import '../../../../utils/constants/colors.dart';
+import 'no_result_widget.dart'; // Import the new widget
 
 class ProjectsWidget extends StatefulWidget {
   final List<Idea> projects;
+  final bool showDiscoverText;
 
-  ProjectsWidget({required this.projects});
+  ProjectsWidget({
+    required this.projects,
+    this.showDiscoverText = true,
+  });
 
   @override
   _ProjectsWidgetState createState() => _ProjectsWidgetState();
@@ -47,27 +52,14 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.projects.isNotEmpty)
+        if (widget.showDiscoverText && widget.projects.isNotEmpty)
           const Text(
             'Discover Blade Projects',
-            style: TextStyle(
-                fontSize: 16,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
         const SizedBox(height: 12),
         widget.projects.isEmpty
-            ? Center(
-                child: Text(
-                  'No result found',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white70 : Colors.grey[100],
-                    fontSize: 16,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              )
+            ? NoResultWidget(message: 'No projects found.')
             : ListView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
@@ -83,7 +75,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                     project.description,
                     TextStyle(
                       color: isDarkMode ? Colors.white : TColors.black,
-                      fontSize: 12,
+                      fontSize: 14,
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w400,
                     ),
@@ -100,20 +92,20 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                             idea: project,
                             repository: AnnouncementRepository(),
                             canJoin: false,
-                            useInvestButton: true, // Corrected parameter name
+                            useInvestButton: true,
                           ),
                         ),
                       );
                     },
                     child: Container(
-                      width: 345,
+                      width: double.infinity,
                       margin: const EdgeInsets.symmetric(vertical: 8.0),
                       decoration: BoxDecoration(
                         color: isDarkMode ? TColors.container : TColors.white,
                         border: isDarkMode
-                            ? null // No border in dark mode
-                            : Border.all(color: TColors.borderPrimary), // Light mode border
-                        borderRadius: BorderRadius.circular(23), // in the announcement screen the border radius is 23 and here it is 16, choose the best
+                            ? null
+                            : Border.all(color: TColors.borderPrimary),
+                        borderRadius: BorderRadius.circular(23),
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -142,8 +134,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                                   isCompleted ? 'Completed' : 'Ongoing',
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 10,
-                                    fontFamily: 'Poppins',
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -155,7 +146,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                             project.description,
                             style: TextStyle(
                               color: isDarkMode ? Colors.white : TColors.black,
-                              fontSize: 12,
+                              fontSize: 13.9,
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w400,
                             ),
@@ -175,7 +166,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                                 isExpanded ? "Show less" : "Show more",
                                 style: const TextStyle(
                                   color: Colors.blue,
-                                  fontSize: 13.5,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -183,28 +174,29 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                           const SizedBox(height: 12),
                           Center(
                             child: GestureDetector(
-                              onTap: () => _handleSendInvestment(project), // Call the investment function here
+                              onTap: () => _handleSendInvestment(project),
                               child: Container(
-                                width: 92,
-                                height: 27,
+                                width: 120,
+                                height: 35,
                                 decoration: BoxDecoration(
                                   color: TColors.primary,
-                                  borderRadius: BorderRadius.circular(48),
+                                  borderRadius: BorderRadius.circular(24),
                                 ),
-                                child: const Center(
-                                  child: Text(
-                                    'Invest',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w500,
+                                child: Center(
+                                  child: FittedBox(
+                                    child: Text(
+                                      'Request Invest',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
