@@ -16,8 +16,10 @@ class PostsTab extends StatefulWidget {
   final Idea? idea;
   final bool getBookMarks;
   final bool fromHome;
+  final bool scrollable;
 
-  const PostsTab({super.key, this.idea,this.getBookMarks = false, required this.fromHome});
+
+  const PostsTab({super.key, this.idea,this.getBookMarks = false, required this.fromHome, this.scrollable = true});
 
   @override
   State<PostsTab> createState() => _PostsTabState();
@@ -38,13 +40,19 @@ class _PostsTabState extends State<PostsTab> {
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     String? uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+  return const Center(child: Text('User not logged in.'));
+}
+
 
     // return FutureBuilder<List<PostModel>>(
       // future: _fetchPostModels(),
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       child: StreamBuilder<List<PostModel>>(
-        stream: widget.getBookMarks ? projectIdeaRepository.streamBookmarksPosts(uid) : projectIdeaRepository.streamPosts(widget.idea, uid),
+    stream: widget.getBookMarks
+    ? projectIdeaRepository.streamBookmarksPosts(uid) ?? Stream.empty()
+    : projectIdeaRepository.streamPosts(widget.idea, uid) ?? Stream.empty(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -55,13 +63,16 @@ class _PostsTabState extends State<PostsTab> {
           }
       
           final posts = snapshot.data!;
-      
+          posts.sort((a, b) => b.date!.compareTo(a.date!));    
           return ListView.separated(
             padding: const EdgeInsets.all(16.0),
             itemCount: posts.length,
             itemBuilder: (context, index) {
               final post = posts[index];
-      
+              if (post == null) {
+          return const SizedBox(); // Safely skip null posts
+        }
+
               final isPostOwner = post.uid == uid;
       
               return Container(
@@ -256,7 +267,12 @@ class MyCustomMessages implements timeago.LookupMessages {
   @override String lessThanOneMinute(int seconds) => 'now';
   @override String aboutAMinute(int minutes) => '${minutes}m';
   @override String minutes(int minutes) => '${minutes}m';
-  @override String aboutAnHour(int minutes) => '${minutes}m';
+  @override String aboutAnHour(int minutes) {
+    if(minutes >= 60) {
+      return '${minutes ~/ 60}h';
+    }
+    return '${minutes}m';
+  }
   @override String hours(int hours) => '${hours}h';
   @override String aDay(int hours) => '${hours}h';
   @override String days(int days) => '${days}d';

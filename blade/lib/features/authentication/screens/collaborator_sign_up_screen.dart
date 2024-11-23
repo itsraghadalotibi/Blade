@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:blade_app/features/notification/firbase_api.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -297,6 +298,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
         bio: bioController.text.trim(),
         socialMediaLinks: socialMediaLinks,
         profilePhotoUrl: profileImageUrl,
+        token: ""//await FirebaseApi.getFirebaseToken()
       );
 
       // Dispatch the sign-up event
@@ -309,11 +311,44 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
           );
     }
   }
+  Future<bool> _onWillPop() async {
+    return (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Discard Changes?'),
+            content:
+                const Text('Are you sure you want to discard your changes?'),
+            actions: <Widget>[
+              OutlinedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 12.0),
+                ),
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 12.0),
+                ),
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        )) ??
+        false;
+  }
 
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: _onWillPop,
+    child: Scaffold(
       appBar: AppBar(title: const Text('Collaborator Sign Up'), centerTitle: true),
       body: BlocListener<AuthenticationBloc, AuthenticationState>(
         listener: (context, state) {
@@ -626,6 +661,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
           ],
         ),
       ),
+    ),
     );
   }
   /// Build the profile image at the top

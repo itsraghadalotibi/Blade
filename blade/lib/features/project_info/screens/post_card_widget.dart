@@ -37,7 +37,7 @@ class PostWidget extends StatefulWidget {
       required this.uid,
       this.refersh,
       this.onNaviagte,
-      this.isStaticPost = false, 
+      this.isStaticPost = false,
       required this.projectRepository});
 
   @override
@@ -77,18 +77,19 @@ class _PostWidgetState extends State<PostWidget> {
                   },
                   child: CircleAvatar(
                     radius: 30,
-                    backgroundImage: widget.post.user?.profilePhotoUrl != null &&
-                            widget.post.user!.profilePhotoUrl.isNotEmpty
-                        ? NetworkImage(widget.post.user!.profilePhotoUrl)
-                        : const AssetImage('assets/images/content/user.png')
-                            as ImageProvider,
+                    backgroundImage:
+                        widget.post.user?.profilePhotoUrl != null &&
+                                widget.post.user!.profilePhotoUrl.isNotEmpty
+                            ? NetworkImage(widget.post.user!.profilePhotoUrl)
+                            : const AssetImage('assets/images/content/user.png')
+                                as ImageProvider,
                   ),
                 ),
                 if (widget.withLine)
                   Expanded(
                       child: Container(
                     width: 2,
-                    color: widget.isDarkMode ?  Colors.white : Colors.black,
+                    color: widget.isDarkMode ? Colors.white : Colors.black,
                   ))
               ],
             ),
@@ -102,18 +103,24 @@ class _PostWidgetState extends State<PostWidget> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '${widget.post.user?.firstName ?? ""} ${widget.post.user?.lastName ?? ""}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: widget.isDarkMode ? Colors.white : Colors.black,
-                            fontSize: 18,
+                        Padding(
+                          padding: const EdgeInsets.only(top: 5.0),
+                          child: Text(
+                            '${widget.post.user?.firstName ?? ""} ${widget.post.user?.lastName ?? ""}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: widget.isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
+                              fontSize: 18,
+                            ),
                           ),
                         ),
                         timeago.Timeago(
                           builder: (context, text) {
                             return Tooltip(
-                              message: DateFormat("yyyy-MM-dd hh:mm a").format(widget.post.date!),
+                              message: DateFormat("yyyy-MM-dd hh:mm a")
+                                  .format(widget.post.date!),
                               child: Text(text),
                             );
                           },
@@ -124,7 +131,9 @@ class _PostWidgetState extends State<PostWidget> {
                     Text(
                       widget.post.messgae ?? "",
                       style: TextStyle(
-                        color: widget.isDarkMode ? Colors.white70 : Colors.grey[600],
+                        color: widget.isDarkMode
+                            ? Colors.white70
+                            : Colors.grey[600],
                       ),
                     ),
                     if (widget.post.images!.isNotEmpty) ...[
@@ -166,24 +175,39 @@ class _PostWidgetState extends State<PostWidget> {
                           child: Row(
                             children: [
                               IconButton(
-                                  onPressed: () async{
-                                    if(!isPress){
+                                  onPressed: () async {
+                                    if (!isPress) {
                                       isPress = true;
-                                      PostModel copyPost = widget.post.copyWith();
-                                      if(widget.post.likes!.contains(widget.uid)){
-                                        await widget.projectRepository.removeLikeOrMark(widget.post.id!, "likes", widget.uid!);
-                                        copyPost.likes?.removeWhere((l)=>l==widget.uid);
-                                      }else{
-                                        await widget.projectRepository.addLikeOrMark(widget.post.id!, "likes", widget.uid!);
+                                      PostModel copyPost =
+                                          widget.post.copyWith();
+                                      if (widget.post.likes!
+                                          .contains(widget.uid)) {
+                                        await widget.projectRepository
+                                            .removeLikeOrMark(widget.post.id!,
+                                                "likes", widget.uid!);
+                                        copyPost.likes?.removeWhere(
+                                            (l) => l == widget.uid);
+                                      } else {
+                                        await widget.projectRepository
+                                            .addLikeOrMark(widget.post.id!,
+                                                "likes", widget.uid!);
                                         widget.post.likes!.add(widget.uid!);
                                       }
                                       widget.refersh?.call(copyPost);
                                       isPress = false;
+                                                                                // Log the likes count for each ongoing project
+                                    await widget.projectRepository.logLikesForOngoingProjects();
+
                                     }
                                   },
-                                  icon:  Icon(
-                                    widget.post.likes!.contains(widget.uid) ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
-                                    color: widget.post.likes!.contains(widget.uid) ? Colors.red : null,
+                                  icon: Icon(
+                                    widget.post.likes!.contains(widget.uid)
+                                        ? CupertinoIcons.heart_fill
+                                        : CupertinoIcons.heart,
+                                    color:
+                                        widget.post.likes!.contains(widget.uid)
+                                            ? Colors.red
+                                            : null,
                                   )),
                               if (widget.post.likes?.isNotEmpty ?? false)
                                 Text("${widget.post.likes?.length}"),
@@ -197,7 +221,7 @@ class _PostWidgetState extends State<PostWidget> {
                           child: Row(
                             children: [
                               IconButton(
-                                  onPressed: ()=>widget.onNaviagte?.call(),
+                                  onPressed: () => widget.onNaviagte?.call(),
                                   icon: const Icon(CupertinoIcons.text_bubble)),
                               if ((widget.post.comments ?? 0) > 0)
                                 Text("${widget.post.comments}"),
@@ -210,15 +234,21 @@ class _PostWidgetState extends State<PostWidget> {
                         Row(
                           children: [
                             IconButton(
-                                onPressed: () async{
-                                  if(!isPress){
+                                onPressed: () async {
+                                  if (!isPress) {
                                     isPress = true;
                                     PostModel copyPost = widget.post.copyWith();
-                                    if(widget.post.marks!.contains(widget.uid)){
-                                      await widget.projectRepository.removeLikeOrMark(widget.post.id!, "marks", widget.uid!);
-                                      copyPost.marks?.removeWhere((l)=>l==widget.uid);
-                                    }else{
-                                      await widget.projectRepository.addLikeOrMark(widget.post.id!, "marks", widget.uid!);
+                                    if (widget.post.marks!
+                                        .contains(widget.uid)) {
+                                      await widget.projectRepository
+                                          .removeLikeOrMark(widget.post.id!,
+                                              "marks", widget.uid!);
+                                      copyPost.marks
+                                          ?.removeWhere((l) => l == widget.uid);
+                                    } else {
+                                      await widget.projectRepository
+                                          .addLikeOrMark(widget.post.id!,
+                                              "marks", widget.uid!);
                                       widget.post.marks!.add(widget.uid!);
                                     }
                                     widget.refersh?.call(copyPost);
@@ -226,9 +256,13 @@ class _PostWidgetState extends State<PostWidget> {
                                   }
                                 },
                                 icon: Icon(
-                                  widget.post.marks!.contains(widget.uid) ? Icons.bookmark : Icons.bookmark_outline,
-                                  color: widget.post.marks!.contains(widget.uid) ? Colors.blue : null,
-                                  )),
+                                  widget.post.marks!.contains(widget.uid)
+                                      ? Icons.bookmark
+                                      : Icons.bookmark_outline,
+                                  color: widget.post.marks!.contains(widget.uid)
+                                      ? Colors.blue
+                                      : null,
+                                )),
                             if (widget.post.marks?.isNotEmpty ?? false)
                               Text("${widget.post.marks?.length}"),
                           ],
@@ -239,56 +273,57 @@ class _PostWidgetState extends State<PostWidget> {
                 ),
               ),
             ),
-            if (widget.isPostOwner)
-              PopupMenuButton(
-                onSelected: (v) async {
-                  if (v == 0) {
-                    await widget.onEditPost();
-                  }
-                  if (v == 1) {
-                    await widget.onDeletePost();
-                  }
-                },
-                itemBuilder: (context) {
-                  return const [
-                    PopupMenuItem(
-                      value: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Edit',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Icon(Icons.edit),
-                        ],
-                      ),
+            PopupMenuButton(
+              onSelected: widget.isPostOwner
+                  ? (v) async {
+                      if (v == 0) {
+                        await widget.onEditPost();
+                      }
+                      if (v == 1) {
+                        await widget.onDeletePost();
+                      }
+                    }
+                  : null,
+              iconColor: widget.isPostOwner ? null : Colors.transparent,
+              itemBuilder: (context) {
+                return const [
+                  PopupMenuItem(
+                    value: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Edit',
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        Icon(Icons.edit),
+                      ],
                     ),
-                    PopupMenuItem(
-                      value: 1,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Delete',
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Icon(
-                            Icons.delete,
+                  ),
+                  PopupMenuItem(
+                    value: 1,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Delete',
+                          style: TextStyle(
                             color: Colors.red,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
-                      ),
+                        ),
+                        Icon(
+                          Icons.delete,
+                          color: Colors.red,
+                        ),
+                      ],
                     ),
-                  ];
-                },
-              )
+                  ),
+                ];
+              },
+            )
           ],
         ),
       ),

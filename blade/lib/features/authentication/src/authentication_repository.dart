@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:blade_app/features/notification/firbase_api.dart';
 import 'package:blade_app/utils/helpers/flutter_toast.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -128,6 +129,7 @@ class AuthenticationRepository {
           .get();
 
       if (collaboratorDoc.exists) {
+        print("User Data is : ${collaboratorDoc.data()}");
         return CollaboratorModel.fromMap(collaboratorDoc.data() as Map<String, dynamic>);
       }
 
@@ -202,4 +204,12 @@ class AuthenticationRepository {
       throw Exception('Failed to fetch skills: $e');
     }
   }
+
+  // Update collaborator token
+  // Future<void> updateCollaboratorToken(String? id) async {
+  //   await _firestore
+  //       .collection('collaborators')
+  //       .doc(id)
+  //       .update({"token":await FirebaseApi.getFirebaseToken()});
+  // }
 }

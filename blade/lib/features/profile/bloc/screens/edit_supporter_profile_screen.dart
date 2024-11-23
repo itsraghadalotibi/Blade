@@ -121,93 +121,156 @@ class _EditSupporterProfileScreenState
           .read<EditSupporterProfileBloc>()
           .add(SaveSupporterProfile(updatedProfile));
 
+      // Show a success snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile updated successfully!'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: 50, left: 10, right: 10),
+        ),
+      );
+
       // Pass the updated profile back to the previous screen
       Navigator.pop(context, updatedProfile);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Supporter Edit Profile'),
-        centerTitle: true,
-      ),
-      body: BlocListener<EditSupporterProfileBloc, EditSupporterProfileState>(
-        listener: (context, state) {
-          if (state is SupporterProfileUpdateFailure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Failed to update profile')),
-            );
-          }
-        },
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildProfileImage(),
-                    const SizedBox(height: 24),
-
-                    // First Name field with dynamic validation
-                    CustomTextField(
-                      label: 'First Name*',
-                      controller: _firstNameController,
-                      errorText: firstNameError,
-                      maxLength: 50,
-                      prefixIcon: const Icon(
-                        CupertinoIcons.person_fill,
-                        color: TColors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Last Name field with dynamic validation
-                    CustomTextField(
-                      label: 'Last Name*',
-                      controller: _lastNameController,
-                      errorText: lastNameError,
-                      maxLength: 50,
-                      prefixIcon: const Icon(
-                        CupertinoIcons.person_fill,
-                        color: TColors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Bio field with icon
-                    CustomTextField(
-                      label: 'Bio (Optional)',
-                      controller: _bioController,
-                      maxLines: 3,
-                      maxLength: 150,
-                      showCounter: true,
-                      prefixIcon: const Icon(
-                        CupertinoIcons.pencil,
-                        color: TColors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Save button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _onSaveButtonPressed,
-                        child: const Text('Save'),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+  // Show exit confirmation dialog
+  void _showExitConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            "Discard Changes",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            "Are you sure you want to discard your changes? Any unsaved changes will be lost.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+              ),
+              child: const Text("Cancel"),
+            ),
+            const SizedBox(width: 2),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+                Navigator.of(context).pop(); // Navigate back
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: Text(
+                "Discard",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onError, // White text
                 ),
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        _showExitConfirmationDialog(context); // Show confirmation dialog
+        return false; // Prevent immediate navigation
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Supporter Edit Profile'),
+          centerTitle: true,
+        ),
+        body: BlocListener<EditSupporterProfileBloc, EditSupporterProfileState>(
+          listener: (context, state) {
+            if (state is SupporterProfileUpdateFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Failed to update profile')),
+              );
+            }
+          },
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildProfileImage(),
+                      const SizedBox(height: 24),
+
+                      // First Name field with dynamic validation
+                      CustomTextField(
+                        label: 'First Name*',
+                        controller: _firstNameController,
+                        errorText: firstNameError,
+                        maxLength: 50,
+                        prefixIcon: const Icon(
+                          CupertinoIcons.person_fill,
+                          color: TColors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Last Name field with dynamic validation
+                      CustomTextField(
+                        label: 'Last Name*',
+                        controller: _lastNameController,
+                        errorText: lastNameError,
+                        maxLength: 50,
+                        prefixIcon: const Icon(
+                          CupertinoIcons.person_fill,
+                          color: TColors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Bio field with icon
+                      CustomTextField(
+                        label: 'Bio (Optional)',
+                        controller: _bioController,
+                        maxLines: 3,
+                        maxLength: 150,
+                        showCounter: true,
+                        prefixIcon: const Icon(
+                          CupertinoIcons.pencil,
+                          color: TColors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Save button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _onSaveButtonPressed,
+                          child: const Text('Save'),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

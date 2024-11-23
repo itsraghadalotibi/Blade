@@ -1,12 +1,11 @@
-import 'package:blade_app/features/announcement/src/announcement_model.dart';
-import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import '../../project_info/screens/project_screen.dart';
 import '../../../utils/constants/colors.dart';
-
-import 'package:blade_app/features/announcement/screens/announcement_screen.dart';
+import 'package:blade_app/features/announcement/src/announcement_model.dart';
+import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 
 class StatesPage extends StatelessWidget {
   const StatesPage({Key? key}) : super(key: key);
@@ -22,20 +21,42 @@ class StatesPage extends StatelessWidget {
         final data = doc.data();
         final ideaId = data['ideaId'];
 
-        // Fetch the full idea object from Firestore.
-        final ideaSnapshot = await FirebaseFirestore.instance
-            .collection('ideas')
-            .doc(ideaId)
-            .get();
+        try {
+          // Fetch the idea from the ideas collection
+          final ideaSnapshot = await FirebaseFirestore.instance
+              .collection('ideas')
+              .doc(ideaId)
+              .get();
 
-        final idea = Idea.fromMap(ideaSnapshot.data()!, ideaId);
+          if (!ideaSnapshot.exists) {
+            // If the idea is deleted, return the title from join_requests
+            return {
+              'id': doc.id,
+              'idea': null,
+              'title': data['title'] ?? 'Unknown Project',
+              'status': 'deleted',
+              'timestamp': (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+            };
+          }
 
-        return {
-          'id': doc.id,  // Document ID for cancellation.
-          'idea': idea,  // Full idea object.
-          'status': data['status'] ?? 'pending',
-          'timestamp': (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
-        };
+          final idea = Idea.fromMap(ideaSnapshot.data()!, ideaId);
+          return {
+            'id': doc.id,
+            'idea': idea,
+            'title': idea.title,
+            'status': data['status'] ?? 'pending',
+            'timestamp': (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          };
+        } catch (e) {
+          print('Error fetching idea: $e');
+          return {
+            'id': doc.id,
+            'idea': null,
+            'title': data['title'] ?? 'Unknown Project',
+            'status': 'deleted',
+            'timestamp': (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          };
+        }
       }).toList());
     });
   }
@@ -60,12 +81,11 @@ class StatesPage extends StatelessWidget {
     final screenHeight = MediaQuery.of(context).size.height;
     final double textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    // Text style for the idea title.
+    // Text style for the idea title with a smaller font size.
     final TextStyle ideaTitleStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
-          fontSize: screenWidth * 0.05 * textScaleFactor,
-          fontWeight: FontWeight.bold,
-        ) ??
-        const TextStyle();
+          fontSize: screenWidth * 0.04 * textScaleFactor, // Adjusted font size
+          fontWeight: FontWeight.w600, // Slightly lighter weight
+        ) ?? const TextStyle();
 
     return Scaffold(
       body: StreamBuilder<List<Map<String, dynamic>>>(
@@ -92,7 +112,6 @@ class StatesPage extends StatelessWidget {
             );
           }
 
-          // Get join requests and sort them by timestamp in descending order (most recent first).
           final joinRequests = snapshot.data!;
           joinRequests.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
 
@@ -105,92 +124,139 @@ class StatesPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final request = joinRequests[index];
               final requestId = request['id'];
-              final idea = request['idea'] as Idea;
+              final idea = request['idea'] as Idea?;
+              final title = request['title'];
               final status = request['status'];
               final timestamp = request['timestamp'];
 
-              // Adjust the status color dynamically.
-              final Color statusColor = _getStatusColor(status);
+              final Color statusColor =
+                  status == 'deleted' ? Colors.grey : _getStatusColor(status);
 
               return GestureDetector(
                 onTap: () {
-                  // Navigate to ProjectScreen on tap.
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProjectScreen(
-                        idea: idea,
-                        repository: AnnouncementRepository(), 
-                        canJoin: !idea.isJoined!, 
-                        onJoinRequestSent: null, // Check if the user can join the project.
+                  // Forward to project info when the card is tapped
+                  if (idea != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProjectScreen(
+                          idea: idea,
+                          repository: AnnouncementRepository(),
+                          canJoin: !idea.isJoined!,
+                          onJoinRequestSent: null,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 },
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isDarkMode ? TColors.container : TColors.white,
-                      borderRadius: BorderRadius.circular(23),
-                      border: isDarkMode
-                        ? null // No border in dark mode
-                        : Border.all(color: TColors.borderPrimary), // Light mode border
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Left: Idea title and timestamp.
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  idea.title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: ideaTitleStyle,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Requested On: $timestamp',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        fontSize: screenWidth * 0.035 * textScaleFactor,
-                                        color: TColors.textSecondary,
-                                      ),
-                                ),
-                              ],
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CircleAvatar(
+                              radius: 25,
+                              backgroundColor: idea != null
+                                  ? Theme.of(context).primaryColor.withOpacity(0.1)
+                                  : Colors.grey.withOpacity(0.2),
+                              child: Icon(
+                                idea != null ? Icons.lightbulb : Icons.error_outline,
+                                size: 30,
+                                color: idea != null
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey,
+                              ),
                             ),
-                          ),
-                          // Right: Status text and cancel button for pending requests.
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text(
-                                status[0].toUpperCase() + status.substring(1),
-                                style: ideaTitleStyle.copyWith(
-                                  color: statusColor,
-                                  fontSize: 16,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: ideaTitleStyle.copyWith(
+                                      color: isDarkMode ? Colors.white : Colors.black,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${DateFormat('MMMM dd, yyyy').format(timestamp)}',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: TColors.textSecondary,
+                                          fontSize: screenWidth * 0.035,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: statusColor,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                status == 'deleted'
+                                    ? 'Deleted'
+                                    : status[0].toUpperCase() + status.substring(1),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              if (status == 'pending') ...[
-                                OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-                                    foregroundColor: Colors.red,
-                                    side: const BorderSide(color: Colors.red),
-                                  ),
-                                  onPressed: () => cancelJoinRequest(requestId),
-                                  child: const Text('Cancel'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Description for Deleted Projects
+                        if (status == 'deleted')
+                          Text(
+                            'This project has been deleted and is no longer available.',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  color: Colors.grey,
                                 ),
-                              ],
-                            ],
                           ),
-                        ],
-                      ),
+
+                        // Cancel Request Button
+                        if (status == 'pending' && idea != null)
+                          Center(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 20,
+                                ),
+                              ),
+                              onPressed: () =>
+                                  _showCancelConfirmationDialog(context, requestId),
+                              child: const Text(
+                                'Cancel Request',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
@@ -202,7 +268,38 @@ class StatesPage extends StatelessWidget {
     );
   }
 
-  // Helper to get color based on status.
+  void _showCancelConfirmationDialog(BuildContext context, String requestId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text(
+            "Cancel Request",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text("Are you sure you want to cancel this request?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text("No"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                cancelJoinRequest(requestId);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.red,
+              ),
+              child: const Text("Yes"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Color _getStatusColor(String status) {
     switch (status) {
       case 'pending':
@@ -211,6 +308,8 @@ class StatesPage extends StatelessWidget {
         return Colors.green;
       case 'rejected':
         return Colors.red;
+      case 'deleted':
+        return Colors.grey;
       default:
         return Colors.grey;
     }
