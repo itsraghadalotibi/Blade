@@ -227,28 +227,49 @@ class ProjectIdeaRepository {
   }
 
   // Delete Post
-  Future<int> deletePost(PostModel post, List<String> upPosts) async {
-    try {
-      await deletePostImages(post.images ?? []);
-      await _firestore.collection('posts').doc(post.id).delete();
-      int removedItems = 1;
-      var snapshots = await _firestore
-          .collection('posts')
-          .where("upPosts", arrayContains: post.id!)
-          .get();
-      for (var document in snapshots.docs) {
-        await document.reference.delete();
-        removedItems++;
-      }
-
-      if (upPosts.isNotEmpty) {
-        await plusMinuseCommentsNumber(upPosts, removedItems * -1);
-      }
-      return removedItems;
-    } catch (e) {
-      throw Exception('Failed to delete post: $e');
+    Future<int> deletePost(PostModel post, List<String> upPosts) async {
+  try {
+    // Check if post ID is valid
+    if (post.id == null || post.id!.isEmpty) {
+      throw Exception('Invalid post ID');
     }
+
+    // Check if the post exists
+    DocumentSnapshot docSnapshot =
+        await _firestore.collection('posts').doc(post.id).get();
+    if (!docSnapshot.exists) {
+      throw Exception('Document does not exist');
+    }
+
+    // Delete images associated with the post
+    await deletePostImages(post.images ?? []);
+    
+    // Delete the main post
+    await _firestore.collection('posts').doc(post.id).delete();
+    int removedItems = 1;
+
+    // Delete referenced posts
+    var snapshots = await _firestore
+        .collection('posts')
+        .where("upPosts", arrayContains: post.id!)
+        .get();
+
+    for (var document in snapshots.docs) {
+      await document.reference.delete();
+      removedItems++;
+    }
+
+    // Update comment counts if needed
+    if (upPosts.isNotEmpty) {
+      await plusMinuseCommentsNumber(upPosts, removedItems * -1);
+    }
+
+    return removedItems; // Return the count of removed items
+  } catch (e) {
+    throw Exception('Failed to delete post: $e');
   }
+}
+
 
   // Fetch all collaborators by idea members
   Future<List<Collaborator>?> fetchIdeaCollaborators(Idea idea) async {

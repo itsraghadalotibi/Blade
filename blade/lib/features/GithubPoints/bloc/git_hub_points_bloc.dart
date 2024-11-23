@@ -71,8 +71,13 @@ class GitHubPointsBloc extends Bloc<GitHubPointsEvent, GitHubPointsState> {
 
       int postCount = postsSnapshot.docs.length;
 
-      // Award points for each post
-      postPoints = postCount * 10; // e.g., 10 points per post
+      // Award points for posts
+      if (postCount > 0) {
+        postPoints = 50 + (postCount - 1) * 15; // 50 points for the first post, 15 for each additional
+      } else {
+        postPoints = 0;
+      }
+
       totalPoints = commitPoints + postPoints;
 
       _emitProgress(emit, commitPoints, postCount, totalPoints, event.projectId);
@@ -127,8 +132,10 @@ class GitHubPointsBloc extends Bloc<GitHubPointsEvent, GitHubPointsState> {
   int _calculateCommitPoints(int commitsCount) {
     int points = 0;
     if (commitsCount >= 10) {
-      points += 30;
-      points += ((commitsCount - 10) ~/ 30) * 15;
+      points += 50; // First 10 commits
+      points += ((commitsCount - 10) ~/ 5) * 15; // 15 points for every 5 commits after the first 10
+    } else {
+      points += commitsCount * 5; // Adjust points for commits below 10 if needed
     }
     return points;
   }
