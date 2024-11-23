@@ -12,6 +12,7 @@ class PostBookmarks extends StatelessWidget {
         title: const Text("Bookmarks"),
       ),
       body: const PostsTab(
+        canSendComment: true,
         fromHome: true,
         getBookMarks: true,)
     );

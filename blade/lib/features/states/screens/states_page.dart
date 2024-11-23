@@ -139,6 +139,7 @@ class StatesPage extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (_) => ProjectScreen(
+                          canSendComment: true,
                           idea: idea,
                           repository: AnnouncementRepository(),
                           canJoin: !idea.isJoined!,

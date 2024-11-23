@@ -30,6 +30,7 @@ class ProjectScreen extends StatefulWidget {
   final Idea idea;
   final AnnouncementRepository repository;
   final bool canJoin;
+  final bool canSendComment;
   final Function()? refershIdeasInProfile;
   final Function()? onJoinRequestSent;
   final bool useInvestButton;
@@ -39,6 +40,7 @@ class ProjectScreen extends StatefulWidget {
     required this.idea,
     required this.repository,
     required this.canJoin,
+    required this.canSendComment,
     this.onJoinRequestSent, //Make it optional BC the supporter call does not provide it
     this.refershIdeasInProfile,
     this.useInvestButton = false, // For supporter
@@ -648,7 +650,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             Expanded(
                               child: TabBarView(
                                 children: [
-                                  PostsTab(fromHome: false, idea: idea),
+                                  PostsTab(fromHome: false, idea: idea,canSendComment: widget.canSendComment,),
                                   MembersTab(
                                       idea: idea,
                                       repository: widget.repository),

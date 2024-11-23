@@ -17,9 +17,10 @@ class PostsTab extends StatefulWidget {
   final bool getBookMarks;
   final bool fromHome;
   final bool scrollable;
+  final bool canSendComment;
 
 
-  const PostsTab({super.key, this.idea,this.getBookMarks = false, required this.fromHome, this.scrollable = true});
+  const PostsTab({super.key, this.idea,this.getBookMarks = false, required this.fromHome, this.scrollable = true, required this.canSendComment});
 
   @override
   State<PostsTab> createState() => _PostsTabState();
@@ -92,7 +93,7 @@ class _PostsTabState extends State<PostsTab> {
                     upPosts: const [],
                     withLine: false,
                     onNaviagte: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>PostComments(upPosts: [post.id!], upPost: post)));
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>PostComments(upPosts: [post.id!], upPost: post,canSendComment: widget.canSendComment,)));
                     },
                     onEditPost: ()async{
                       var res = await Navigator.push(

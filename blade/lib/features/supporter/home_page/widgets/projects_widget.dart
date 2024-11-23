@@ -89,6 +89,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => ProjectScreen(
+                            canSendComment: false,
                             idea: project,
                             repository: AnnouncementRepository(),
                             canJoin: false,
