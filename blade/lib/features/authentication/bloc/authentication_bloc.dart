@@ -92,9 +92,9 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     final user = await authenticationRepository.getUser();
 
     // update firebase token for notifications
-    if(user is CollaboratorModel){
-      await authenticationRepository.updateCollaboratorToken(user.uid);
-    }
+    // if(user is CollaboratorModel){
+      // await authenticationRepository.updateCollaboratorToken(user.uid);
+    // }
 
     // Check user type against the expected user type
     if (userType != event.userType) {

@@ -298,7 +298,7 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
         bio: bioController.text.trim(),
         socialMediaLinks: socialMediaLinks,
         profilePhotoUrl: profileImageUrl,
-        token: await FirebaseApi.getFirebaseToken()
+        token: ""//await FirebaseApi.getFirebaseToken()
       );
 
       // Dispatch the sign-up event

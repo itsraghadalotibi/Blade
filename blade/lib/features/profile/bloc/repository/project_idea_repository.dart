@@ -378,18 +378,18 @@ Stream<List<PostModel>> streamBookmarksPosts(String? uid) {
   }
 
   // Fetch all collaborators by idea members
-  Future<Collaborator?> fetchOwnerToken(String ideaId) async {
-    try {
-      final snapshot = await _firestore
-          .collection('ideas').doc(ideaId)
-          .get();
-      final collaborator = Collaborator.fromMap((await _firestore
-          .collection('collaborators').where("uid",isEqualTo: snapshot.data()!["members"].first)
-          .get()).docs.first.data());
-      print(collaborator);
-      return collaborator;
-    } catch (e) {
-      throw Exception('Failed to load collaborators: $e');
-    }
-  }
+  // Future<Collaborator?> fetchOwnerToken(String ideaId) async {
+  //   try {
+  //     final snapshot = await _firestore
+  //         .collection('ideas').doc(ideaId)
+  //         .get();
+  //     final collaborator = Collaborator.fromMap((await _firestore
+  //         .collection('collaborators').where("uid",isEqualTo: snapshot.data()!["members"].first)
+  //         .get()).docs.first.data());
+  //     print(collaborator);
+  //     return collaborator;
+  //   } catch (e) {
+  //     throw Exception('Failed to load collaborators: $e');
+  //   }
+  // }
 }

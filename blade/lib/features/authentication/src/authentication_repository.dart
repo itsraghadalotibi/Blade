@@ -206,10 +206,10 @@ class AuthenticationRepository {
   }
 
   // Update collaborator token
-  Future<void> updateCollaboratorToken(String? id) async {
-    await _firestore
-        .collection('collaborators')
-        .doc(id)
-        .update({"token":await FirebaseApi.getFirebaseToken()});
-  }
+  // Future<void> updateCollaboratorToken(String? id) async {
+  //   await _firestore
+  //       .collection('collaborators')
+  //       .doc(id)
+  //       .update({"token":await FirebaseApi.getFirebaseToken()});
+  // }
 }
