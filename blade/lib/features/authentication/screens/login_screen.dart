@@ -115,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(width: 8), // Space between icon and text
                         Expanded(
                           child: Text(
-                            'Sign Up Failed: ${state.error}',
+                            'Log in Failed: ${state.error}',
                             style: const TextStyle(fontSize: 16),
                           ),
                         ),
@@ -179,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         "Forgot Password?",
                         style: TextStyle(
-                          color: TColors.textSecondary,
+                          color: Color.fromARGB(255, 7, 69, 124),
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
                         ),
@@ -315,3 +315,4 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 }
+
