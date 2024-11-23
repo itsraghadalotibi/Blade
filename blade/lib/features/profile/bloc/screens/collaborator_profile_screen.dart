@@ -197,13 +197,6 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                 ),
           ),
           centerTitle: true,
-          actions: [
-                  if (isOwner)
-       IconButton(
-                icon: Stack(
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/investment_request.svg',
           leading: IconButton(
             icon: Icon(
               Icons.logout,
@@ -214,11 +207,12 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
               _showLogoutConfirmation(context);
             },
           ),
-          actions: isOwner
-              ? [
+          actions: [
                   IconButton(
-                    icon: Icon(
-                      Icons.edit,
+                icon: Stack(
+                  children: [
+                    SvgPicture.asset(
+                      'assets/icons/investment_request.svg',
                       color: Theme.of(context).iconTheme.color,
                       width: 30,
                       height: 30,
@@ -251,6 +245,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                 ),
                 onPressed: _navigateToInvestmentRequests,
               ),
+                
     if (isOwner)
       IconButton(
         icon: Icon(

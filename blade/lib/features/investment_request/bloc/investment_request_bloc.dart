@@ -79,13 +79,6 @@ class InvestmentRequestBloc
       emit(InvestmentRequestFailure(error: e.toString()));
     }
   }
-  Future<void> _onCancelInvestmentRequest(
-    CancelInvestmentRequest event, Emitter<InvestmentRequestState> emit) async {
-  emit(InvestmentRequestLoading());
-  try {
-    await repository.cancelInvestmentRequest(event.requestId);
-    emit(InvestmentRequestSuccess());
-
   Future<void> _onCancelInvestmentRequest(CancelInvestmentRequest event,
       Emitter<InvestmentRequestState> emit) async {
     emit(InvestmentRequestLoading());
@@ -129,4 +122,4 @@ class InvestmentRequestBloc
       emit(InvestmentRequestFailure(error: e.toString()));
     }
   }
-}
+    }
