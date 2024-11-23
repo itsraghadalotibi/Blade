@@ -29,13 +29,13 @@ class InvestmentRequestBloc
       ProjectIdeaRepository projectRepository = ProjectIdeaRepository();
       Collaborator? collaborator =
           await projectRepository.fetchOwnerToken(event.request.projectId);
-      if (collaborator == null || collaborator.token == null) return;
-      await PushNotificationService.sendNotification(
-          deviceToken: collaborator.token!,
-          userId: collaborator.uid,
-          title: "Investment Request",
-          messageBody:
-              "You have a new investment request for ${event.request.projectName} ");
+      // if (collaborator == null || collaborator.token == null) return;
+      // await PushNotificationService.sendNotification(
+      //     deviceToken: collaborator.token!,
+      //     userId: collaborator.uid,
+          // title: "Investment Request",
+          // messageBody:
+          //     "You have a new investment request for ${event.request.projectName} ");
       emit(InvestmentRequestSuccess());
     } catch (e) {
       emit(InvestmentRequestFailure(error: e.toString()));

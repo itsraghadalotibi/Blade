@@ -297,8 +297,8 @@ class _CollaboratorSignUpScreenState extends State<CollaboratorSignUpScreen> {
         skills: _selectedSkills,
         bio: bioController.text.trim(),
         socialMediaLinks: socialMediaLinks,
-        profilePhotoUrl: profileImageUrl,
-        token: await FirebaseApi.getFirebaseToken()
+        profilePhotoUrl: profileImageUrl, token: '',
+        // token: await FirebaseApi.getFirebaseToken()
       );
 
       // Dispatch the sign-up event

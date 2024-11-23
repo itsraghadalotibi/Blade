@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../announcement/src/announcement_repository.dart';
 import '../../../announcement/widgets/avatar_stack_widget.dart';
 
-class LeaderboardWidget extends StatefulWidget {
+class LeaderboardWidget extends StatelessWidget {
   final List<Team> teams;
   final AnnouncementRepository repository;
 
@@ -13,13 +13,6 @@ class LeaderboardWidget extends StatefulWidget {
     required this.teams,
     required this.repository,
   });
-
-  @override
-  _LeaderboardWidgetState createState() => _LeaderboardWidgetState();
-}
-
-class _LeaderboardWidgetState extends State<LeaderboardWidget> {
-  bool _showAllProjects = false;
 
   @override
   Widget build(BuildContext context) {
@@ -32,19 +25,16 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Leaderboard',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.orangeAccent,
+                  color: const Color(0xFFFD5336),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text(
                   'Top Projects',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -55,41 +45,12 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
           const SizedBox(height: 20),
           // Leaderboard List
           Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _showAllProjects
-                        ? widget.teams.length
-                        : (widget.teams.length > 5 ? 5 : widget.teams.length),
-                    itemBuilder: (context, index) {
-                      final team = widget.teams[index];
-                      return _buildTeamItem(context, team, index + 1);
-                    },
-                  ),
-                ),
-                if (widget.teams.length > 5)
-                  Center(
-                    child: TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _showAllProjects = !_showAllProjects;
-                        });
-                      },
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      ),
-                      child: Text(
-                        _showAllProjects ? 'Show Less' : 'Show More',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+            child: ListView.builder(
+              itemCount: teams.length,
+              itemBuilder: (context, index) {
+                final team = teams[index];
+                return _buildTeamItem(context, team, index + 1);
+              },
             ),
           ),
         ],
@@ -105,39 +66,43 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
       children: [
         // Second Place
         _buildPodiumItem(
-          projectName: widget.teams.length > 1 ? widget.teams[1].name : 'N/A',
+          projectName: teams.length > 1 ? teams[1].name : 'N/A',
           color: Colors.grey,
           avatarUrl: 'assets/images/badges/silver.png',
+          height: 200, // Second place height
         ),
         // First Place
         _buildPodiumItem(
-          projectName: widget.teams.isNotEmpty ? widget.teams[0].name : 'N/A',
+          projectName: teams.isNotEmpty ? teams[0].name : 'N/A',
           color: Colors.amber,
           avatarUrl: 'assets/images/badges/gold.png',
-          isTop: true,
+          height: 250, // First place height
         ),
         // Third Place
         _buildPodiumItem(
-          projectName: widget.teams.length > 2 ? widget.teams[2].name : 'N/A',
+          projectName: teams.length > 2 ? teams[2].name : 'N/A',
           color: Colors.brown,
           avatarUrl: 'assets/images/badges/bronz.png',
+          height: 150, // Third place height
         ),
       ],
     );
   }
 
+  // Build Podium Item
   Widget _buildPodiumItem({
     required String projectName,
     required Color color,
     required String avatarUrl,
-    bool isTop = false,
+    required double height,
   }) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         CircleAvatar(
-          radius: isTop ? 30 : 25,
+          radius: height == 250 ? 40 : (height == 200 ? 35 : 30),
           backgroundImage: AssetImage(avatarUrl),
+          backgroundColor: Colors.transparent,
         ),
         const SizedBox(height: 8),
         Text(
@@ -150,7 +115,7 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
         ),
         const SizedBox(height: 4),
         Container(
-          height: isTop ? 100 : 80,
+          height: height,
           width: 70,
           alignment: Alignment.center,
           decoration: BoxDecoration(
@@ -162,7 +127,7 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
     );
   }
 
-  // Widget to build each team item
+  // Build Team Item
   Widget _buildTeamItem(BuildContext context, Team team, int rank) {
     Color getBackgroundColor(int rank) {
       switch (rank) {
@@ -185,7 +150,8 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: getBackgroundColor(rank),
                   borderRadius: BorderRadius.circular(20),
@@ -225,7 +191,7 @@ class _LeaderboardWidgetState extends State<LeaderboardWidget> {
               const SizedBox(width: 12),
               AvatarStackWidget(
                 userIds: team.members,
-                repository: widget.repository,
+                repository: repository,
                 screenWidth: MediaQuery.of(context).size.width,
               ),
             ],
@@ -277,34 +243,25 @@ class LeaderboardScreen extends StatelessWidget {
 
   const LeaderboardScreen({super.key, required this.repository});
 
-Future<List<Team>> _fetchTopTeams() async {
-  try {
-    print('Fetching top teams...');
-    final snapshot = await FirebaseFirestore.instance
-        .collection('ideas')
-        .where('status', isEqualTo: 'ongoing') // Fetch only ongoing projects
-        .orderBy('points', descending: true) // Order by points (highest first)
-        .get();
+  Future<List<Team>> _fetchTopTeams() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('ideas')
+          .where('status', isEqualTo: 'ongoing')
+          .orderBy('points', descending: true)
+          .get();
 
-    print('Query successful. Documents fetched: ${snapshot.docs.length}');
+      final teams = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Team.fromFirestore(data);
+      }).toList();
 
-    final teams = snapshot.docs.map((doc) {
-      final data = doc.data();
-
-      // Log `isJoined` value for debugging
-      print('Document data: ${data['title']} - isJoined: ${data['isJoined']}');
-      
-      return Team.fromFirestore(data);
-    }).toList();
-
-    print('Teams processed: ${teams.map((team) => 'Name: ${team.name}, Points: ${team.points}').toList()}');
-    return teams;
-  } catch (e, stackTrace) {
-    print('Error fetching top teams: $e');
-    print('Stack trace: $stackTrace');
-    return [];
+      return teams;
+    } catch (e) {
+      return [];
+    }
   }
-}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
