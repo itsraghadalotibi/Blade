@@ -8,6 +8,7 @@ import 'package:blade_app/features/authentication/bloc/authentication_state.dart
 import 'package:blade_app/features/supporter/home_page/screens/home_page_screen.dart';
 import 'package:blade_app/features/profile/bloc/repository/profile_repository.dart';
 import 'package:blade_app/features/profile/bloc/screens/supporter_profile_screen.dart';
+import 'package:blade_app/features/DashboardScreen.dart';
 import 'SupporterSettings.dart';
 
 class SupporterNavigation extends StatefulWidget {
@@ -54,7 +55,8 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
                 iconSize: 30,
                 icon: Icon(
                   Icons.home,
-                  color: currentTap == 0 ? const Color(0xFFFD5336) : Colors.grey,
+                  color:
+                      currentTap == 0 ? const Color(0xFFFD5336) : Colors.grey,
                 ),
                 onPressed: () {
                   setState(() {
@@ -65,29 +67,35 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
               ),
             ),
             Expanded(
-  child: IconButton(
-    iconSize: 30,
-    icon: Icon(
-      Icons.notifications,
-      color: currentTap == 1 ? const Color(0xFFFD5336) : Colors.grey,
-    ),
-    onPressed: () {
-      final state = context.read<AuthenticationBloc>().state;
-      _handleAuthenticatedNavigation(
-        context,
-        state,
-        () => SupporterSettings(), // Navigate to SupporterSettings instead of AnnouncementScreen
-        1,
-      );
-    },
-  ),
-),
+              child: IconButton(
+                iconSize: 30,
+                icon: Icon(
+                  Icons
+                      .dashboard, // Changed from notifications to dashboard icon
+                  color:
+                      currentTap == 1 ? const Color(0xFFFD5336) : Colors.grey,
+                ),
+                onPressed: () {
+                  final state = context.read<AuthenticationBloc>().state;
+                  _handleAuthenticatedNavigation(
+                    context,
+                    state,
+                    () {
+                      final user = (state as AuthenticationAuthenticated).user;
+                      return DashboardScreen(supporterId: user.uid);
+                    },
+                    1,
+                  );
+                },
+              ),
+            ),
             Expanded(
               child: IconButton(
                 iconSize: 30,
                 icon: Icon(
                   Icons.person,
-                  color: currentTap == 2 ? const Color(0xFFFD5336) : Colors.grey,
+                  color:
+                      currentTap == 2 ? const Color(0xFFFD5336) : Colors.grey,
                 ),
                 onPressed: () {
                   final state = context.read<AuthenticationBloc>().state;
@@ -103,7 +111,8 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
                           ),
                           BlocProvider(
                             create: (context) => ProfileViewBloc(
-                              profileRepository: context.read<ProfileRepository>(),
+                              profileRepository:
+                                  context.read<ProfileRepository>(),
                             )..add(LoadProfile(user.uid)),
                           ),
                         ],
@@ -121,8 +130,8 @@ class _SupporterNavigationState extends State<SupporterNavigation> {
     );
   }
 
-  void _handleAuthenticatedNavigation(
-      BuildContext context, AuthenticationState state, Widget Function() screenBuilder, int tab) {
+  void _handleAuthenticatedNavigation(BuildContext context,
+      AuthenticationState state, Widget Function() screenBuilder, int tab) {
     if (state is AuthenticationAuthenticated) {
       setState(() {
         currentScreen = screenBuilder();

@@ -192,16 +192,15 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
         appBar: AppBar(
             backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
             leading: isOwner
-            ? IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: () {
-                  _showLogoutConfirmation(context);
-                },
-              )
-            : BackButton(),
+                ? IconButton(
+                    icon: const Icon(Icons.logout),
+                    onPressed: () {
+                      _showLogoutConfirmation(context);
+                    },
+                  )
+                : BackButton(),
             title: Text(
               'Profile',
-              
             ),
             centerTitle: true,
             // leading: IconButton(
@@ -216,43 +215,44 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
             // ),
             actions: [
               if (isOwner)
-              IconButton(
-                icon: Stack(
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/investment_request.svg',
-                      color: Theme.of(context).iconTheme.color,
-                      width: 30,
-                      height: 30,
-                    ),
-                    if (totalPendingRequestsCount > 0)
-                      Positioned(
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(1),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.all(Radius.circular(6)),
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 12,
-                            minHeight: 12,
-                          ),
-                          child: Text(
-                            '$totalPendingRequestsCount',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                IconButton(
+                  icon: Stack(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/investment_request.svg',
+                        color: Theme.of(context).iconTheme.color,
+                        width: 30,
+                        height: 30,
+                      ),
+                      if (totalPendingRequestsCount > 0)
+                        Positioned(
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(1),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(6)),
                             ),
-                            textAlign: TextAlign.center,
+                            constraints: const BoxConstraints(
+                              minWidth: 12,
+                              minHeight: 12,
+                            ),
+                            child: Text(
+                              '$totalPendingRequestsCount',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
+                  onPressed: _navigateToInvestmentRequests,
                 ),
-                onPressed: _navigateToInvestmentRequests,
-              ),
               if (isOwner)
                 IconButton(
                   icon: Icon(
@@ -658,7 +658,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
     Future.delayed(const Duration(milliseconds: 500), () {
       Navigator.pushNamedAndRemoveUntil(
         context,
-        '/', // Route name for your login or welcome screen
+        '/welcome', // Update this to the correct route for your welcome screen
         (route) => false, // Remove all previous routes
       );
     });

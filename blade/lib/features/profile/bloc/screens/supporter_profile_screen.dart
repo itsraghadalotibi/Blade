@@ -97,9 +97,10 @@ class _SupporterProfileScreenState extends State<SupporterProfileScreen>
           margin: EdgeInsets.only(top: 10, left: 10, right: 10),
         ),
       );
+
       Navigator.pushNamedAndRemoveUntil(
         context,
-        '/',
+        '/welcome', // Update this to the correct route for your welcome screen
         (Route<dynamic> route) => false, // Clear navigation stack
       );
     });
