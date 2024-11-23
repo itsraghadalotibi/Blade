@@ -16,7 +16,10 @@ class AnnouncementRepository {
         idea.members.insert(0, creatorId);
       }
       // Add the new idea to the Firestore collection and return the DocumentReference
-      return await firestore.collection('ideas').add(idea.toMap());
+        return await firestore.collection('ideas').add({
+      ...idea.toMap(),
+      'points': 0, // Initialize points to 0
+    });
     } catch (e) {
       throw Exception('Failed to create idea: $e');
     }

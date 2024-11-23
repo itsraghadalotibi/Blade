@@ -9,7 +9,9 @@ import '../../authentication/bloc/authentication_event.dart';
 import '../../authentication/bloc/authentication_state.dart';
 import '../../authentication/src/collaborator_model.dart';
 import '../../chat/screens/chat_list_screen.dart';
+import '../../announcement/src/announcement_repository.dart';
 import 'screens/HowToEarnPage.dart';
+import 'screens/Leaderboard.dart';
 
 class CollaboratorHomeScreen extends StatelessWidget {
   const CollaboratorHomeScreen({super.key});
@@ -100,11 +102,6 @@ class CollaboratorHomeScreen extends StatelessWidget {
           title: const Text('Collaborator Home'),
           centerTitle: true,
           automaticallyImplyLeading: false,
-          // leading: IconButton(
-          //   icon: const Icon(Icons.bookmarks),
-          //   onPressed: () => Navigator.of(context)
-          //       .push(MaterialPageRoute(builder: (context) => const PostBookmarks())),
-          // ),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -150,7 +147,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
-                                    fontWeight: FontWeight.bold
+                                    fontWeight: FontWeight.bold,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -179,7 +176,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
         ),
         body: Column(
           children: [
-            // Monthly Challenge Container with Dark and Light mode support
+            // Monthly Challenge Container
             Container(
               padding: const EdgeInsets.all(20.0),
               margin: const EdgeInsets.all(20.0),
@@ -214,31 +211,13 @@ class CollaboratorHomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    "500 Points", // Example points; replace with dynamic data if needed
+                    "500 Points",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: textColor,
                     ),
                   ),
-                  // const SizedBox(height: 10),
-                  // TextButton(
-                  //   onPressed: () {  },
-                  //   child: Row(
-                  //     mainAxisAlignment: MainAxisAlignment.center,
-                  //     children: [
-                  //       Icon(Icons.local_fire_department, color: Colors.purple),
-                  //       Text(
-                  //       "How to Earn", // Example points; replace with dynamic data if needed
-                  //       style: TextStyle(
-                  //         fontSize: 14,
-                  //         fontWeight: FontWeight.bold,
-                  //         color: textColor,
-                  //       ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
                 ],
               ),
             ),
@@ -251,7 +230,14 @@ class CollaboratorHomeScreen extends StatelessWidget {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        // Add navigation or functionality here
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LeaderboardScreen(
+                              repository: AnnouncementRepository(),
+                            ),
+                          ),
+                        );
                       },
                       child: Container(
                         padding: const EdgeInsets.all(20.0),
@@ -270,8 +256,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.leaderboard_rounded,
-                                color: Colors.green),
+                            Icon(Icons.leaderboard_rounded, color: Colors.green),
                             const SizedBox(width: 8),
                             Text(
                               "Leaderboard",
@@ -286,8 +271,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  // How to Earn Points Container
+                  // Blueprint AI Container
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
@@ -333,9 +317,9 @@ class CollaboratorHomeScreen extends StatelessWidget {
                 ],
               ),
             ),
+            // Posts Section
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -350,13 +334,14 @@ class CollaboratorHomeScreen extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.bookmarks),
                     onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => const PostBookmarks())),
+                      MaterialPageRoute(
+                        builder: (context) => const PostBookmarks(),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-            // Center Content for Posts
             Expanded(
               child: Center(
                 child: BlocBuilder<AuthenticationBloc, AuthenticationState>(
@@ -376,29 +361,19 @@ class CollaboratorHomeScreen extends StatelessWidget {
       ),
     );
   }
+
   Stream<int> _getUnreadMessagesCount(String userId) {
-  final chatRoomsCollection = FirebaseFirestore.instance.collection('chatRooms');
+    final chatRoomsCollection = FirebaseFirestore.instance.collection('chatRooms');
+    final userChatRoomsQuery = chatRoomsCollection.where('members', arrayContains: userId);
 
-  // Get chat rooms where the user is a participant
-  final userChatRoomsQuery = chatRoomsCollection.where('members', arrayContains: userId);
-
-  return userChatRoomsQuery.snapshots().map((chatRoomsSnapshot) {
-    int totalUnreadMessages = 0;
-
-    print('Chat rooms snapshot received with ${chatRoomsSnapshot.docs.length} rooms.');
-
-    for (var chatRoomDoc in chatRoomsSnapshot.docs) {
-      final unreadCounts = chatRoomDoc['unreadCounts'] as Map<String, dynamic>? ?? {};
-      final userUnreadCount = unreadCounts[userId] as int? ?? 0;
-
-      print('Chat room ${chatRoomDoc.id} has unread count $userUnreadCount for user $userId');
-
-      totalUnreadMessages += userUnreadCount;
-    }
-
-    print('Total unread messages: $totalUnreadMessages');
-
-    return totalUnreadMessages;
-  });
-}
+    return userChatRoomsQuery.snapshots().map((chatRoomsSnapshot) {
+      int totalUnreadMessages = 0;
+      for (var chatRoomDoc in chatRoomsSnapshot.docs) {
+        final unreadCounts = chatRoomDoc['unreadCounts'] as Map<String, dynamic>? ?? {};
+        final userUnreadCount = unreadCounts[userId] as int? ?? 0;
+        totalUnreadMessages += userUnreadCount;
+      }
+      return totalUnreadMessages;
+    });
+  }
 }

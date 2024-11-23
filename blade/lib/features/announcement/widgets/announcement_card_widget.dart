@@ -225,15 +225,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
           child: Container(
             width: screenWidth * 0.9,
             decoration: BoxDecoration(
-              // **Change here: Replace the `color` property with the `gradient` property**
-              gradient: LinearGradient(
-                colors: [
-                  Color.fromARGB(255, 120, 215, 219), // Gradient start color
-                  Color.fromARGB(255, 12, 107, 89), // Gradient end color
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: isDarkMode ? const Color.fromARGB(255, 51, 51, 51) : TColors.white,
               borderRadius: BorderRadius.circular(23),
               border:
                   isDarkMode ? null : Border.all(color: TColors.borderPrimary),

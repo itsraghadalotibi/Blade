@@ -195,6 +195,9 @@ class _PostWidgetState extends State<PostWidget> {
                                       }
                                       widget.refersh?.call(copyPost);
                                       isPress = false;
+                                                                                // Log the likes count for each ongoing project
+                                    await widget.projectRepository.logLikesForOngoingProjects();
+
                                     }
                                   },
                                   icon: Icon(

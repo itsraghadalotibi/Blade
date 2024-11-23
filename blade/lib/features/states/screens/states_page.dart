@@ -1,11 +1,11 @@
-import 'package:blade_app/features/announcement/src/announcement_model.dart';
-import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../../project_info/screens/project_screen.dart';
 import '../../../utils/constants/colors.dart';
+import 'package:blade_app/features/announcement/src/announcement_model.dart';
+import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 
 class StatesPage extends StatelessWidget {
   const StatesPage({Key? key}) : super(key: key);
@@ -85,11 +85,9 @@ class StatesPage extends StatelessWidget {
     final TextStyle ideaTitleStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(
           fontSize: screenWidth * 0.05 * textScaleFactor,
           fontWeight: FontWeight.bold,
-        ) ??
-        const TextStyle();
+        ) ?? const TextStyle();
 
     return Scaffold(
-    
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: streamJoinRequests(FirebaseAuth.instance.currentUser!.uid),
         builder: (context, snapshot) {
@@ -168,7 +166,9 @@ class StatesPage extends StatelessWidget {
                             Icon(
                               idea != null ? Icons.lightbulb : Icons.error_outline,
                               size: 40,
-                              color: idea != null ? Colors.orange : Colors.grey,
+                              color: idea != null
+                                  ? Theme.of(context).primaryColor
+                                  : Colors.grey,
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -180,9 +180,7 @@ class StatesPage extends StatelessWidget {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: ideaTitleStyle.copyWith(
-                                      color: idea != null
-                                          ? Theme.of(context).primaryColor
-                                          : Colors.grey,
+                                      color: Colors.black, // Title text color set to black
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -228,16 +226,25 @@ class StatesPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         if (status == 'pending' && idea != null)
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red,
-                                side: const BorderSide(color: Colors.red),
+                          Center( // Center the cancel button
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red, // Red background for cancel
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 20),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                               onPressed: () =>
                                   _showCancelConfirmationDialog(context, requestId),
-                              child: const Text('Cancel'),
+                              child: const Text(
+                                'Cancel Request',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
                       ],
@@ -271,14 +278,28 @@ class StatesPage extends StatelessWidget {
               onPressed: () {
                 Navigator.of(dialogContext).pop(); // Close the dialog
               },
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+              ),
               child: const Text("No"),
             ),
+            const SizedBox(width: 2),
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop(); // Close the dialog
-                cancelJoinRequest(requestId);
+                cancelJoinRequest(requestId); // Perform cancellation
               },
-              child: const Text("Yes"),
+              style: TextButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error, // Red background
+              ),
+              child: Text(
+                "Yes",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onError, // White text
+                ),
+              ),
             ),
           ],
         );
@@ -301,5 +322,7 @@ class StatesPage extends StatelessWidget {
     }
   }
 }
+
+
 
 

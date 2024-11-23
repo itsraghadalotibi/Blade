@@ -189,6 +189,10 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+            leading: IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () {},
+            ),
           title: Text(
             'Profile',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -197,16 +201,16 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                 ),
           ),
           centerTitle: true,
-          leading: IconButton(
-            icon: Icon(
-              Icons.logout,
-              color:
-                  Theme.of(context).iconTheme.color, // Match theme icon color
-            ),
-            onPressed: () {
-              _showLogoutConfirmation(context);
-            },
-          ),
+          // leading: IconButton(
+          //   icon: Icon(
+          //     Icons.logout,
+          //     color:
+          //         Theme.of(context).iconTheme.color, // Match theme icon color
+          //   ),
+          //   onPressed: () {
+          //     _showLogoutConfirmation(context);
+          //   },
+          // ),
           actions: [
                   IconButton(
                 icon: Stack(

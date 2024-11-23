@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:blade_app/features/project_info/screens/new_post.dart';
 import 'package:blade_app/features/project_info/src/post_model.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago_flutter/timeago_flutter.dart' as timeago;
@@ -281,24 +282,26 @@ class _PostCommentsState extends State<PostComments> {
     }
   }
 
-  onSendPost(File? image, String message, [List<PostModel>? posts]) async {
-    await projectIdeaRepository.sendNewPost(
-        PostModel(
-          upPost: widget.upPost.id,
-          upPosts: widget.upPosts,
-          uid: uid,
-          messgae: message,
-          idea: widget.upPost.idea,
-        ),
-        image == null ? [] : [image],
-        widget.upPosts);
+onSendPost(File? image, String message, [List<PostModel>? posts]) async {
+  await projectIdeaRepository.sendNewPost(
+    PostModel(
+      upPost: widget.upPost.id,
+      upPosts: widget.upPosts,
+      uid: uid,
+      messgae: message,
+      idea: widget.upPost.idea,
+    ),
+    image == null ? [] : [image], // Second argument
+    widget.upPosts, // Third argument
+    BlocProvider.of<GitHubPointsBloc>(context), // Fourth argument
+  );
 
-    setState(() {
-      widget.upPost.comments = widget.upPost.comments! + 1;
-      controller.text = "";
-      image = null;
-    });
-  }
+  setState(() {
+    widget.upPost.comments = widget.upPost.comments! + 1;
+    controller.text = "";
+    image = null;
+  });
+}
 
   onEditPost(PostModel post) async {
     var res = await Navigator.push(

@@ -16,8 +16,10 @@ class PostsTab extends StatefulWidget {
   final Idea? idea;
   final bool getBookMarks;
   final bool fromHome;
+  final bool scrollable;
 
-  const PostsTab({super.key, this.idea,this.getBookMarks = false, required this.fromHome});
+
+  const PostsTab({super.key, this.idea,this.getBookMarks = false, required this.fromHome, this.scrollable = true});
 
   @override
   State<PostsTab> createState() => _PostsTabState();
@@ -38,13 +40,19 @@ class _PostsTabState extends State<PostsTab> {
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     String? uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+  return const Center(child: Text('User not logged in.'));
+}
+
 
     // return FutureBuilder<List<PostModel>>(
       // future: _fetchPostModels(),
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       child: StreamBuilder<List<PostModel>>(
-        stream: widget.getBookMarks ? projectIdeaRepository.streamBookmarksPosts(uid) : projectIdeaRepository.streamPosts(widget.idea, uid),
+    stream: widget.getBookMarks
+    ? projectIdeaRepository.streamBookmarksPosts(uid) ?? Stream.empty()
+    : projectIdeaRepository.streamPosts(widget.idea, uid) ?? Stream.empty(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -61,7 +69,10 @@ class _PostsTabState extends State<PostsTab> {
             itemCount: posts.length,
             itemBuilder: (context, index) {
               final post = posts[index];
-      
+              if (post == null) {
+          return const SizedBox(); // Safely skip null posts
+        }
+
               final isPostOwner = post.uid == uid;
       
               return Container(
