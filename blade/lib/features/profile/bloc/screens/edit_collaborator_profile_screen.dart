@@ -360,6 +360,7 @@ class _EditCollaboratorProfileScreenState
                                 items: _skillsItems,
                                 initialValue:
                                     _selectedSkills, // Set previously selected skills
+                                searchable: true, // Enable search functionality
                                 title: const Text("Skills"),
                                 buttonText:
                                     const Text("Select Skills (Optional)"),
