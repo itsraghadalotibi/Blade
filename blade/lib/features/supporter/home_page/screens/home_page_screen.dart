@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _searchController,
               style: TextStyle(fontSize: 16),
               decoration: InputDecoration(
-                hintText: 'Search by project or collaborator name',
+                hintText: 'Search by name',
                 hintStyle: TextStyle(
                   color: isDarkMode ? Colors.white70 : Color(0xFF8D8DA6),
                   fontSize: 16,
