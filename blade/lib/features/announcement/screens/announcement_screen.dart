@@ -94,7 +94,13 @@ class _AnnouncementAndStatesScreenState extends State<AnnouncementScreen>
         if (state is AnnouncementLoading) {
           return const Center(child: CircularProgressIndicator());
         } else if (state is AnnouncementLoaded) {
-          if (state.ideas.isEmpty) {
+          // Sort ideas alphabetically by title
+          final sortedIdeas = state.ideas
+              .where((idea) => !idea.isJoined!) // Exclude joined ideas
+              .toList()
+            ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+
+          if (sortedIdeas.isEmpty) {
             return const Center(
               child: Text(
                 'No announcements available.',
@@ -102,11 +108,11 @@ class _AnnouncementAndStatesScreenState extends State<AnnouncementScreen>
               ),
             );
           }
+
           return ListView.builder(
-            itemCount: state.ideas.length,
+            itemCount: sortedIdeas.length,
             itemBuilder: (context, index) {
-              final idea = state.ideas[index];
-              if (idea.isJoined!) return const SizedBox();
+              final idea = sortedIdeas[index];
               return AnnouncementCardWidget(
                 idea: idea,
                 fetchAll: () {

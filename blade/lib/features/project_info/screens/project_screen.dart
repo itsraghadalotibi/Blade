@@ -32,6 +32,7 @@ class ProjectScreen extends StatefulWidget {
   final AnnouncementRepository repository;
   final GitHubPointsBloc gitHubPointsBloc;  // Added this line
   final bool canJoin;
+  final bool canSendComment;
   final Function()? refershIdeasInProfile;
   final Function()? onJoinRequestSent;
   final bool useInvestButton;
@@ -42,6 +43,7 @@ class ProjectScreen extends StatefulWidget {
     required this.repository,
     required this.gitHubPointsBloc,  // Added this line
     required this.canJoin,
+    required this.canSendComment,
     this.onJoinRequestSent, //Make it optional BC the supporter call does not provide it
     this.refershIdeasInProfile,
     this.useInvestButton = false, // For supporter
@@ -396,7 +398,8 @@ class _ProjectScreenState extends State<ProjectScreen> {
                   //       );
                   //     },
                   //   ),
-                  if (userType == 'collaborator' && isOwner &&
+                  if (userType == 'collaborator' &&
+                      isOwner &&
                       (idea.status == 'open' || idea.status == 'ongoing'))
                     IconButton(
                       icon: const Icon(Icons.settings),
@@ -477,42 +480,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
                         child: SkillTagWidget(skills: idea.skills),
                       ),
                     ),
-                    if (userType == 'collaborator' &&
-                        ((!isOwner && idea.status == 'open') ||
-                            widget.useInvestButton)) ...[
-                      const SizedBox(height: 16),
-                      Center(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _buttonBackgroundColor,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 36, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            if ((_isRequestPending && _joinRequestId != null)) {
-                              // Cancel the join request
-                              _cancelJoinRequest(_joinRequestId!);
-                            } else if (_isMember) {
-                              // Leave the project
-                              _leaveProject();
-                            } else {
-                              // Send a join request
-                              _sendJoinRequest();
-                            }
-                          },
-                          child: Text(
-                            _buttonText,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
                     if (userType == 'collaborator' &&
                         ((!isOwner && idea.status == 'open') ||
                             widget.useInvestButton)) ...[
@@ -654,6 +621,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                   PostsTab(fromHome: false,
                                    idea: idea,
                                    gitHubPointsBloc: widget.gitHubPointsBloc,
+                                   canSendComment: widget.canSendComment,
                                   ),
                                   MembersTab(
                                       idea: idea,

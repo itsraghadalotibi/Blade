@@ -19,6 +19,8 @@ class PostsTab extends StatefulWidget {
   final bool fromHome;
   final bool scrollable;
   final GitHubPointsBloc gitHubPointsBloc; 
+    final bool canSendComment;
+
 
 
   const PostsTab({super.key,
@@ -27,6 +29,7 @@ class PostsTab extends StatefulWidget {
    required this.fromHome, 
    this.scrollable = true,
    required this.gitHubPointsBloc, 
+   required this.canSendComment
    });
 
   @override
@@ -100,7 +103,7 @@ class _PostsTabState extends State<PostsTab> {
                     upPosts: const [],
                     withLine: false,
                     onNaviagte: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>PostComments(upPosts: [post.id!], upPost: post)));
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>PostComments(upPosts: [post.id!], upPost: post,canSendComment: widget.canSendComment,)));
                     },
                     onEditPost: ()async{
                       var res = await Navigator.push(

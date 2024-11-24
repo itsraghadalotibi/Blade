@@ -100,6 +100,7 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
           context,
           MaterialPageRoute(
             builder: (_) => ProjectScreen(
+              canSendComment: true,
               canJoin: false,
               idea: widget.idea,
               repository: widget.announcementRepository,

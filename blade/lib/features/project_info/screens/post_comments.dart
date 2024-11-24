@@ -27,8 +27,9 @@ class PostComments extends StatefulWidget {
   final List<String> upPosts;
   PostModel upPost;
   final CollaboratorProfileModel? profile;
+  final bool canSendComment;
   PostComments(
-      {super.key, required this.upPosts, required this.upPost, this.profile});
+      {super.key, required this.upPosts, required this.upPost, this.profile,required this.canSendComment});
 
   @override
   State<PostComments> createState() => _PostCommentsState();
@@ -95,6 +96,7 @@ class _PostCommentsState extends State<PostComments> {
                       Navigator.of(context)
                           .push(MaterialPageRoute(builder: (context) {
                         return ProjectScreen(
+                            canSendComment: widget.canSendComment,
                             idea: widget.upPost.idea!,
                             repository: AnnouncementRepository(),
                             canJoin: false,
@@ -186,6 +188,7 @@ class _PostCommentsState extends State<PostComments> {
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) => PostComments(
+                                                canSendComment: widget.canSendComment,
                                                 upPosts: [post.id!],
                                                 upPost: post,
                                                 profile: profile,
@@ -238,6 +241,7 @@ class _PostCommentsState extends State<PostComments> {
                                       context,
                                       MaterialPageRoute(
                                           builder: (context) => PostComments(
+                                                canSendComment: widget.canSendComment,
                                                 upPosts: [post.id!],
                                                 upPost: post,
                                                 profile: profile,
@@ -261,6 +265,7 @@ class _PostCommentsState extends State<PostComments> {
                   ),
                 ),
               ),
+              if(widget.canSendComment)
               ReplayWidget(
                   controller: controller,
                   image: image,

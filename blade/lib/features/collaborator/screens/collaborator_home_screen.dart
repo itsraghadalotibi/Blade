@@ -364,7 +364,9 @@ class CollaboratorHomeScreen extends StatelessWidget {
                   builder: (context, state) {
                     if (state is AuthenticationAuthenticated &&
                         state.user is CollaboratorModel) {
-                      return  PostsTab(fromHome: true, 
+                      return  PostsTab(
+                        fromHome: true, 
+                      canSendComment: true,
                       gitHubPointsBloc: BlocProvider.of<GitHubPointsBloc>(context), 
                       );
                     } else {

@@ -119,111 +119,147 @@ await projectIdeaRepository.sendNewPost(
     }
   }
 
+  Future<bool> _onWillPop() async {
+    return (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Discard Changes?'),
+            content:
+                const Text('Are you sure you want to discard your changes?'),
+            actions: <Widget>[
+              OutlinedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 12.0),
+                ),
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 12.0),
+                ),
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        )) ??
+        false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Post"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (selectedIdea != null) ...[
-                        label("Select Project*"),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius:
-                                BorderRadius.circular(TSizes.inputFieldRadius),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: const Text("Post"),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (selectedIdea != null) ...[
+                          label("Select Project*"),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius:
+                                  BorderRadius.circular(TSizes.inputFieldRadius),
+                            ),
+                            child: DropdownButton<Idea>(
+                              value: selectedIdea,
+                              items: widget.ideas!
+                                  .map((idea) => DropdownMenuItem(
+                                        value: idea,
+                                        child: Text(idea.title),
+                                      ))
+                                  .toList(),
+                              onChanged: (idea) {
+                                setState(() {
+                                  selectedIdea = idea;
+                                });
+                              },
+                              isExpanded: true,
+                              underline: const SizedBox(),
+                              dropdownColor: Theme.of(context).cardColor,
+                            ),
                           ),
-                          child: DropdownButton<Idea>(
-                            value: selectedIdea,
-                            items: widget.ideas!
-                                .map((idea) => DropdownMenuItem(
-                                      value: idea,
-                                      child: Text(idea.title),
-                                    ))
-                                .toList(),
-                            onChanged: (idea) {
-                              setState(() {
-                                selectedIdea = idea;
-                              });
-                            },
-                            isExpanded: true,
-                            underline: const SizedBox(),
-                            dropdownColor: Theme.of(context).cardColor,
+                        ],
+                        label("Images (Optional)"),
+                        SizedBox(
+                          height: 100,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                ...currentImages.map((i) => _buildImagePreview(i)),
+                                ...imagesFile.map((i) => _buildFilePreview(i)),
+                                GestureDetector(
+                                  onTap: pickImage,
+                                  child: Container(
+                                    width: 100,
+                                    height: 100,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15),
+                                      border: Border.all(color: Colors.grey),
+                                    ),
+                                    child: const Icon(Icons.add),
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
+                        ),
+                        label("Description"),
+                        CustomTextField(
+                          validator: validateTitle,
+                          showCounter: true,
+                          maxLength: 500,
+                          hint:
+                              "What is the latest update for ${selectedIdea?.title}?",
+                          label: null,
+                          controller: caption,
+                          maxLines: 7,
+                          onChanged: (_) {},
                         ),
                       ],
-                      label("Images (Optional)"),
-                      SizedBox(
-                        height: 100,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              ...currentImages.map((i) => _buildImagePreview(i)),
-                              ...imagesFile.map((i) => _buildFilePreview(i)),
-                              GestureDetector(
-                                onTap: pickImage,
-                                child: Container(
-                                  width: 100,
-                                  height: 100,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(15),
-                                    border: Border.all(color: Colors.grey),
-                                  ),
-                                  child: const Icon(Icons.add),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      label("Description"),
-                      CustomTextField(
-                        validator: validateTitle,
-                        showCounter: true,
-                        maxLength: 500,
-                        hint:
-                            "What is the latest update for ${selectedIdea?.title}?",
-                        label: null,
-                        controller: caption,
-                        maxLines: 7,
-                        onChanged: (_) {},
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  disabledBackgroundColor: Theme.of(context).primaryColor,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    disabledBackgroundColor: Theme.of(context).primaryColor,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                   ),
+                  onPressed: isSubmitting ? null : submitPost,
+                  icon: isSubmitting
+                      ? const CircularProgressIndicator()
+                      : const Icon(Icons.save),
+                  label: Text(widget.post != null ? "Save changes" : "Post"),
                 ),
-                onPressed: isSubmitting ? null : submitPost,
-                icon: isSubmitting
-                    ? const CircularProgressIndicator()
-                    : const Icon(Icons.save),
-                label: Text(widget.post != null ? "Save changes" : "Post"),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

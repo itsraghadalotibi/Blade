@@ -15,6 +15,7 @@ class PostBookmarks extends StatelessWidget {
         title: const Text("Bookmarks"),
       ),
       body: PostsTab(
+        canSendComment: true,
         fromHome: true,
         getBookMarks: true,
         gitHubPointsBloc: BlocProvider.of<GitHubPointsBloc>(context),

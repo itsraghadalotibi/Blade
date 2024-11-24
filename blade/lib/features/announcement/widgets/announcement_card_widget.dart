@@ -211,6 +211,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
             context,
             MaterialPageRoute(
               builder: (_) => ProjectScreen(
+                canSendComment: true,
                 canJoin: canJoin,
                 idea: widget.idea,
                 repository: widget.repository,
