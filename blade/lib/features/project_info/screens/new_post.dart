@@ -74,19 +74,19 @@ class _NewPostState extends State<NewPost> {
 
     try {
       if (widget.post == null) {
-await projectIdeaRepository.sendNewPost(
-  PostModel(
-    images: currentImages,
-    title: title.text,
-    messgae: caption.text,
-    upPosts: [],
-    idea: selectedIdea,
-    ideaId: selectedIdea?.id,
-  ),
-  imagesFile, // List<File> for images to upload
-  deletedImages, // List<String> for deleted image URLs
-  BlocProvider.of<GitHubPointsBloc>(context), // GitHub points bloc or other missing parameter
-);
+        await projectIdeaRepository.sendNewPost(
+          PostModel(
+            images: currentImages,
+            title: title.text,
+            messgae: caption.text,
+            upPosts: [],
+            idea: selectedIdea,
+            ideaId: selectedIdea?.id,
+          ),
+          imagesFile, // List<File> for images to upload
+          deletedImages, // List<String> for deleted image URLs
+          BlocProvider.of<GitHubPointsBloc>(context), // GitHub points bloc or other missing parameter
+        );
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Post created successfully!")),
@@ -157,8 +157,16 @@ await projectIdeaRepository.sendNewPost(
       onWillPop: _onWillPop,
       child: Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
+          automaticallyImplyLeading: true, // Ensure back button is added
           title: const Text("Post"),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              if (await _onWillPop()) {
+                Navigator.pop(context); // Navigate back if confirmed
+              }
+            },
+          ),
         ),
         body: Padding(
           padding: const EdgeInsets.all(10),
