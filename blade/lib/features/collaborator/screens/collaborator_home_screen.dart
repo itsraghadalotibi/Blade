@@ -105,10 +105,10 @@ class CollaboratorHomeScreen extends StatelessWidget {
           centerTitle: true,
           automaticallyImplyLeading: false,
           actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () => _showLogoutConfirmation(context),
-            ),
+            // IconButton(
+            //   icon: const Icon(Icons.logout),
+            //   onPressed: () => _showLogoutConfirmation(context),
+            // ),
             BlocBuilder<AuthenticationBloc, AuthenticationState>(
               builder: (context, state) {
                 if (state is AuthenticationAuthenticated) {

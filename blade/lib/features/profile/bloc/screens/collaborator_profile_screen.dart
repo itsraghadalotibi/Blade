@@ -424,8 +424,8 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Center(
-                          child: const Text(
+                        const Center(
+                          child: Text(
                             'About',
                             style: TextStyle(
                               fontSize: 18,
