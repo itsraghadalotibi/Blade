@@ -2,6 +2,8 @@ import 'package:blade_app/features/announcement/bloc/announcement_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../GithubPoints/bloc/git_hub_points_bloc.dart';
 import '../../investment_request/screens/investment_request_form.dart';
 import '../../project_info/screens/project_screen.dart';
 import '../src/announcement_model.dart';
@@ -213,6 +215,7 @@ class _AnnouncementCardWidgetState extends State<AnnouncementCardWidget> {
                 idea: widget.idea,
                 repository: widget.repository,
                 onJoinRequestSent: null,
+                gitHubPointsBloc: BlocProvider.of<GitHubPointsBloc>(context),
               ),
             ),
           );

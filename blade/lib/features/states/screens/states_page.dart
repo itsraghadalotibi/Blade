@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import '../../GithubPoints/bloc/git_hub_points_bloc.dart';
 import '../../project_info/screens/project_screen.dart';
 import '../../../utils/constants/colors.dart';
 import 'package:blade_app/features/announcement/src/announcement_model.dart';
@@ -143,6 +145,7 @@ class StatesPage extends StatelessWidget {
                           repository: AnnouncementRepository(),
                           canJoin: !idea.isJoined!,
                           onJoinRequestSent: null,
+                          gitHubPointsBloc: BlocProvider.of<GitHubPointsBloc>(context), 
                         ),
                       ),
                     );

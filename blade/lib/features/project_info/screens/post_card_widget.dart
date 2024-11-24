@@ -64,17 +64,17 @@ class _PostWidgetState extends State<PostWidget> {
             Column(
               children: [
                 GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CollaboratorProfileScreen(
-                          userId: widget.post.user!.uid,
-                          showBackButton: true,
-                        ),
-                      ),
-                    );
-                  },
+                  // onTap: () {
+                  //   Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(
+                  //       builder: (context) => CollaboratorProfileScreen(
+                  //         userId: widget.post.user!.uid,
+                  //         showBackButton: true,
+                  //       ),
+                  //     ),
+                  //   );
+                  // },
                   child: CircleAvatar(
                     radius: 30,
                     backgroundImage:

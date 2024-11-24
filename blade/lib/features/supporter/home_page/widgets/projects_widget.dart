@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../GithubPoints/bloc/git_hub_points_bloc.dart';
 import '../../../announcement/src/announcement_model.dart';
 import '../../../announcement/src/announcement_repository.dart';
 import '../../../investment_request/screens/investment_request_form.dart';
@@ -93,6 +95,7 @@ class _ProjectsWidgetState extends State<ProjectsWidget> {
                             repository: AnnouncementRepository(),
                             canJoin: false,
                             useInvestButton: true,
+                            gitHubPointsBloc: BlocProvider.of<GitHubPointsBloc>(context), 
                           ),
                         ),
                       );

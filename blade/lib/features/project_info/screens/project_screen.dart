@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../utils/constants/colors.dart';
 import '../../../widgets/expandable_text.dart';
+import '../../GithubPoints/bloc/git_hub_points_bloc.dart';
 import '../../announcement/src/announcement_model.dart';
 import '../../announcement/src/announcement_repository.dart';
 import '../../announcement/widgets/skill_tag_widget.dart';
@@ -29,6 +30,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class ProjectScreen extends StatefulWidget {
   final Idea idea;
   final AnnouncementRepository repository;
+  final GitHubPointsBloc gitHubPointsBloc;  // Added this line
   final bool canJoin;
   final Function()? refershIdeasInProfile;
   final Function()? onJoinRequestSent;
@@ -38,6 +40,7 @@ class ProjectScreen extends StatefulWidget {
     super.key,
     required this.idea,
     required this.repository,
+    required this.gitHubPointsBloc,  // Added this line
     required this.canJoin,
     this.onJoinRequestSent, //Make it optional BC the supporter call does not provide it
     this.refershIdeasInProfile,
@@ -648,10 +651,15 @@ class _ProjectScreenState extends State<ProjectScreen> {
                             Expanded(
                               child: TabBarView(
                                 children: [
-                                  PostsTab(fromHome: false, idea: idea),
+                                  PostsTab(fromHome: false,
+                                   idea: idea,
+                                   gitHubPointsBloc: widget.gitHubPointsBloc,
+                                  ),
                                   MembersTab(
                                       idea: idea,
-                                      repository: widget.repository),
+                                      repository: widget.repository,
+                              
+                                      ),
                                   if (userType == 'collaborator' &&
                                       isOwner &&
                                       idea.status == "open")

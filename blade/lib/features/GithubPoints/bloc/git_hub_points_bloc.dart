@@ -16,7 +16,8 @@ class GitHubPointsBloc extends Bloc<GitHubPointsEvent, GitHubPointsState> {
   GitHubPointsBloc() : super(GitHubPointsInitial()) {
     on<FetchGitHubPointsEvent>(_onFetchGitHubPoints);
     on<NewPostCreatedEvent>(_onNewPostCreated);
-    on<UpdatePointsEvent>(_onUpdatePoints); // Event to handle dynamic point updates
+    on<UpdatePointsEvent>(_onUpdatePoints); 
+    on<PostDeletedEvent>(_onPostDeleted); // Add event for post deletion
   }
 
   // Fetch GitHub commits and calculate commit points
@@ -99,6 +100,21 @@ class GitHubPointsBloc extends Bloc<GitHubPointsEvent, GitHubPointsState> {
           emit, commitPoints, postPoints, totalPoints, event.projectId);
     } catch (e) {
       emit(GitHubPointsError('Failed to update points: $e'));
+    }
+  }
+
+  // Handle post deletion event
+  Future<void> _onPostDeleted(
+      PostDeletedEvent event, Emitter<GitHubPointsState> emit) async {
+    try {
+      // Deduct points for the deleted post
+      postPoints -= event.postPointsToRemove;
+      totalPoints = commitPoints + postPoints;
+
+      // Emit updated progress
+      _emitProgress(emit, commitPoints, postPoints, totalPoints, event.projectId);
+    } catch (e) {
+      emit(GitHubPointsError('Error processing post deletion: $e'));
     }
   }
 

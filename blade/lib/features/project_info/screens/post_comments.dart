@@ -98,7 +98,9 @@ class _PostCommentsState extends State<PostComments> {
                             idea: widget.upPost.idea!,
                             repository: AnnouncementRepository(),
                             canJoin: false,
-                            onJoinRequestSent: null);
+                            onJoinRequestSent: null, 
+                            gitHubPointsBloc: BlocProvider.of<GitHubPointsBloc>(context), 
+                            );
                       }));
                     },
                     icon: const Icon(Icons.open_in_new))
@@ -283,13 +285,18 @@ class _PostCommentsState extends State<PostComments> {
   }
 
 onSendPost(File? image, String message, [List<PostModel>? posts]) async {
+  if (widget.upPost.idea?.id == null) {
+    print("Error: ideaId is null.");
+    return; // Handle this scenario gracefully
+  }
+
   await projectIdeaRepository.sendNewPost(
     PostModel(
+      ideaId: widget.upPost.idea?.id, // Set ideaId explicitly
       upPost: widget.upPost.id,
       upPosts: widget.upPosts,
       uid: uid,
       messgae: message,
-      idea: widget.upPost.idea,
     ),
     image == null ? [] : [image], // Second argument
     widget.upPosts, // Third argument
@@ -327,7 +334,7 @@ onSendPost(File? image, String message, [List<PostModel>? posts]) async {
           return DeleteDialog(onPressed: () async {
             Navigator.pop(context);
             int count =
-                await projectIdeaRepository.deletePost(post, widget.upPosts);
+                await projectIdeaRepository.deletePost(post, widget.upPosts,BlocProvider.of<GitHubPointsBloc>(context));
             widget.upPost.comments = widget.upPost.comments! - count;
             setState(() {});
             // setState(() {});
@@ -439,7 +446,7 @@ class _ReplayWidgetState extends State<ReplayWidget> {
                     FocusManager.instance.primaryFocus?.unfocus();
                   },
                   decoration: InputDecoration(
-                      hintText: "Post your replay",
+                      hintText: "Post your reply",
                       hintStyle:
                           const TextStyle(color: Colors.grey, fontSize: 14),
                       enabledBorder:
@@ -512,7 +519,7 @@ class _ReplayWidgetState extends State<ReplayWidget> {
                         ? const Center(
                             child: CircularProgressIndicator(),
                           )
-                        : const Text("Replay"))
+                        : const Text("Reply"))
               ],
             ),
             // const Divider(),

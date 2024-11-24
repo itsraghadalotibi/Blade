@@ -1,5 +1,8 @@
 import 'package:blade_app/features/project_info/screens/posts_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../GithubPoints/bloc/git_hub_points_bloc.dart';
 
 class PostBookmarks extends StatelessWidget {
   const PostBookmarks({super.key});
@@ -11,9 +14,11 @@ class PostBookmarks extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Bookmarks"),
       ),
-      body: const PostsTab(
+      body: PostsTab(
         fromHome: true,
-        getBookMarks: true,)
+        getBookMarks: true,
+        gitHubPointsBloc: BlocProvider.of<GitHubPointsBloc>(context),
+        )
     );
   }
 }
