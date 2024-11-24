@@ -31,7 +31,7 @@ class _SelectProjectScreenState extends State<SelectProjectScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Which to BluePrint?"),
+        title: const Text("Which to Blueprint?"),
       ),
       body: FutureBuilder<List<Idea>>(
         future: _ongoingIdeasFuture,

@@ -529,7 +529,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
 
             return Scaffold(
               appBar: AppBar(
-                title: const Text('Project details'),
+                title: const Text('Project Details'),
                 centerTitle: true,
                 actions: [
                   // if (userType == 'collaborator' &&
