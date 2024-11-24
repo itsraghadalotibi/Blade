@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app_view.dart';
+import 'features/GithubPoints/bloc/git_hub_points_bloc.dart';
 import 'features/authentication/bloc/authentication_bloc.dart';
 import 'features/authentication/bloc/authentication_event.dart';
 import 'features/authentication/bloc/authentication_state.dart';
@@ -46,6 +47,11 @@ class App extends StatelessWidget {
             ),
           ),
           // Add other BlocProviders if necessary
+                    // Provide GitHubPointsBloc
+          BlocProvider<GitHubPointsBloc>(
+            create: (context) => GitHubPointsBloc(),
+          ),
+
         ],
         child: BlocListener<AuthenticationBloc, AuthenticationState>(
           listener: (context, state) {

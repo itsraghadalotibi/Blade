@@ -117,7 +117,6 @@ class _NumberStepperState extends State<NumberStepper> {
   }
 }
 
-
 class Post extends StatefulWidget {
   final String accessToken;
 
@@ -227,38 +226,35 @@ class _PostState extends State<Post> {
     }
   }
 
-Future<void> _createGithubRepo(String repoName, String ideaId) async {
-  final url = Uri.parse('https://api.github.com/user/repos');
-    // Print access token for debugging
-      print('Access Token: ${widget.accessToken}');
+  Future<void> _createGithubRepo(String repoName, String ideaId) async {
+    final url = Uri.parse('https://api.github.com/user/repos');
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer ${widget.accessToken}',  // Use the actual access token here
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'name': repoName,  // GitHub repository name
+        'description': _ideadescriptionController.text,
+        'private': false,  // public repos only 
+      }),
+    );
 
-  final response = await http.post(
-    url,
-    headers: {
-      'Authorization': 'Bearer ${widget.accessToken}',  // Use the actual access token here
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode({
-      'name': repoName,  // GitHub repository name
-      'description': _ideadescriptionController.text,
-      'private': false,  // public repos only 
-    }),
-  );
+    if (response.statusCode == 201) {
+      final responseBody = jsonDecode(response.body);
+      final repoUrl = responseBody['html_url']; // Get the repository URL
+      
+      // Save the repo URL to Firestore under the corresponding idea
+      await FirebaseFirestore.instance.collection('ideas').doc(ideaId).update({
+        'repoUrl': repoUrl,
+      });
 
-  if (response.statusCode == 201) {
-    final responseBody = jsonDecode(response.body);
-    final repoUrl = responseBody['html_url']; // Get the repository URL
-    
-    // Save the repo URL to Firestore under the corresponding idea
-    await FirebaseFirestore.instance.collection('ideas').doc(ideaId).update({
-      'repoUrl': repoUrl,
-    });
-
-    print('GitHub repository created successfully!');
-  } else {
-    print('Failed to create GitHub repository: ${response.body}');
+      print('GitHub repository created successfully!');
+    } else {
+      print('Failed to create GitHub repository: ${response.body}');
+    }
   }
-}
 
   void _onStepContinue(BuildContext context, int currentStep) {
     setState(() {
@@ -299,75 +295,135 @@ Future<void> _createGithubRepo(String repoName, String ideaId) async {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return BlocProvider(
       create: (context) => PostBloc(announcementRepository: _ideaRepository),
-      child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(10),
-          child: BlocBuilder<PostBloc, PostState>(
-            builder: (context, state) {
-              if (state is SubmissionState) {
-                return const Center(child: CircularProgressIndicator());
-              }
+      child: WillPopScope(
+onWillPop: () async {
+  final shouldPop = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: Colors.grey[50], // Near-white background
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        titlePadding: const EdgeInsets.all(16.0),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        title: const Text(
+          "Discard Changes",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        content: const Text(
+          "Are you sure you want to leave without saving your idea? Any unsaved changes will be lost.",
+          style: TextStyle(fontSize: 14, color: Colors.black54),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(false); // Dismiss the dialog
+            },
+            style: TextButton.styleFrom(
+              // backgroundColor: Colors.grey[200], // Silver background
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            ),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(true); // Allow pop
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: Color(0xFFFD5336), // Orange background for Discard
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            ),
+            child: Text(
+              "Discard",
+              style: TextStyle(color: Colors.grey[200], fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+  return shouldPop ?? false; // Return false if dialog is dismissed
+},
 
-              if (state is PostStepState) {
-                return Theme(
-                  data: Theme.of(context).copyWith(
-                    colorScheme: Theme.of(context).colorScheme.copyWith(
-                          primary: const Color(0xFFFD5336),
-                        ),
-                  ),
-                  child: Stepper(
-                    steps: _getSteps(),
-                    currentStep: state.currentStep,
-                    onStepCancel: () {
-                      if (state.currentStep > 0) {
-                        context.read<PostBloc>().add(PreviousStep());
-                      }
-                    },
-                    onStepContinue: () {
-                      final currentState = context.read<PostBloc>().state;
-                      if (currentState is PostStepState) {
-                        _onStepContinue(context, currentState.currentStep);
-                      }
-                    },
-                    controlsBuilder: (BuildContext context, ControlsDetails details) {
-                      final isLastStep = details.currentStep == _getSteps().length - 1;
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.start,  
-                        children: [
-                          if (details.currentStep != 0)
+        child: Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(10),
+            child: BlocBuilder<PostBloc, PostState>(
+              builder: (context, state) {
+                if (state is SubmissionState) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (state is PostStepState) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: Theme.of(context).colorScheme.copyWith(
+                            primary: const Color(0xFFFD5336),
+                          ),
+                    ),
+                    child: Stepper(
+                      steps: _getSteps(),
+                      currentStep: state.currentStep,
+                      onStepCancel: () {
+                        if (state.currentStep > 0) {
+                          context.read<PostBloc>().add(PreviousStep());
+                        }
+                      },
+                      onStepContinue: () {
+                        final currentState = context.read<PostBloc>().state;
+                        if (currentState is PostStepState) {
+                          _onStepContinue(context, currentState.currentStep);
+                        }
+                      },
+                      controlsBuilder: (BuildContext context, ControlsDetails details) {
+                        final isLastStep = details.currentStep == _getSteps().length - 1;
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.start,  
+                          children: [
+                            if (details.currentStep != 0)
+                              ElevatedButton(
+                                onPressed: details.onStepCancel,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isDarkMode ? TColors.dark : TColors.light, // Change background based on dark mode
+                                  foregroundColor: const Color(0xFFFD5336),  
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), 
+                                  minimumSize: const Size(80, 35), 
+                                ),
+                                child: const Text('Back', style: TextStyle(fontSize: 13)), 
+                              ),
+                            const SizedBox(width: 10), 
                             ElevatedButton(
-                              onPressed: details.onStepCancel,
+                              onPressed: isLastStep ? _submitIdea : details.onStepContinue,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: isDarkMode ? TColors.dark : TColors.light, // Change background based on dark mode
-                                foregroundColor: const Color(0xFFFD5336),  
-                                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), 
+                                backgroundColor: const Color(0xFFFD5336),  
+                                foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Small button padding
                                 minimumSize: const Size(80, 35), 
                               ),
-                              child: const Text('Back', style: TextStyle(fontSize: 13)), 
+                              child: Text(
+                                isLastStep ? 'Submit' : 'Next',
+                                style: const TextStyle(fontSize: 13), 
+                              ),
                             ),
-                          const SizedBox(width: 10), 
-                          ElevatedButton(
-                            onPressed: isLastStep ? _submitIdea : details.onStepContinue,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFD5336),  
-                              foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-                              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Small button padding
-                              minimumSize: const Size(80, 35), 
-                            ),
-                            child: Text(
-                              isLastStep ? 'Submit' : 'Next',
-                              style: const TextStyle(fontSize: 13), 
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                );
-              }
+                          ],
+                        );
+                      },
+                    ),
+                  );
+                }
 
-              return Container();
-            },
+                return Container();
+              },
+            ),
           ),
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:blade_app/features/project_info/screens/posts_tab.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../GithubPoints/bloc/git_hub_points_bloc.dart';
 import '../../authentication/bloc/authentication_bloc.dart';
 import '../../authentication/bloc/authentication_event.dart';
 import '../../authentication/bloc/authentication_state.dart';
@@ -12,6 +13,7 @@ import '../../chat/screens/chat_list_screen.dart';
 import '../../announcement/src/announcement_repository.dart';
 import 'screens/HowToEarnPage.dart';
 import 'screens/Leaderboard.dart';
+import '../../ai_todo/screens/select_project_screen.dart';
 
 class CollaboratorHomeScreen extends StatelessWidget {
   const CollaboratorHomeScreen({super.key});
@@ -103,10 +105,10 @@ class CollaboratorHomeScreen extends StatelessWidget {
           centerTitle: true,
           automaticallyImplyLeading: false,
           actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () => _showLogoutConfirmation(context),
-            ),
+            // IconButton(
+            //   icon: const Icon(Icons.logout),
+            //   onPressed: () => _showLogoutConfirmation(context),
+            // ),
             BlocBuilder<AuthenticationBloc, AuthenticationState>(
               builder: (context, state) {
                 if (state is AuthenticationAuthenticated) {
@@ -207,6 +209,27 @@ class CollaboratorHomeScreen extends StatelessWidget {
                           color: textColor,
                         ),
                       ),
+                      const SizedBox(width: 5), // Small spacing between text and icon
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to the "How to Earn" page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HowToEarnPage(),
+                            ),
+                          );
+                        },
+                        child: const CircleAvatar(
+                          radius: 12, // Slightly smaller size for subtle design
+                          backgroundColor: Color.fromARGB(255, 214, 79, 70),
+                          child: const Icon(
+                            Icons.priority_high,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -220,7 +243,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
+            ), 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -278,7 +301,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const HowToEarnPage(),
+                            builder: (context) => const SelectProjectScreen(),
                           ),
                         );
                       },
@@ -286,7 +309,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(20.0),
                         margin: const EdgeInsets.only(left: 10.0),
                         decoration: BoxDecoration(
-                          color: backgroundColor,
+                          color: Colors.blue,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
@@ -299,14 +322,14 @@ class CollaboratorHomeScreen extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.assistant, color: Colors.blue),
+                            Icon(Icons.assistant, color: Colors.white),
                             const SizedBox(width: 8),
-                            Text(
+                            const Text(
                               "Blueprint AI",
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: textColor,
+                                color: Colors.white,
                               ),
                             ),
                           ],
@@ -348,7 +371,11 @@ class CollaboratorHomeScreen extends StatelessWidget {
                   builder: (context, state) {
                     if (state is AuthenticationAuthenticated &&
                         state.user is CollaboratorModel) {
-                      return const PostsTab(fromHome: true);
+                      return  PostsTab(
+                        fromHome: true, 
+                      canSendComment: true,
+                      gitHubPointsBloc: BlocProvider.of<GitHubPointsBloc>(context), 
+                      );
                     } else {
                       return const CircularProgressIndicator();
                     }

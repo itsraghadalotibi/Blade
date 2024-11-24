@@ -196,22 +196,33 @@ class ProjectIdeaRepository {
   }
 
   // Send New Post
-  Future<void> sendNewPost(
-      PostModel post, List<File> imageFiles, List<String> upPosts, GitHubPointsBloc gitHubPointsBloc) async {
-    try {
-      post.images ??= [];
-      post.images?.addAll((await uploadPostImages(imageFiles)));
-      await _firestore.collection('posts').add(post.toMap());
-          // Dispatch the event to update points
-        gitHubPointsBloc.add(NewPostCreatedEvent(post.ideaId!));
-      if (upPosts.isNotEmpty) {
-        await plusMinuseCommentsNumber(upPosts, 1);
-      }
-    } catch (e) {
-      print('Error updating idea: $e');
-      throw Exception('Failed to add post');
+Future<void> sendNewPost(
+    PostModel post, List<File> imageFiles, List<String> upPosts, GitHubPointsBloc gitHubPointsBloc) async {
+  try {
+    // Ensure ideaId is set
+    if (post.ideaId == null || post.ideaId!.isEmpty) {
+      throw Exception('Post idea ID is required.');
     }
+
+    // Initialize images list if null
+    post.images ??= [];
+    post.images?.addAll((await uploadPostImages(imageFiles)));
+
+    // Add post to Firestore
+    await _firestore.collection('posts').add(post.toMap());
+
+    // Dispatch the event to update points
+    gitHubPointsBloc.add(NewPostCreatedEvent(post.ideaId!));
+
+    // Update connected posts' comment counts
+    if (upPosts.isNotEmpty) {
+      await plusMinuseCommentsNumber(upPosts, 1);
+    }
+  } catch (e) {
+    print('Error adding new post: $e');
+    throw Exception('Failed to add post: $e');
   }
+}
 
   // Update Post
   Future<void> updatePost(
@@ -227,48 +238,52 @@ class ProjectIdeaRepository {
   }
 
   // Delete Post
-    Future<int> deletePost(PostModel post, List<String> upPosts) async {
+Future<int> deletePost(PostModel post, List<String> upPosts, GitHubPointsBloc gitHubPointsBloc) async {
   try {
-    // Check if post ID is valid
-    if (post.id == null || post.id!.isEmpty) {
-      throw Exception('Invalid post ID');
-    }
-
-    // Check if the post exists
-    DocumentSnapshot docSnapshot =
-        await _firestore.collection('posts').doc(post.id).get();
-    if (!docSnapshot.exists) {
-      throw Exception('Document does not exist');
-    }
-
-    // Delete images associated with the post
+    // Delete post images
     await deletePostImages(post.images ?? []);
     
-    // Delete the main post
+    // Remove the post from Firestore
     await _firestore.collection('posts').doc(post.id).delete();
     int removedItems = 1;
 
-    // Delete referenced posts
+    // Handle additional posts linked to this post (if any)
     var snapshots = await _firestore
         .collection('posts')
         .where("upPosts", arrayContains: post.id!)
         .get();
-
     for (var document in snapshots.docs) {
       await document.reference.delete();
       removedItems++;
     }
 
-    // Update comment counts if needed
     if (upPosts.isNotEmpty) {
       await plusMinuseCommentsNumber(upPosts, removedItems * -1);
     }
 
-    return removedItems; // Return the count of removed items
+    // Fetch the total number of posts for this project
+    final postsSnapshot = await _firestore
+        .collection('posts')
+        .where('ideaId', isEqualTo: post.ideaId)
+        .get();
+
+    int postCount = postsSnapshot.docs.length;
+
+    // Determine points to deduct based on post count
+    int pointsToDeduct = (postCount == 0) ? 50 : 15;
+
+    // Dispatch PostDeletedEvent
+    gitHubPointsBloc.add(PostDeletedEvent(
+      projectId: post.ideaId!,
+      postPointsToRemove: pointsToDeduct,
+    ));
+
+    return removedItems;
   } catch (e) {
     throw Exception('Failed to delete post: $e');
   }
 }
+
 
 
   // Fetch all collaborators by idea members

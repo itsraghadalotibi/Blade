@@ -75,6 +75,23 @@ class AnnouncementRepository {
     }
   }
 
+  Future<List<Idea>> fetchOngoingIdeas() async {
+    try {
+      final snapshot = await firestore
+          .collection('ideas')
+          .where('status', isEqualTo: 'ongoing') // Filter for status='ongoing'
+          .orderBy('title', descending: true)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Idea.fromMap(data, doc.id);
+      }).toList();
+    } catch (e) {
+      throw Exception('Failed to load ongoing ideas: $e');
+    }
+  }
+
   // Delete an Idea by its ID
   Future<void> deleteIdea(String ideaId) async {
     try {
