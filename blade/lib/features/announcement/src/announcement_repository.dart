@@ -2,6 +2,7 @@ import 'package:blade_app/features/project_info/src/post_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'announcement_model.dart';
 import 'package:rxdart/rxdart.dart';
+import '../../ai_todo/src/ai_todo_repository.dart';
 
 class AnnouncementRepository {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -248,34 +249,49 @@ class AnnouncementRepository {
 
   // Update idea status
   Future<void> updateIdeaStatus(String ideaId, String newStatus) async {
-  try {
-    final ideaRef = firestore.collection('ideas').doc(ideaId);
-    final ideaDoc = await ideaRef.get();
+    try {
+      final ideaRef = firestore.collection('ideas').doc(ideaId);
+      final ideaDoc = await ideaRef.get();
 
-    if (ideaDoc.exists) {
-      final data = ideaDoc.data() as Map<String, dynamic>;
-      final currentStatus = data['status'];
+      if (ideaDoc.exists) {
+        final data = ideaDoc.data() as Map<String, dynamic>;
+        final currentStatus = data['status'];
+        final description = data['description']; // Fetch the description from Firestore
 
-      // Update the status
-      await ideaRef.update({
-        'status': newStatus,
-      });
+        // Update the status
+        await ideaRef.update({
+          'status': newStatus,
+        });
 
-      // If status changed from 'open' to 'ongoing', create the chat room
-      if (currentStatus == 'open' && newStatus == 'ongoing') {
-        final members = List<String>.from(data['members'] ?? []);
+        // If status changed from 'open' to 'ongoing', trigger additional logic
+        if (currentStatus == 'open' && newStatus == 'ongoing') {
+          // Create the chat room
+          final members = List<String>.from(data['members'] ?? []);
+          await _createChatRoomForProject(ideaId, data['title'], members);
 
-        // Create the chat room
-        await _createChatRoomForProject(ideaId, data['title'], members);
+          // Step 2: If the status is changed to "ongoing", generate and save the to-do list
+          try {
+            final aiTodoRepository = AiTodoRepository();
+            final steps = await aiTodoRepository.generateToDoList(ideaId, description);
+
+            // Log steps to console (for debugging)
+            for (var step in steps) {
+              print('Generated ToDo Step: ${step.title}, ${step.description}');
+            }
+          } catch (aiError) {
+            print('Error generating to-do list: $aiError');
+            throw Exception('Failed to generate AI to-do list');
+          }
+        }
+      } else {
+        throw Exception('Idea not found');
       }
-    } else {
-      throw Exception('Idea not found');
+    } catch (e) {
+      print('Error updating idea status: $e');
+      throw Exception('Failed to update idea status');
     }
-  } catch (e) {
-    print('Error updating idea status: $e');
-    throw Exception('Failed to update idea status');
   }
-}
+
 
 // Add this method inside AnnouncementRepository
 Future<void> _createChatRoomForProject(String ideaId, String ideaTitle, List<String> members) async {

@@ -84,21 +84,6 @@ Future<void> _updateProjectStatus() async {
     await widget.repository.updateIdeaStatus(widget.idea.id!, _selectedStatus!);
     print('Project status updated to $_selectedStatus');
 
-    // Step 2: If the status is changed to "ongoing", generate and save the to-do list
-    if (_selectedStatus == 'ongoing') {
-      try {
-        final aiTodoRepository = AiTodoRepository();
-        final steps = await aiTodoRepository.generateToDoList(widget.idea.id!, widget.idea.description);
-
-        // Log steps to console (for debugging)
-        for (var step in steps) {
-          print('Generated ToDo Step: ${step.title}, ${step.description}');
-        }
-      } catch (aiError) {
-        print('Error generating to-do list: $aiError');
-        throw Exception('Failed to generate AI to-do list');
-      }
-    }
 
     // Show success SnackBar
     ScaffoldMessenger.of(context).showSnackBar(
