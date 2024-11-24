@@ -40,7 +40,8 @@ class _SelectProjectScreenState extends State<SelectProjectScreen> {
             return const Center(child: Text("No ongoing projects found"));
           }
 
-          final ideas = snapshot.data!;
+          // Fetch and sort the ideas alphabetically
+          final ideas = snapshot.data!..sort((a, b) => a.title.compareTo(b.title));
 
           return ListView.builder(
             itemCount: ideas.length,
