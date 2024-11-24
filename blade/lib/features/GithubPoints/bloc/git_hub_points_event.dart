@@ -27,3 +27,14 @@ class UpdatePointsEvent extends GitHubPointsEvent {
     required this.newPostPoints,
   });
 }
+
+// Event for when a post is deleted
+class PostDeletedEvent extends GitHubPointsEvent {
+  final String projectId;
+  final int postPointsToRemove;
+
+  PostDeletedEvent({
+    required this.projectId,
+    required this.postPointsToRemove,
+  });
+}

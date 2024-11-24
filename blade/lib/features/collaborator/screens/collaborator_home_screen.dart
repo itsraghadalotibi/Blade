@@ -4,6 +4,7 @@ import 'package:blade_app/features/project_info/screens/posts_tab.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../GithubPoints/bloc/git_hub_points_bloc.dart';
 import '../../authentication/bloc/authentication_bloc.dart';
 import '../../authentication/bloc/authentication_event.dart';
 import '../../authentication/bloc/authentication_state.dart';
@@ -208,6 +209,27 @@ class CollaboratorHomeScreen extends StatelessWidget {
                           color: textColor,
                         ),
                       ),
+                      const SizedBox(width: 5), // Small spacing between text and icon
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to the "How to Earn" page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HowToEarnPage(),
+                            ),
+                          );
+                        },
+                        child: const CircleAvatar(
+                          radius: 12, // Slightly smaller size for subtle design
+                          backgroundColor: Color.fromARGB(255, 214, 79, 70),
+                          child: const Icon(
+                            Icons.priority_high,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -221,7 +243,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
+            ), 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -349,7 +371,11 @@ class CollaboratorHomeScreen extends StatelessWidget {
                   builder: (context, state) {
                     if (state is AuthenticationAuthenticated &&
                         state.user is CollaboratorModel) {
-                      return const PostsTab(fromHome: true);
+                      return  PostsTab(
+                        fromHome: true, 
+                      canSendComment: true,
+                      gitHubPointsBloc: BlocProvider.of<GitHubPointsBloc>(context), 
+                      );
                     } else {
                       return const CircularProgressIndicator();
                     }
