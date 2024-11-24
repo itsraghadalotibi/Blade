@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:timeago_flutter/timeago_flutter.dart' as timeago;
 
+import '../../GithubPoints/bloc/git_hub_points_bloc.dart';
 import '../../announcement/src/announcement_repository.dart';
 
 class PostsTab extends StatefulWidget {
@@ -17,9 +18,19 @@ class PostsTab extends StatefulWidget {
   final bool getBookMarks;
   final bool fromHome;
   final bool scrollable;
+  final GitHubPointsBloc gitHubPointsBloc; 
+    final bool canSendComment;
 
 
-  const PostsTab({super.key, this.idea,this.getBookMarks = false, required this.fromHome, this.scrollable = true});
+
+  const PostsTab({super.key,
+   this.idea,
+   this.getBookMarks = false, 
+   required this.fromHome, 
+   this.scrollable = true,
+   required this.gitHubPointsBloc, 
+   required this.canSendComment
+   });
 
   @override
   State<PostsTab> createState() => _PostsTabState();
@@ -92,7 +103,7 @@ class _PostsTabState extends State<PostsTab> {
                     upPosts: const [],
                     withLine: false,
                     onNaviagte: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>PostComments(upPosts: [post.id!], upPost: post)));
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>PostComments(upPosts: [post.id!], upPost: post,canSendComment: widget.canSendComment,)));
                     },
                     onEditPost: ()async{
                       var res = await Navigator.push(
@@ -110,7 +121,7 @@ class _PostsTabState extends State<PostsTab> {
                         builder: (context){
                           return DeleteDialog(onPressed: ()async{
                             Navigator.pop(context);
-                            await projectIdeaRepository.deletePost(post,[]);
+                           await projectIdeaRepository.deletePost(post, [], widget.gitHubPointsBloc); // Pass the bloc
                             // setState(() {});
                             showSnakbar( icon: Icons.check, color: TColors.success, title: 'Post deleted successfully.');
                           });

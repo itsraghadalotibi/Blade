@@ -5,9 +5,11 @@ import 'package:blade_app/features/announcement/src/announcement_repository.dart
 import 'package:blade_app/features/project_info/screens/project_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../utils/constants/colors.dart';
+import '../../../GithubPoints/bloc/git_hub_points_bloc.dart';
 import '../repository/project_idea_repository.dart';
 import '../widgets/avatar_stack.dart';
 import '../widgets/skill_tag.dart';
@@ -109,10 +111,12 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
           context,
           MaterialPageRoute(
             builder: (_) => ProjectScreen(
+              canSendComment: true,
               canJoin: false,
               idea: widget.idea,
               repository: widget.announcementRepository,
               onJoinRequestSent: null,
+              gitHubPointsBloc: BlocProvider.of<GitHubPointsBloc>(context), 
             ),
           ),
         ).then((_) {
@@ -146,7 +150,7 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
                     children: [
                       Row(
                         children: [
-                          Expanded(
+                          Flexible( // Ensure title doesn't overflow
                             child: Text(
                               widget.idea.title,
                               style: TextStyle(
@@ -154,6 +158,7 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           SizedBox(width: screenWidth * 0.02),
@@ -242,7 +247,7 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
                                 child: LinearProgressIndicator(
-                                  value: widget.idea.points / 500, // Dynamically calculate progress
+                                  value: (widget.idea.points / 500).clamp(0.0, 1.0), // Clamp to prevent overflow
                                   backgroundColor: Colors.grey[200],
                                   color: Colors.greenAccent,
                                   minHeight: 8.0,

@@ -22,23 +22,6 @@ class LeaderboardWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFD5336),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  'Top Projects',
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 16),
           // Podium Section
           _buildPodiumSection(),
@@ -164,7 +147,7 @@ class LeaderboardWidget extends StatelessWidget {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: rank == 1
-                            ? const Color(0xFFFFD700)
+                            ? const Color(0xFFFFC107)
                             : rank == 2
                                 ? const Color(0xFFC0C0C0)
                                 : rank == 3

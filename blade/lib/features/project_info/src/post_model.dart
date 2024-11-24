@@ -34,21 +34,24 @@ class PostModel {
     this.upPosts,
   });
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'uid': FirebaseAuth.instance.currentUser!.uid,
-      'ideaId': idea?.id,
-      // 'title': title,
-      'messgae': messgae,
-      'date': (date ?? DateTime.now()).toString(),
-      'images':images,
-      'upPost':upPost ?? "0",
-      'upPosts':upPosts ?? [],
-      'likes':likes??[],
-      'marks':marks??[],
-      'comments':comments??0
-    };
+Map<String, dynamic> toMap() {
+  if (ideaId == null || ideaId!.isEmpty) {
+    throw Exception('Post idea ID is required.');
   }
+
+  return <String, dynamic>{
+    'uid': FirebaseAuth.instance.currentUser!.uid,
+    'ideaId': ideaId, // Use ideaId directly
+    'messgae': messgae,
+    'date': (date ?? DateTime.now()).toString(),
+    'images': images,
+    'upPost': upPost ?? "0",
+    'upPosts': upPosts ?? [],
+    'likes': likes ?? [],
+    'marks': marks ?? [],
+    'comments': comments ?? 0,
+  };
+}
 
   factory PostModel.fromMap(Map<String, dynamic> map,String documentId) {
     return PostModel(

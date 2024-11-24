@@ -1,4 +1,3 @@
-// HowToEarnPage.dart
 import 'package:flutter/material.dart';
 
 class HowToEarnPage extends StatelessWidget {
@@ -12,43 +11,57 @@ class HowToEarnPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildChallengeTile(
-              points: "15",
-              description: "Boost your contributions by committing your first 10 lines of code!",
-              icon: Icons.bolt,
-              emoji: "🚀",
+            // Exciting Title Section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Expanded(
+                  child: Text(
+                    "Score and Dominate the Leaderboard! ⚡",
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(221, 255, 255, 255),
+                    ),
+                  ),
+                ),
+                Image.asset(
+                  "assets/images/character/5.png",
+                  width: 80, // Adjust as needed
+                  height: 80,
+                  fit: BoxFit.contain,
+                ),
+              ],
             ),
-            _buildChallengeTile(
-              points: "30",
-              description: "Power up your progress by adding 30 lines of code across multiple commits!",
-              icon: Icons.code,
-              emoji: "💥",
-            ),
-            _buildChallengeTile(
-              points: "10",
-              description: "Join the conversation! Earn points every time you comment on a pull request.",
-              icon: Icons.chat_bubble_outline,
-              emoji: "💬",
-            ),
-            _buildChallengeTile(
-              points: "40",
-              description: "Problem solved! Close an issue with a fix and earn big rewards.",
-              icon: Icons.build,
-              emoji: "🛠️",
-            ),
-            _buildChallengeTile(
-              points: "10",
-              description: "Share your journey! Add a new post to a project and watch the XP roll in.",
-              icon: Icons.campaign,
-              emoji: "📢",
-            ),
-            _buildChallengeTile(
-              points: "5",
-              description: "Get social! Earn XP for every reaction your posts receive.",
-              icon: Icons.fireplace,
-              emoji: "🔥",
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildChallengeTile(
+                    points: "50",
+                    description: "Earn big for your first post in any project!",
+                    imagePath: "assets/images/Earn/github-2.png",
+                  ),
+                  _buildChallengeTile(
+                    points: "15",
+                    description: "Keep posting and gain XP for each one after!",
+                    imagePath: "assets/images/Earn/code-branch.png",
+                  ),
+                  _buildChallengeTile(
+                    points: "50",
+                    description: "Commit your first 10 changes and earn big!",
+                    imagePath: "assets/images/Earn/rocket.png",
+                  ),
+                  _buildChallengeTile(
+                    points: "15",
+                    description: "Earn for every 5 additional commits you make!",
+                    imagePath: "assets/images/Earn/letter.png",
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -56,7 +69,11 @@ class HowToEarnPage extends StatelessWidget {
     );
   }
 
-  Widget _buildChallengeTile({required String points, required String description, required IconData icon, required String emoji}) {
+  Widget _buildChallengeTile({
+    required String points,
+    required String description,
+    required String imagePath,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Container(
@@ -75,13 +92,11 @@ class HowToEarnPage extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.grey[200],
-              child: Text(
-                emoji,
-                style: const TextStyle(fontSize: 24),
-              ),
+            Image.asset(
+              imagePath,
+              width: 48, // Adjust image size
+              height: 48,
+              fit: BoxFit.contain,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -91,13 +106,13 @@ class HowToEarnPage extends StatelessWidget {
                   Row(
                     children: [
                       const Icon(
-                        Icons.star, // Star icon
-                        color: Colors.amber, // Set color to yellow/gold for the star
-                        size: 20, // Adjust size as needed
+                        Icons.star,
+                        color: Colors.amber,
+                        size: 20,
                       ),
-                      const SizedBox(width: 4), // Space between icon and text
+                      const SizedBox(width: 4),
                       Text(
-                        "$points point",
+                        "$points points",
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
