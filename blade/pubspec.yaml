@@ -55,6 +55,7 @@ dependencies:
   photo_view: ^0.15.0
   # firebase_messaging: 
   googleapis_auth: ^1.6.0
+  pie_chart: ^5.4.0
 
 dev_dependencies:
   flutter_test:

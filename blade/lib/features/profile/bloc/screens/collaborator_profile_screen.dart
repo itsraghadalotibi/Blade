@@ -182,7 +182,7 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
 
           Navigator.pushNamedAndRemoveUntil(
             context,
-            '/',
+            '/welcome',
             (Route<dynamic> route) => false,
           );
         }

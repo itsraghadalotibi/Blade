@@ -43,6 +43,19 @@ class InvestmentRequestRepository {
             InvestmentRequestModel.fromMap(doc.data() as Map<String, dynamic>))
         .toList();
   }
+  Future<List<InvestmentRequestModel>> getInvestmentRequestsBySupporterForProject(
+    String supporterId, String projectId) async {
+  final querySnapshot = await _investmentRequests
+      .where('supporterId', isEqualTo: supporterId)
+      .where('projectId', isEqualTo: projectId)
+      .orderBy('createdAt', descending: true)
+      .get();
+
+  return querySnapshot.docs
+      .map((doc) =>
+          InvestmentRequestModel.fromMap(doc.data() as Map<String, dynamic>))
+      .toList();
+}
   Future<void> cancelInvestmentRequest(String requestId) async {
     await _investmentRequests.doc(requestId).update({'status': 'Cancelled'});
   }

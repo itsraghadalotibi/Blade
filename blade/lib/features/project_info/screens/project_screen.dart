@@ -15,6 +15,7 @@ import '../../investment_request/bloc/investment_request_bloc.dart';
 import '../../investment_request/bloc/investment_request_event.dart';
 import '../../investment_request/screens/investment_request_form.dart';
 import '../../investment_request/screens/invsetment_request_list.dart';
+import '../../investment_request/src/investment_request_model.dart';
 import '../bloc/project_bloc.dart';
 import '../bloc/project_event.dart';
 import '../bloc/project_state.dart';
@@ -56,7 +57,13 @@ class _ProjectScreenState extends State<ProjectScreen> {
   String? currentUserId;
   String? userType;
   int pendingRequestsCount = 0;
+  bool _isInvestmentRequestPending = false;
+  String _investmentButtonText = 'Invest';
   StreamSubscription<QuerySnapshot>? _pendingRequestsSubscription;
+  InvestmentRequestModel? _existingInvestmentRequest;
+  List<InvestmentRequestModel> _investmentRequests = [];
+  Map<String, int> _statusCounts = {};
+  int _numPreviousRequests = 0;
 
   @override
   void initState() {
@@ -65,6 +72,7 @@ class _ProjectScreenState extends State<ProjectScreen> {
     if (currentUserId != null) {
       _fetchUserType();
       _subscribeToPendingRequests();
+      _checkInvestmentRequestStatus();
     }
     _checkJoinRequestStatus();
   }
@@ -130,6 +138,69 @@ class _ProjectScreenState extends State<ProjectScreen> {
     }
   }
 
+  void _showPreviousRequestsDialog() {
+    // First, count the number of requests per status excluding 'Pending'
+    Map<String, int> statusCounts = {};
+    for (var req in _investmentRequests) {
+      if (req.status != 'Pending') {
+        statusCounts[req.status] = (statusCounts[req.status] ?? 0) + 1;
+      }
+    }
+
+    // Check if there are any requests to display
+    if (statusCounts.isEmpty) {
+      // If there are no previous requests (excluding 'Pending'), show a message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No previous requests to display.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Your Previous Investment Requests'),
+          content: Container(
+            // Adjust the height based on the number of statuses
+            height: statusCounts.length * 60.0, // Adjust as needed
+            width: double.maxFinite,
+            child: ListView(
+              shrinkWrap: true,
+              children: statusCounts.entries.map((entry) {
+                String status = entry.key;
+                int count = entry.value;
+                Color color = _getReqStatusColor(status);
+
+                return ListTile(
+                  leading: Icon(Icons.circle, color: color),
+                  title: Text(
+                    status,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  trailing: Text(
+                    count.toString(),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // Getter for dynamic button background color
   Color get _buttonBackgroundColor {
     if (_isRequestPending) {
@@ -191,18 +262,6 @@ class _ProjectScreenState extends State<ProjectScreen> {
         _isRequestPending = false;
       });
     }
-  }
-
-  void _handleSendInvestment() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => InvestmentRequestFormScreen(
-          projectId: widget.idea.id!,
-          projectTitle: widget.idea.title,
-        ),
-      ),
-    );
   }
 
   // Function to cancel a join request.
@@ -294,6 +353,132 @@ class _ProjectScreenState extends State<ProjectScreen> {
         _isMember = false;
         _buttonText = 'Join';
       });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  // Check the investment request status
+  Future<void> _checkInvestmentRequestStatus() async {
+    if (currentUserId == null) return;
+    final String userId = currentUserId!;
+    final String projectId = widget.idea.id!;
+
+    final investmentRequests = await InvestmentRequestRepository()
+        .getInvestmentRequestsBySupporterForProject(userId, projectId);
+
+    if (investmentRequests.isNotEmpty) {
+      // Sort requests by creation date
+      investmentRequests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _existingInvestmentRequest = investmentRequests.first;
+      _investmentRequests = investmentRequests;
+
+      if (_existingInvestmentRequest!.status == 'Pending') {
+        _isInvestmentRequestPending = true;
+        _investmentButtonText = 'Pending';
+      } else {
+        _isInvestmentRequestPending = false;
+        _investmentButtonText = 'Invest';
+      }
+      // Calculate number of previous requests excluding 'Pending'
+      int previousRequestsCount =
+          _investmentRequests.where((req) => req.status != 'Pending').length;
+
+      setState(() {
+        // ... existing setState code ...
+        _numPreviousRequests = previousRequestsCount;
+      });
+
+      // Count the number of requests per status
+      Map<String, int> counts = {};
+      for (var req in _investmentRequests) {
+        counts[req.status] = (counts[req.status] ?? 0) + 1;
+      }
+      setState(() {
+        _statusCounts = counts;
+      });
+    } else {
+      _investmentButtonText = 'Invest';
+      _investmentRequests = [];
+      _statusCounts = {}; // Clear the counts
+      setState(() {});
+    }
+  }
+
+  void _handleSendInvestment() {
+    if (_isInvestmentRequestPending) {
+      // Should not happen, but just in case
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'You already have a pending investment request for this project.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => InvestmentRequestFormScreen(
+          projectId: widget.idea.id!,
+          projectTitle: widget.idea.title,
+        ),
+      ),
+    ).then((_) {
+      // After returning from the InvestmentRequestFormScreen, refresh the investment request status
+      _checkInvestmentRequestStatus();
+    });
+  }
+
+  void _confirmCancelInvestmentRequest() {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text("Cancel Investment Request"),
+          content: const Text(
+              "Are you sure you want to cancel your investment request?"),
+          actions: [
+            OutlinedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text("No"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _cancelInvestmentRequest();
+              },
+              child: const Text("Yes"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _cancelInvestmentRequest() async {
+    if (_existingInvestmentRequest == null) return;
+
+    try {
+      await InvestmentRequestRepository()
+          .cancelInvestmentRequest(_existingInvestmentRequest!.id);
+      setState(() {
+        _isInvestmentRequestPending = false;
+        _investmentButtonText = 'Invest';
+        _existingInvestmentRequest!.status = 'Cancelled';
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Investment request cancelled.'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -561,23 +746,51 @@ class _ProjectScreenState extends State<ProjectScreen> {
                       Center(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: TColors.primary,
+                            backgroundColor: _isInvestmentRequestPending
+                                ? Colors.amber[800]
+                                : TColors.primary,
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 36, vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: _handleSendInvestment,
-                          child: const Text(
-                            'Invest',
-                            style: TextStyle(
+                          onPressed: () {
+                            if (_isInvestmentRequestPending) {
+                              _confirmCancelInvestmentRequest();
+                            } else {
+                              _handleSendInvestment();
+                            }
+                          },
+                          child: Text(
+                            _investmentButtonText,
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      if (_numPreviousRequests > 0) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Center(
+                            child: InkWell(
+                              onTap: _showPreviousRequestsDialog,
+                              child:  Text(
+                                '$_numPreviousRequests previous requests',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.blue[300],
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                     const SizedBox(height: 16),
                     SizedBox(
@@ -664,6 +877,23 @@ class _ProjectScreenState extends State<ProjectScreen> {
         return Colors.grey[600]!;
       default:
         return Colors.black;
+    }
+  }
+
+  Color _getReqStatusColor(String status) {
+    switch (status) {
+      case 'Accepted':
+        return Colors.green;
+      case 'Pending':
+        return Colors.amber[800]!;
+      case 'Rejected':
+        return Colors.red;
+      case 'Cancelled':
+        return Colors.blue;
+      case 'Expired':
+        return Colors.grey[600]!;
+      default:
+        return Colors.purple;
     }
   }
 }
