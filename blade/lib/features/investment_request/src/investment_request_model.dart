@@ -10,7 +10,7 @@ class InvestmentRequestModel {
   final DateTime createdAt;
   final DateTime validUntil;
   final String? iconPath;
-  final String status;
+  late String status;
   final String reasonForRejection; // New field
 
   InvestmentRequestModel({

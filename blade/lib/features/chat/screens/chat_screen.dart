@@ -200,14 +200,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   String _formatDateSeparator(DateTime date) {
     final now = DateTime.now();
-    final difference = now.difference(date).inDays;
+    final today = DateTime(now.year, now.month, now.day);
+    final messageDate = DateTime(date.year, date.month, date.day);
+    final difference = today.difference(messageDate).inDays;
 
     if (difference == 0) {
       return 'Today';
     } else if (difference == 1) {
       return 'Yesterday';
     } else {
-      return DateFormat('EEE, MMM d, yyyy').format(date);
+      return DateFormat('EEE, MMM d, yyyy').format(messageDate);
     }
   }
 

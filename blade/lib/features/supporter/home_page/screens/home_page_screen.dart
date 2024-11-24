@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _searchController,
               style: TextStyle(fontSize: 16),
               decoration: InputDecoration(
-                hintText: 'Search by name',
+                hintText: 'Search by project or collaborator',
                 hintStyle: TextStyle(
                   color: isDarkMode ? Colors.white70 : Color(0xFF8D8DA6),
                   fontSize: 16,
@@ -321,15 +321,15 @@ Widget _buildSearchResults(HomeLoaded state) {
               ),
             ],
           ),
-          Container(
-            width: 70,
-            height: 70,
-            alignment: Alignment.center,
-            child: IconButton(
-              icon: Icon(Icons.logout, size: 24, color: isDarkMode ? Colors.white70 : Colors.grey[600]),
-              onPressed: () => _showLogoutConfirmation(context),
-            ),
-          ),
+          // Container(
+          //   width: 70,
+          //   height: 70,
+          //   alignment: Alignment.center,
+          //   child: IconButton(
+          //     icon: Icon(Icons.logout, size: 24, color: isDarkMode ? Colors.white70 : Colors.grey[600]),
+          //     onPressed: () => _showLogoutConfirmation(context),
+          //   ),
+          // ),
         ],
       ),
     );

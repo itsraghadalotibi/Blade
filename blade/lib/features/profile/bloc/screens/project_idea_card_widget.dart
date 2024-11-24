@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:blade_app/features/announcement/src/announcement_model.dart';
 import 'package:blade_app/features/announcement/src/announcement_repository.dart';
 import 'package:blade_app/features/project_info/screens/project_screen.dart';
@@ -37,20 +39,23 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
   bool isExpanded = false;
   bool isLoading = true;
   String? fetchedRepoUrl;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _pointsSubscription;
 
   @override
   void initState() {
     super.initState();
     _fetchRepoUrlIfNeeded();
-    _listenToPointsUpdates(); // Start listening to Firestore updates
+    _listenToPointsUpdates();
+    _listenToPointsUpdates();
   }
 
   void _listenToPointsUpdates() {
-    FirebaseFirestore.instance
+    _pointsSubscription = FirebaseFirestore.instance
         .collection('ideas')
         .doc(widget.idea.id)
         .snapshots()
         .listen((snapshot) {
+      if (!mounted) return; // Check if widget is still mounted
       if (snapshot.exists && snapshot.data() != null) {
         setState(() {
           widget.idea.points = snapshot.data()!['points'] ?? 0; // Update points dynamically
@@ -81,6 +86,12 @@ class _ProjectIdeaCardWidgetState extends State<ProjectIdeaCardWidget> {
         isLoading = false;
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _pointsSubscription?.cancel(); // Cancel the subscription
+    super.dispose();
   }
 
   @override

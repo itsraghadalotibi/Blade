@@ -138,6 +138,7 @@ class OffersTab extends StatelessWidget {
                                               ),
                                             ),
                                             const SizedBox(height: 4),
+                                            if(request.status == 'Pending')
                                             Text(
                                               'Valid until: ${request.validUntil.toLocal().toString().split(' ')[0]}',
                                               style: TextStyle(

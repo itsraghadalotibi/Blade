@@ -180,13 +180,15 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
             ),
           );
 
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            '/',
-            (Route<dynamic> route) => false,
-          );
+    // Edited: Explicit navigation to the 'welcome' route
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/welcome', // Ensure this route exists in your MaterialApp
+        (Route<dynamic> route) => false, // Remove all previous routes
+         );
         }
       },
+      
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
@@ -601,54 +603,54 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
   }
 
   // Method for showing logout confirmation dialog
-  void _showLogoutConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text(
-            "Logout Confirmation",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
+void _showLogoutConfirmation(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: const Text(
+          "Logout Confirmation",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: const Text(
+          "Are you sure you want to log out from Blade?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop(); // Close the dialog
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+            ),
+            child: const Text("Cancel"),
+          ),
+          const SizedBox(width: 2),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop(); // Close the dialog
+              _onLogoutButtonPressed(context); // Perform logout
+            },
+            style: TextButton.styleFrom(
+              backgroundColor:
+                  Theme.of(context).colorScheme.error, // Red background
+            ),
+            child: Text(
+              "Logout",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onError, // White text
+              ),
             ),
           ),
-          content: const Text(
-            "Are you sure you want to log out from Blade?",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close the dialog
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              ),
-              child: const Text("Cancel"),
-            ),
-            const SizedBox(width: 2),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close the dialog
-                _onLogoutButtonPressed(context); // Perform logout
-              },
-              style: TextButton.styleFrom(
-                backgroundColor:
-                    Theme.of(context).colorScheme.error, // Red background
-              ),
-              child: Text(
-                "Logout",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onError, // White text
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+        ],
+      );
+    },
+  );
+}
 
 // Logout button action
   void _onLogoutButtonPressed(BuildContext context) {
