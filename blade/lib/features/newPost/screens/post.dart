@@ -296,38 +296,64 @@ class _PostState extends State<Post> {
     return BlocProvider(
       create: (context) => PostBloc(announcementRepository: _ideaRepository),
       child: WillPopScope(
-        onWillPop: () async {
-          final shouldPop = await showDialog<bool>(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text("Confirm Exit"),
-                content: const Text("Are you sure you want to leave without saving your idea?"),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(false); // Dismiss the dialog
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.grey, // Neutral color for Cancel
-                    ),
-                    child: const Text("Cancel"),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(true); // Allow pop
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red, // Destructive color for Leave
-                    ),
-                    child: const Text("Leave"),
-                  ),
-                ],
-              );
+onWillPop: () async {
+  final shouldPop = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: Colors.grey[50], // Near-white background
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        titlePadding: const EdgeInsets.all(16.0),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        title: const Text(
+          "Discard Changes",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        content: const Text(
+          "Are you sure you want to leave without saving your idea? Any unsaved changes will be lost.",
+          style: TextStyle(fontSize: 14, color: Colors.black54),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(false); // Dismiss the dialog
             },
-          );
-          return shouldPop ?? false; // Return false if dialog is dismissed
-        },
+            style: TextButton.styleFrom(
+              // backgroundColor: Colors.grey[200], // Silver background
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            ),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(true); // Allow pop
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: Color(0xFFFD5336), // Orange background for Discard
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            ),
+            child: Text(
+              "Discard",
+              style: TextStyle(color: Colors.grey[200], fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+  return shouldPop ?? false; // Return false if dialog is dismissed
+},
+
         child: Scaffold(
           body: Padding(
             padding: const EdgeInsets.all(10),

@@ -79,7 +79,7 @@ class HowToEarnPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12.0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color.fromARGB(255, 212, 210, 210),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
