@@ -12,6 +12,7 @@ import '../../chat/screens/chat_list_screen.dart';
 import '../../announcement/src/announcement_repository.dart';
 import 'screens/HowToEarnPage.dart';
 import 'screens/Leaderboard.dart';
+import '../../ai_todo/screens/select_project_screen.dart';
 
 class CollaboratorHomeScreen extends StatelessWidget {
   const CollaboratorHomeScreen({super.key});
@@ -278,7 +279,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const HowToEarnPage(),
+                            builder: (context) => const SelectProjectScreen(),
                           ),
                         );
                       },
@@ -286,7 +287,7 @@ class CollaboratorHomeScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(20.0),
                         margin: const EdgeInsets.only(left: 10.0),
                         decoration: BoxDecoration(
-                          color: backgroundColor,
+                          color: Colors.blue,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
@@ -299,14 +300,14 @@ class CollaboratorHomeScreen extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.assistant, color: Colors.blue),
+                            Icon(Icons.assistant, color: Colors.white),
                             const SizedBox(width: 8),
-                            Text(
+                            const Text(
                               "Blueprint AI",
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: textColor,
+                                color: Colors.white,
                               ),
                             ),
                           ],
