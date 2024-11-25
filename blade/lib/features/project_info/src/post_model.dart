@@ -35,10 +35,6 @@ class PostModel {
   });
 
 Map<String, dynamic> toMap() {
-  if (ideaId == null || ideaId!.isEmpty) {
-    throw Exception('Post idea ID is required.');
-  }
-
   return <String, dynamic>{
     'uid': FirebaseAuth.instance.currentUser!.uid,
     'ideaId': ideaId, // Use ideaId directly
