@@ -256,7 +256,6 @@ class AnnouncementRepository {
       if (ideaDoc.exists) {
         final data = ideaDoc.data() as Map<String, dynamic>;
         final currentStatus = data['status'];
-        final description = data['description']; // Fetch the description from Firestore
 
         // Update the status
         await ideaRef.update({
@@ -269,19 +268,6 @@ class AnnouncementRepository {
           final members = List<String>.from(data['members'] ?? []);
           await _createChatRoomForProject(ideaId, data['title'], members);
 
-          // Step 2: If the status is changed to "ongoing", generate and save the to-do list
-          try {
-            final aiTodoRepository = AiTodoRepository();
-            final steps = await aiTodoRepository.generateToDoList(ideaId, description);
-
-            // Log steps to console (for debugging)
-            for (var step in steps) {
-              print('Generated ToDo Step: ${step.title}, ${step.description}');
-            }
-          } catch (aiError) {
-            print('Error generating to-do list: $aiError');
-            throw Exception('Failed to generate AI to-do list');
-          }
         }
       } else {
         throw Exception('Idea not found');

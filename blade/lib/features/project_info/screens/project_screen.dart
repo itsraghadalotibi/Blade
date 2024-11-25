@@ -25,7 +25,7 @@ import 'members_tab.dart';
 import 'project_settings_screen.dart';
 import 'dollar.dart'; // Import the DollarIcon class
 import 'package:url_launcher/url_launcher.dart';
-
+import '../../ai_todo/src/ai_todo_repository.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ProjectScreen extends StatefulWidget {
@@ -854,9 +854,25 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                                 idea.maxMembers;
                                         if (isFull) {
                                           idea.status = "ongoing";
-                                          widget.repository.updateIdeaStatus(
-                                              idea.id!, 'ongoing');
+                                          widget.repository.updateIdeaStatus(idea.id!, 'ongoing');
+                                          
+                                          // Trigger AI-generated to-do list when the project becomes ongoing
+                                          try {
+                                            final aiTodoRepository = AiTodoRepository();
+                                            aiTodoRepository.generateToDoList(idea.id!, idea.description).then((steps) {
+                                              // Log the generated steps (optional for debugging)
+                                              for (var step in steps) {
+                                                print('Generated ToDo Step: ${step.title}, ${step.description}');
+                                              }
+                                            }).catchError((aiError) {
+                                              print('Error generating to-do list: $aiError');
+                                              // Handle AI generation errors (e.g., log or show a notification)
+                                            });
+                                          } catch (e) {
+                                            print('Error triggering AI to-do list generation: $e');
+                                          }
                                         }
+
                                         setState(() {});
                                       },
                                     ),

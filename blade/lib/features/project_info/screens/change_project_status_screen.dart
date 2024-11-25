@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../ai_todo/src/ai_todo_repository.dart';
@@ -72,77 +71,88 @@ class _ChangeProjectStatusScreenState extends State<ChangeProjectStatusScreen> {
     }
   }
 
-
-Future<void> _updateProjectStatus() async {
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
-
-  try {
-    // Step 1: Update the project status in Firestore
-    await widget.repository.updateIdeaStatus(widget.idea.id!, _selectedStatus!);
-    print('Project status updated to $_selectedStatus');
-
-
-    // Show success SnackBar
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        content: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Icon(Icons.check_circle, color: Colors.white),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Project status changed successfully!',
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-          ],
-        ),
-        duration: Duration(seconds: 2),
-      ),
-    );
-
-    Navigator.pop(context, true); // Navigate back and indicate success
-  } catch (e) {
-    // Step 3: Handle errors for both status update and AI generation
-    print('Error updating project status or generating AI list: $e');
+  Future<void> _updateProjectStatus() async {
     setState(() {
-      _errorMessage = 'Failed to update project status. Please try again.';
+      _isLoading = true;
+      _errorMessage = null;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        content: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Icon(Icons.error, color: Colors.white),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Failed to update project status. Please try again.',
-                style: TextStyle(fontSize: 16),
+
+    try {
+      // Step 1: Update the project status in Firestore
+      await widget.repository.updateIdeaStatus(widget.idea.id!, _selectedStatus!);
+      print('Project status updated to $_selectedStatus');
+
+      // Step 2: If the status is changed to "ongoing", generate and save the to-do list
+      if (_selectedStatus == 'ongoing') {
+        try {
+          final aiTodoRepository = AiTodoRepository();
+          final steps = await aiTodoRepository.generateToDoList(widget.idea.id!, widget.idea.description);
+
+          // Log steps to console (for debugging)
+          for (var step in steps) {
+            print('Generated ToDo Step: ${step.title}, ${step.description}');
+          }
+        } catch (aiError) {
+          print('Error generating to-do list: $aiError');
+          throw Exception('Failed to generate AI to-do list');
+        }
+      }
+
+      // Show success SnackBar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Project status changed successfully!',
+                  style: TextStyle(fontSize: 16),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
+          duration: Duration(seconds: 2),
         ),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
+      );
+
+      Navigator.pop(context, true); // Navigate back and indicate success
+    } catch (e) {
+      // Step 3: Handle errors for both status update and AI generation
+      print('Error updating project status or generating AI list: $e');
+      setState(() {
+        _errorMessage = 'Failed to update project status. Please try again.';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Icon(Icons.error, color: Colors.white),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Failed to update project status. Please try again.',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-}
-
-
-
 
   @override
   Widget build(BuildContext context) {

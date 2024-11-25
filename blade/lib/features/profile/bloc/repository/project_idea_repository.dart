@@ -15,24 +15,27 @@ import '../src/collaborator_profile_model.dart';
 class ProjectIdeaRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
-    Future<List<Idea>> fetchOngoingIdeas() async {
-    try {
-      // Fetch all projects with the "ongoing" status
-      final projectSnapshot = await _firestore
-          .collection('ideas')
-          .where('status', isEqualTo: 'ongoing')
+Future<List<Idea>> fetchOngoingIdeas(String userId) async {
+  try {
+    // Fetch all projects with the "ongoing" status where the logged-in user is the owner
+    final projectSnapshot = await _firestore
+        .collection('ideas')
+        .where('status', isEqualTo: 'ongoing')
+          .where('members',
+              arrayContains: userId) // Check if the user is in the members list
           .get();
 
-      // Map the Firestore documents to a list of `Idea` objects
-      return projectSnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return Idea.fromMap(data, doc.id);
-      }).toList();
-    } catch (e) {
-      print("Error fetching ongoing ideas: $e");
-      return [];
-    }
+    // Map the Firestore documents to a list of `Idea` objects
+    return projectSnapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return Idea.fromMap(data, doc.id);
+    }).toList();
+  } catch (e) {
+    print("Error fetching ongoing ideas: $e");
+    return [];
   }
+}
+
 
   Future<void> logLikesForOngoingProjects() async {
     try {
