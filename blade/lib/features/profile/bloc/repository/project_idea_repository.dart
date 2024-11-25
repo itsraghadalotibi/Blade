@@ -212,7 +212,7 @@ Future<void> sendNewPost(
     post.images?.addAll((await uploadPostImages(imageFiles)));
 
     // Add post to Firestore
-    await _firestore.collection('posts').add(post.toMap());
+    await _firestore.collection('posts').add(post.toMap(true));
 
     // Dispatch the event to update points
     gitHubPointsBloc.add(NewPostCreatedEvent(post.ideaId!));
@@ -234,7 +234,7 @@ Future<void> sendNewPost(
       await deletePostImages(deletedImages);
       post.images ??= [];
       post.images?.addAll((await uploadPostImages(imageFiles)));
-      await _firestore.collection('posts').doc(post.id).update(post.toMap());
+      await _firestore.collection('posts').doc(post.id).update(post.toMap(false));
     } catch (e) {
       throw Exception('Failed to update post: $e');
     }

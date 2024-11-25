@@ -34,12 +34,14 @@ class PostModel {
     this.upPosts,
   });
 
-Map<String, dynamic> toMap() {
+Map<String, dynamic> toMap(bool forUpdate) {
   return <String, dynamic>{
     'uid': FirebaseAuth.instance.currentUser!.uid,
-    'ideaId': ideaId, // Use ideaId directly
     'messgae': messgae,
-    'date': (date ?? DateTime.now()).toString(),
+    if(!forUpdate)...{
+      'ideaId': ideaId, // Use ideaId directly
+      'date': (date ?? DateTime.now()).toString(),
+    },
     'images': images,
     'upPost': upPost ?? "0",
     'upPosts': upPosts ?? [],
