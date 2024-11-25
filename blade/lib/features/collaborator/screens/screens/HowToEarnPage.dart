@@ -5,6 +5,9 @@ class HowToEarnPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDarkMode ? Colors.white : Colors.black87;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("How to Earn"),
@@ -18,13 +21,13 @@ class HowToEarnPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
                     "Score and Dominate the Leaderboard! ⚡",
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(221, 255, 255, 255),
+                      color: textColor,
                     ),
                   ),
                 ),
