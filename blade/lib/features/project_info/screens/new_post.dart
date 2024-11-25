@@ -153,7 +153,7 @@ class _NewPostState extends State<NewPost> {
       onWillPop: _onWillPop,
       child: Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: true, // Ensure back button is added
+          automaticallyImplyLeading: false, // Ensure back button is added
           title: const Text("Post"),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
