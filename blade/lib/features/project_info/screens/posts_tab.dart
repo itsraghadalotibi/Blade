@@ -285,9 +285,19 @@ class MyCustomMessages implements timeago.LookupMessages {
     return '${minutes}m';
   }
   @override String hours(int hours) => '${hours}h';
-  @override String aDay(int hours) => '${hours}h';
+  @override String aDay(int hours) {
+    if(hours >= 24) {
+      return '${hours ~/ 24}d';
+    }
+    return '${hours}h';
+  }
   @override String days(int days) => '${days}d';
-  @override String aboutAMonth(int days) => '${days}d';
+  @override String aboutAMonth(int days) {
+    if(days >= 30) {
+      return '${days ~/ 30}mo';
+    }
+    return '${days}d';
+  }
   @override String months(int months) => '${months}mo';
   @override String aboutAYear(int year) => '${year}y';
   @override String years(int years) => '${years}y';

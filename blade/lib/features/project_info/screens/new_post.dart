@@ -53,20 +53,16 @@ class _NewPostState extends State<NewPost> {
 
   String? validateTitle(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Please enter a post title';
+      return 'Please enter a post description';
+    }
+    if (value.trim().length < 20) {
+      return 'Please enter at least 20 characters';
     }
     return null;
   }
 
   Future<void> submitPost() async {
     if (!formKey.currentState!.validate()) return;
-
-    if (selectedIdea == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a project")),
-      );
-      return;
-    }
 
     setState(() {
       isSubmitting = true;
@@ -125,7 +121,7 @@ class _NewPostState extends State<NewPost> {
           builder: (context) => AlertDialog(
             title: const Text('Discard Changes?'),
             content:
-                const Text('Are you sure you want to discard your changes?'),
+                Text('Are you sure you want to leave without ${selectedIdea == null ? "editing":"saving"} the post?'),
             actions: <Widget>[
               OutlinedButton(
                 style: ElevatedButton.styleFrom(
@@ -143,7 +139,7 @@ class _NewPostState extends State<NewPost> {
                       horizontal: 12.0, vertical: 12.0),
                 ),
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Discard'),
+                child: const Text('Yes'),
               ),
             ],
           ),
