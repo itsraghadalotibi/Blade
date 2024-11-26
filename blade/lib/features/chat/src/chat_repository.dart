@@ -11,6 +11,7 @@ class ChatRepository {
     final querySnapshot = await firestore
         .collection('chatRooms')
         .where('members', arrayContains: userId)
+        .orderBy('lastMessageTime', descending: true)
         .get();
 
     return querySnapshot.docs
@@ -21,6 +22,7 @@ class ChatRepository {
     return firestore
         .collection('chatRooms')
         .where('members', arrayContains: userId)
+        .orderBy('lastMessageTime', descending: true)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
               return ChatRoom.fromFirestore(doc.data(), doc.id);
