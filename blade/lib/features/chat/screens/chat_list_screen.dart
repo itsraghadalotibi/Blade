@@ -52,23 +52,16 @@ class ChatListScreen extends StatelessWidget {
                   // Format the time
                   String timeString = '';
                   if (chatRoom.lastMessageTime != null) {
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final lastMsgDate = chatRoom.lastMessageTime!;
-  final messageDate = DateTime(lastMsgDate.year, lastMsgDate.month, lastMsgDate.day);
-  final differenceInDays = today.difference(messageDate).inDays;
-  
-  if (differenceInDays == 0) {
-    // Same day, show time
-    timeString = DateFormat('HH:mm').format(lastMsgDate);
-  } else if (differenceInDays == 1) {
-    // Yesterday
-    timeString = 'Yesterday';
-  } else {
-    // Older messages, show date
-    timeString = DateFormat('MMM d').format(lastMsgDate);
-  }
-}
+                    final now = DateTime.now();
+                    final lastMsgDate = chatRoom.lastMessageTime!;
+                    if (now.difference(lastMsgDate).inDays == 0) {
+                      // Same day, show time
+                      timeString = DateFormat('HH:mm').format(lastMsgDate);
+                    } else {
+                      // Different day, show date
+                      timeString = DateFormat('MMM d').format(lastMsgDate);
+                    }
+                  }
 
                   return ListTile(
                     leading: CircleAvatar(

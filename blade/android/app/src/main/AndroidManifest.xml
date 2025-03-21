@@ -24,11 +24,17 @@
 
             <!-- Intent filter to handle custom URL scheme for GitHub OAuth -->
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="app-1-284932571171-ios-f223f753002d3a42883196" />
-            </intent-filter>
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+
+    <!-- The scheme and host must match your redirectUri: "com.example.blade://callback" -->
+    <data
+        android:scheme="com.example.blade"
+        android:host="callback"
+        android:pathPrefix=""
+    />
+</intent-filter>
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

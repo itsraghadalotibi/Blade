@@ -852,24 +852,26 @@ class _ProjectScreenState extends State<ProjectScreen> {
                                         final bool isFull =
                                             (idea.members.length) >=
                                                 idea.maxMembers;
-  if (isFull) {
-    idea.status = "ongoing";
-    widget.repository.updateIdeaStatus(idea.id!, 'ongoing').then((_) {
-      final aiTodoRepository = AiTodoRepository();
-      aiTodoRepository
-          .generateToDoList(idea.id!, idea.description)
-          .then((steps) {
-        // Log the generated steps (optional for debugging)
-        for (var step in steps) {
-          print('Generated ToDo Step: ${step.title}, ${step.description}');
-        }
-      }).catchError((aiError) {
-        print('Error generating to-do list: $aiError');
-      });
-          }).catchError((error) {
-      print('Error updating idea status: $error');
-    });
-  }
+                                        if (isFull) {
+                                          idea.status = "ongoing";
+                                          widget.repository.updateIdeaStatus(idea.id!, 'ongoing');
+                                          
+                                          // Trigger AI-generated to-do list when the project becomes ongoing
+                                          try {
+                                            final aiTodoRepository = AiTodoRepository();
+                                            aiTodoRepository.generateToDoList(idea.id!, idea.description).then((steps) {
+                                              // Log the generated steps (optional for debugging)
+                                              for (var step in steps) {
+                                                print('Generated ToDo Step: ${step.title}, ${step.description}');
+                                              }
+                                            }).catchError((aiError) {
+                                              print('Error generating to-do list: $aiError');
+                                              // Handle AI generation errors (e.g., log or show a notification)
+                                            });
+                                          } catch (e) {
+                                            print('Error triggering AI to-do list generation: $e');
+                                          }
+                                        }
 
                                         setState(() {});
                                       },

@@ -514,29 +514,29 @@ class _EditProjectScreenState extends State<EditProjectScreen> {
                   ],
                 ),
                 const SizedBox(height: 24.0),
-                // SizedBox(
-                //   width: double.infinity,
-                //   child: OutlinedButton(
-                //     onPressed: _deleteProject,
-                //     style: OutlinedButton.styleFrom(
-                //       foregroundColor: Colors.red,
-                //       side: const BorderSide(color: Colors.red),
-                //       padding: const EdgeInsets.symmetric(
-                //           horizontal: 24.0, vertical: 18.0),
-                //     ),
-                //     child: const Row(
-                //       mainAxisAlignment: MainAxisAlignment.center, // Centers the content
-                //       children: [
-                //         Icon(
-                //           Icons.delete, // You can choose a different icon if preferred
-                //           color: Colors.red, // Ensures the icon matches the text color
-                //         ),
-                //         SizedBox(width: 8.0), // Provides space between icon and text
-                //         Text('Delete Project'),
-                //       ],
-                //     ),
-                //   ),
-                // ),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: _deleteProject,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 18.0),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center, // Centers the content
+                      children: [
+                        Icon(
+                          Icons.delete, // You can choose a different icon if preferred
+                          color: Colors.red, // Ensures the icon matches the text color
+                        ),
+                        SizedBox(width: 8.0), // Provides space between icon and text
+                        Text('Delete Project'),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

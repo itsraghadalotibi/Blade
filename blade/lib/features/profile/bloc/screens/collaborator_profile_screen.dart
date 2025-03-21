@@ -181,11 +181,13 @@ class _CollaboratorProfileScreenState extends State<CollaboratorProfileScreen>
           );
 
     // Edited: Explicit navigation to the 'welcome' route
+      Future.delayed(const Duration(milliseconds: 500), () {
       Navigator.pushNamedAndRemoveUntil(
         context,
-        '/welcome', // Ensure this route exists in your MaterialApp
-        (Route<dynamic> route) => false, // Remove all previous routes
-         );
+        '/welcome', // Update this to the correct route for your welcome screen
+        (route) => false, // Remove all previous routes
+      );
+    });
         }
       },
       
