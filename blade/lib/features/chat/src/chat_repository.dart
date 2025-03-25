@@ -42,7 +42,7 @@ class ChatRepository {
         .collection('chatRooms')
         .doc(chatRoomId)
         .collection('messages')
-        .orderBy('timestamp', descending: false) // Corrected parameter
+        .orderBy('timestamp', descending: false) 
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
               return ChatMessage.fromFirestore(doc.data(), doc.id);

@@ -68,83 +68,94 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isNotEmpty ||
-        _selectedImage != null ||
-        _selectedFile != null) {
-      String? imageUrl;
-      String? fileUrl;
+  if (!_isMessageValid()) return;
 
-      try {
-        // Upload image if selected
-        if (_selectedImage != null) {
-          String fileName = _selectedImage!.path.split('/').last;
-          final storageRef = FirebaseStorage.instance.ref().child(
-              'chat_images/${DateTime.now().millisecondsSinceEpoch}_$fileName');
-          final uploadTask = storageRef.putFile(
-            _selectedImage!,
-            SettableMetadata(contentType: 'image/jpeg'), // Set content type
-          );
-          final snapshot = await uploadTask.whenComplete(() {});
-          imageUrl = await snapshot.ref.getDownloadURL();
-          print('Image URL: $imageUrl');
-        }
+  try {
+    final imageUrl = await _uploadImage(_selectedImage);
+    final fileUrl = await _uploadFile(_selectedFile);
 
-        // Upload file if selected
-        if (_selectedFile != null) {
-          String originalFileName = _selectedFile!.path.split('/').last;
-          String? contentType = _getContentType(originalFileName);
+    final message = _createMessage(imageUrl, fileUrl);
 
-          final storageRef = FirebaseStorage.instance.ref().child(
-              'chat_files/$originalFileName'); // Use the original file name
+    context.read<ChatBloc>().add(SendMessage(widget.chatRoomId, message));
 
-          final uploadTask = storageRef.putFile(
-            _selectedFile!,
-            SettableMetadata(contentType: contentType),
-          );
-          final snapshot = await uploadTask.whenComplete(() {});
-          fileUrl = await snapshot.ref.getDownloadURL();
-          print('File URL: $fileUrl');
-        }
-
-        final message = ChatMessage(
-          id: '', // Firebase will auto-generate this if using Firestore
-          senderId: widget.userId,
-          text: _messageController.text.trim(),
-          imageUrl: imageUrl,
-          fileUrl: fileUrl,
-          timestamp: DateTime.now(),
-          readBy: [],
-        );
-
-        // Send the message
-        context.read<ChatBloc>().add(SendMessage(widget.chatRoomId, message));
-
-        // Reset the inputs
-        _messageController.clear();
-        setState(() {
-          _selectedImage = null;
-          _selectedFile = null;
-          _isButtonEnabled = false;
-        });
-
-        // Scroll to bottom after sending the message
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_scrollController.hasClients) {
-            _scrollController.animateTo(
-              _scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
-          }
-        });
-      } catch (e) {
-        print('Error in _sendMessage: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send message: $e')),
-        );
-      }
-    }
+    _resetForm();
+    _scrollToBottom();
+  } catch (e) {
+    _showErrorMessage(e.toString());
   }
+}
+
+// Extracted Methods
+bool _isMessageValid() {
+  return _messageController.text.trim().isNotEmpty ||
+      _selectedImage != null ||
+      _selectedFile != null;
+}
+
+Future<String?> _uploadImage(File? image) async {
+  if (image == null) return null;
+  String fileName = image.path.split('/').last;
+  final storageRef = FirebaseStorage.instance
+      .ref()
+      .child('chat_images/${DateTime.now().millisecondsSinceEpoch}_$fileName');
+  final uploadTask = storageRef.putFile(
+    image,
+    SettableMetadata(contentType: 'image/jpeg'),
+  );
+  final snapshot = await uploadTask.whenComplete(() {});
+  return await snapshot.ref.getDownloadURL();
+}
+
+Future<String?> _uploadFile(File? file) async {
+  if (file == null) return null;
+  String fileName = file.path.split('/').last;
+  final storageRef = FirebaseStorage.instance.ref().child('chat_files/$fileName');
+  final uploadTask = storageRef.putFile(
+    file,
+    SettableMetadata(contentType: _getContentType(fileName)),
+  );
+  final snapshot = await uploadTask.whenComplete(() {});
+  return await snapshot.ref.getDownloadURL();
+}
+
+ChatMessage _createMessage(String? imageUrl, String? fileUrl) {
+  return ChatMessage(
+    id: '',
+    senderId: widget.userId,
+    text: _messageController.text.trim(),
+    imageUrl: imageUrl,
+    fileUrl: fileUrl,
+    timestamp: DateTime.now(),
+    readBy: [],
+  );
+}
+
+void _resetForm() {
+  _messageController.clear();
+  setState(() {
+    _selectedImage = null;
+    _selectedFile = null;
+    _isButtonEnabled = false;
+  });
+}
+
+void _scrollToBottom() {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  });
+}
+
+void _showErrorMessage(String error) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Failed to send message: $error')),
+  );
+}
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
