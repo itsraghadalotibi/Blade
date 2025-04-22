@@ -75,7 +75,8 @@ class _NavigationState extends State<Navigation> {
                           context,
                           MaterialPageRoute(
                               builder: (context) =>
-                                  const GithubAuthentication()),
+                                  const GithubAuthentication()
+                                  ),
                         );
                       },
                       child: const ListTile(

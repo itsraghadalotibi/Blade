@@ -56,35 +56,38 @@ class AiTodoScreen extends StatelessWidget {
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: fetchTodoList(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-              child: Text(
-                'No to-do list found.',
-                style: TextStyle(
-                  color: isDarkMode ? Colors.white70 : Colors.black87,
-                ),
-              ),
-            );
+          switch (snapshot.connectionState) {
+            case ConnectionState.waiting:
+              return const Center(child: CircularProgressIndicator());
+            default:
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(
+                  child: Text(
+                    'No to-do list found.',
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                );
+              }
+              final steps = snapshot.data!;
+              return ListView.builder(
+                itemCount: steps.length,
+                itemBuilder: (context, index) {
+                  final step = steps[index];
+                  final color = itemColors[index % itemColors.length];
+                  return AiTodoListItem(
+                    title: step['title'] ?? 'No Title',
+                    description: step['description'] ?? 'No Description',
+                    backgroundColor: color,
+                    stepNumber: index + 1,
+                  ).animate().fade(duration: 700.ms).slide();
+                },
+              );
           }
-
-          final steps = snapshot.data!;
-          return ListView.builder(
-            itemCount: steps.length,
-            itemBuilder: (context, index) {
-              final step = steps[index];
-              final color = itemColors[index % itemColors.length];
-              return AiTodoListItem(
-                title: step['title'] ?? 'No Title',
-                description: step['description'] ?? 'No Description',
-                backgroundColor: color,
-                stepNumber: index + 1,
-              ).animate().fade(duration: 700.ms).slide();
-            },
-          );
         },
       ),
     );
