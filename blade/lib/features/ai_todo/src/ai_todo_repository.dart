@@ -6,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'ai_todo_model.dart';
 
 class AiTodoRepository {
-  final String apiKey = 'I6MQ7ijtdeLIBPk1wuEPaD1LN7ghIGtqx7bUWwtM';
+  final String apiKey = const String.fromEnvironment('COHERE_API_KEY');
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
 Future<List<ToDoStep>> generateToDoList(String ideaId, String projectDescription) async {

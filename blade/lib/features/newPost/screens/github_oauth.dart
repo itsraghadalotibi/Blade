@@ -138,7 +138,7 @@ class _GithubAuthenticationState extends State<GithubAuthentication> {
 
   Future<String> getGithubAccessToken() async {
     final String clientId = 'Ov23liG9JalaLxAeKYln';
-    final String clientSecret = 'b0d93d6535f1eb37b7800ce29bdf3c00b20c627b';
+    final String clientSecret = const String.fromEnvironment('GITHUB_CLIENT_SECRET');
     final String redirectUri = 'com.example.blade://callback';
 
     // Step 1: Open the GitHub authorization page.
